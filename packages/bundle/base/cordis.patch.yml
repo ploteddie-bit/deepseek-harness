@@ -437,6 +437,14 @@
         thresholds: [3, 5, 8]
         argumentsPreviewChars: 500
 
+    # Test-after-edit advisory: nudge when the agent edits without recent tests.
+    - id: edit-test-guard
+      name: '@deepseek-ai/dsh-edit-test-guard'
+
+    # Failure-loop advisory: nudge when an agent repeats failing tool calls.
+    - id: failure-loop
+      name: '@deepseek-ai/dsh-failure-loop'
+
     # The shared base enables the stable model-facing web_search and web_fetch
     # tools. The Web app disables this host row and composes both tools per agent
     # preset; products with a stricter network policy override tool-web. DeepSeek
