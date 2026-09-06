@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-failure-loop",
   "description": "Failure-loop guard plugin: advisory reminders when an agent repeats tool calls that fail or fail to progress",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.3-alpha.1",
   "publishConfig": {
     "access": "public"
   },
