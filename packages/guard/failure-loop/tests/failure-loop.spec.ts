@@ -6,6 +6,7 @@ import { defineContentToolFixture } from '@deepseek-ai/dsh-tools'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
+import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import * as FailureLoopGuard from '@deepseek-ai/dsh-failure-loop'
 import type { Config } from '@deepseek-ai/dsh-failure-loop'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
@@ -28,6 +29,8 @@ const testToolSignal = new AbortController().signal
 async function harness(config: Config = {}, readResults: string[] = []): Promise<Context> {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
+  // AgentLoop declares the registry as a required injection.
+  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(FailureLoopGuard, config)
   ctx.tools.register(defineContentToolFixture({
@@ -51,7 +54,7 @@ function waitForIdle(ctx: Context, agent: Agent): Promise<void> {
 
 /** Every injected-context user message in the agent's log, flattened to joined text + source for terse assertions. */
 function reminders(agent: Agent): { text: string; source: unknown }[] {
-  return [...agent.session.events]
+  return agent.session.snapshotEvents()
     .filter((e): e is SessionEvent<'user/message'> => e.type === 'user/message' && e.data.source.kind !== 'user')
     .map(e => ({
       text: e.data.content.map(block => block.type === 'text' ? block.text : '').join('|'),
@@ -76,7 +79,7 @@ describe('exact failure', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -92,7 +95,7 @@ describe('exact failure', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -115,7 +118,7 @@ describe('same-tool failure', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -138,7 +141,7 @@ describe('idempotent no-progress', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -159,7 +162,7 @@ describe('idempotent no-progress', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -177,7 +180,7 @@ describe('idempotent no-progress', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -197,7 +200,7 @@ describe('reset semantics', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -214,7 +217,7 @@ describe('reset semantics', () => {
       textResponse('turn two done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'again' }], source: { kind: 'user' } }))
@@ -238,8 +241,8 @@ describe('isolation and transparency', () => {
       toolCallResponse('b3', 'failing', { q: 1 }),
       textResponse('done'),
     ]))
-    const agentA = ctx.agentLoop.create(SessionId('a'), { provider: 'mock-a', model: 'model-a' })
-    const agentB = ctx.agentLoop.create(SessionId('b'), { provider: 'mock-b', model: 'model-b' })
+    const agentA = await ctx.agentLoop.create(SessionId('a'), { provider: 'mock-a', model: 'model-a' })
+    const agentB = await ctx.agentLoop.create(SessionId('b'), { provider: 'mock-b', model: 'model-b' })
     agentA.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     agentB.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await Promise.all([waitForIdle(ctx, agentA), waitForIdle(ctx, agentB)])
@@ -257,7 +260,7 @@ describe('isolation and transparency', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -273,7 +276,7 @@ describe('isolation and transparency', () => {
       toolCallResponse('c1', 'failing', { q: 1 }), // if the direct call had counted, this would be #2
       textResponse('done'),
     ]))
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -293,12 +296,12 @@ describe('advisory semantics', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
     expect(reminders(agent)).toHaveLength(1)
-    const results = [...agent.session.events].filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
+    const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
     expect(results).toHaveLength(5)
     expect(results.every(r => r.data.message.content[0].isError !== true)).toBe(true)
   })
@@ -318,7 +321,7 @@ describe('advisory semantics', () => {
       textResponse('done'),
     ])
     ctx.llm.registerAdapter(['mock'], adapter)
-    const agent = ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -331,7 +334,7 @@ describe('advisory semantics', () => {
     expect(found[1]!.source).toEqual(guardSource('exact-failure', 'failing', 2))
     expect(found[2]).toEqual({ text: 'downstream-ctx', source: { kind: 'plugin', plugin: 'test' } })
     // The block's feedback reached the tool result unchanged.
-    const results = [...agent.session.events].filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
+    const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
     expect(results.every(r => r.data.message.content[0].isError)).toBe(true)
     expect(results[1]!.data.message.content[0].content).toEqual([{ type: 'text', text: 'nope' }])
   })
@@ -341,6 +344,7 @@ describe('config validation fails loud', () => {
   async function spine(): Promise<Context> {
     const ctx = new Context()
     await mountAgentLoopTestDependencies(ctx)
+    await ctx.plugin(SessionProjectionRegistry)
     await ctx.plugin(AgentLoop, { agents: [] })
     return ctx
   }
