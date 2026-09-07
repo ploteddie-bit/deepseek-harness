@@ -8,7 +8,7 @@
 dsh web --patch apps/cli/config/examples/schedule/cordis.yml
 ```
 
-当前 overlay 支持使用正整数 `after_seconds`、绝对时间 `at` 目标，或至少 300 秒的固定速率 `every_seconds` 间隔创建提醒。模型通过 `schedule_create`、`schedule_list` 和 `schedule_delete` 管理它们；每个结果都会把交付标为 `session-local`。
+当前 overlay 支持使用正整数 `after_seconds`、绝对时间 `at` 目标、至少 300 秒的固定速率 `every_seconds` 间隔，或日历 `cron` 规则（五字段 Cron 表达式或日历短语，以 UTC 解释）创建提醒。模型通过 `schedule_create`、`schedule_list` 和 `schedule_delete` 管理它们；每个结果都会把交付标为 `session-local`。
 
 启用此 overlay 后，成功打开且存在活动提醒的 Session 会在对话 header 中显示只读目录。目录列出完整 prompt、等待中或已逾期状态、单次或精确重复周期、浏览器本地目标时间与相对时间。侧边栏还会在 grouped、flat 与 search 行当前可用的 projection 值非空时，于标题后显示不可交互的闹钟。这些界面不会创建、编辑、删除或确认提醒；cold Session 的缓存闹钟允许短暂漏显或残留。
 
@@ -16,6 +16,6 @@ dsh web --patch apps/cli/config/examples/schedule/cordis.yml
 
 每条提醒由原 Session 日志拥有。live 根 Agent 会等待到完全 idle，再在该对话中排入一个普通 follow-up 轮次。它绝不会中途引导当前工作，也不会添加独立回执或提醒卡片。关闭进程或让 Session 保持 cold 会停止内存 timer，但不会删除记录；重新打开同一个 Session 会恢复等待并交付逾期提醒。查看 cold 历史不会激活提醒，fork 也不会继承父 Session 的提醒。
 
-Every 提醒始终与其创建时刻对齐。如果提醒逾期，只会呈现最新一个到期发生时点，下一个目标仍保留在原固定速率序列上。同一次 idle 决策中逾期的所有不同 Every 记录会合并为一个 follow-up，每条记录各有一个发生时点；错过的间隔不会形成积压。已到期的一次性提醒会在该批次之前运行。不支持日历表达式和 Cron 表达式。
+Every 提醒始终与其创建时刻对齐；Cron 提醒则推进到其下一个规则发生时点。如果提醒逾期，只会呈现最新一个到期发生时点。同一次 idle 决策中逾期的所有不同重复（Every 或 Cron）记录会合并为一个 follow-up，每条记录各有一个发生时点；错过的发生时点不会形成积压。已到期的一次性提醒会在该批次之前运行。
 
 创建和实际删除操作只有在 Session persistence 确认对应事件前缀后才会确认成功。Schedule 不提供浏览器、操作系统、邮件、短信或其他外部通知。持久 dispatch 会记录 follow-up 已经入队；它不确认模型成功或用户已收到提醒。

@@ -5,6 +5,8 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-failure-loop
 
+English | [中文](README.zh.md)
+
 ## Summary
 
 A model can get stuck retrying a tool call that keeps failing — re-running a broken command with the same arguments, or cycling the same tool with different arguments and watching each one fail — or re-reading an unchanged result through a read-only tool that never makes progress. `dsh-failure-loop` notices each pattern and tells the model to stop: at chosen counts it delivers a reminder to inspect the latest error and change strategy (different arguments, a different tool, or report the blocker), or to use the result already provided instead of re-reading it. The reminder is advice, never a block: a legitimate retry is delayed by nothing, and the decision to continue, change approach, or stop stays with the model. Set `hardStop: true` to turn that advice into a hard block once a loop reaches `hardStopThreshold` — the offending call is interrupted with corrective feedback instead of a reminder. It tracks each agent separately, so one agent's loop never disturbs another's work, and a successful call or a new user message clears the counts. It complements `repeat-tool-reminder` — that guard flags the *exact same call* regardless of outcome, this one flags calls that *fail or stop progressing* — and ships disabled by default so a composition can opt in alongside the other guards.

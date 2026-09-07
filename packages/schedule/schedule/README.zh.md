@@ -29,7 +29,7 @@ Schedule 让你向模型请求持久提醒；提醒会作为普通 follow-up 消
 
 ### 何时选择
 
-当你希望提醒以消息形式在同一 live 会话中交付时，选择 Schedule。当交付必须到达会话之外时请避开它——没有电子邮件、短信、推送或浏览器通知——或者当你需要「每个工作日 9 点」这类日历规则时：重复提醒只按固定间隔运行。
+当你希望提醒以消息形式在同一 live 会话中交付时，选择 Schedule。当交付必须到达会话之外时请避开它——没有电子邮件、短信、推送或浏览器通知。重复提醒要么按至少 5 分钟的固定间隔运行，要么按日历规则运行——即 `30 9 * * 1` 这类五字段 Cron 表达式，或「每个工作日 9 点」这类短语——两者都以 UTC 解释。
 
 ### 启用 Schedule
 
@@ -45,7 +45,7 @@ dsh web --patch apps/cli/config/examples/schedule/cordis.yml
 
 ### 安排提醒
 
-一次性提醒有两种形式：延时后——例如「30 分钟后」——或绝对时间，可以给出带显式偏移量的时刻，如 `2026-09-01T15:00:00+08:00`，也可以给出带命名时区（如 `Europe/Berlin`）的本地日期与时间（只有加载 time-context overlay 时才应用浏览器时区）。重复提醒按至少 5 分钟的固定间隔运行，并与你首次设置的时间保持对齐。每条提醒都需要在触发时展示的内容。
+一次性提醒有两种形式：延时后——例如「30 分钟后」——或绝对时间，可以给出带显式偏移量的时刻，如 `2026-09-01T15:00:00+08:00`，也可以给出带命名时区（如 `Europe/Berlin`）的本地日期与时间（只有加载 time-context overlay 时才应用浏览器时区）。重复提醒按至少 5 分钟的固定间隔运行并与你首次设置的时间保持对齐，或按日历规则运行——即 `30 9 * * 1` 这类五字段 Cron 表达式，或「每个工作日 9 点」这类短语——以 UTC 解释。每条提醒都需要在触发时展示的内容。
 
 创建成功会返回带 id、目标时间、状态与交付模式的提醒；`schedule_list` 按创建顺序显示所有待处理提醒；按 id 取消会移除待处理提醒，未知或已结束的 id 会报告 `schedule_not_found` 且不改变任何内容。
 
@@ -89,6 +89,7 @@ Session projection 是可选能力。`ctx.sessionProjections` 存在时，插件
 | [`src/index.ts`](src/index.ts) | 插件入口：`inject`、`agent/created` 观察、按根的 runtime 与工具安装 |
 | [`src/tools.ts`](src/tools.ts) | 工具定义、preflight、序列化事务、封闭错误联合 |
 | [`src/domain.ts`](src/domain.ts) | 严格解码、折叠、时间校验、framing、occurrence 算术 |
+| [`src/calendar.ts`](src/calendar.ts) | 纯五字段 Cron 与日历短语解析，以及 UTC occurrence 算术 |
 | [`src/runtime.ts`](src/runtime.ts) | live timer owner：maintenance 认领、follow-up、dispatch barrier |
 | [`src/persistence.ts`](src/persistence.ts) | Schedule 对共享会话持久化 barrier 的使用 |
 | [`src/projection.ts`](src/projection.ts) | 可选的 seed-aware Session projection 与严格检查点 schema |
@@ -98,7 +99,7 @@ Session projection 是可选能力。`ctx.sessionProjections` 存在时，插件
 
 ### 持久状态与回放
 
-普通会话折叠完整事件流。fork 只折叠 `session.ownEvents()`，因此子会话永远不会继承父会话的提醒。Schedule projection 从投影注册表接收 Session 的精确 `inheritedEventCount`，并在该切点之后应用同一个 transition 函数。每条 create 记录都携带稳定的会话本地 `ScheduleId`、已 trim 的提示词与四位年份 RFC 3339 UTC `scheduledAt`；`after` 记录还存储 `afterSeconds`，`at` 记录不保留所提交的偏移量或本地字段，`every` 记录存储 `everySeconds`，并把 `scheduledAt` 视为尚未 dispatch 的最早创建锚点对齐发生时点。delete 与一次性 dispatch 只携带 id；`every` dispatch 会附加 `acceptedAt`，回放直接推进到该决策时点之后的第一个锚点对齐目标。
+普通会话折叠完整事件流。fork 只折叠 `session.ownEvents()`，因此子会话永远不会继承父会话的提醒。Schedule projection 从投影注册表接收 Session 的精确 `inheritedEventCount`，并在该切点之后应用同一个 transition 函数。每条 create 记录都携带稳定的会话本地 `ScheduleId`、已 trim 的提示词与四位年份 RFC 3339 UTC `scheduledAt`；`after` 记录还存储 `afterSeconds`，`at` 记录不保留所提交的偏移量或本地字段，`every` 记录存储 `everySeconds`，并把 `scheduledAt` 视为尚未 dispatch 的最早创建锚点对齐发生时点，`cron` 记录存储其规范化的 `rule`，并把 `scheduledAt` 视为最早的待处理发生时点。delete 与一次性 dispatch 只携带 id；`every` 或 `cron` dispatch 会附加 `acceptedAt`，回放直接推进到该决策时点之后的第一个锚点对齐或规则推导目标。
 
 ### 客户端 projection
 
@@ -118,7 +119,7 @@ projection 只携带持久记录。它不持久化或传输 scheduled／overdue 
 
 ### live owner
 
-owner 把长等待拆分为有界的 timer 段，并在每次唤醒后重新读取墙钟。到期工作认领 idle maintenance phase、采样一个决策时点、在 `followup()` 之前构造完整的转义 framing、只在同步入队返回后追加 dispatch、释放 maintenance，然后等待持久化。错过的固定速率间隔永远不会被枚举：整数运算选择每条记录最新一个已到期且与创建锚点对齐的发生时点，并直接推进到第一个未来目标。
+owner 把长等待拆分为有界的 timer 段，并在每次唤醒后重新读取墙钟。到期工作认领 idle maintenance phase、采样一个决策时点、在 `followup()` 之前构造完整的转义 framing、只在同步入队返回后追加 dispatch、释放 maintenance，然后等待持久化。错过的重复发生时点永远不会被枚举：整数运算选择每条固定速率记录最新一个已到期且与创建锚点对齐的发生时点，日历运算选择每条 Cron 记录最新一个已到期的规则发生时点，两者都直接推进到第一个未来目标。
 
 逾期提醒首先为持久化建立检查点，然后通过 `runMaintenance()` 认领 agent 的 idle maintenance phase；如果某个轮次或另一项 maintenance task 已占用 agent，认领会失败，记录保持活动，owner 在 `whenIdle()` 后重试。获准的 maintenance task 会重新折叠、采样一个决策时点、构造固定 framing、同步将 `followup()` 入队，并在释放 phase 前追加 dispatch。dispatch 表示 follow-up 已入队并被记录，不表示模型成功或用户已读取回答。framing 构造或同步 follow-up 失败不会写入 dispatch；追加失败会使 owner 进入故障状态，因为消息可能已经入队；barrier 拒绝则把 dispatch 留给后续普通 preflight。agent 或插件执行资源释放时取消 timer 并停止新工作，但不删除持久记录。
 
@@ -182,13 +183,13 @@ reminder_prompt_json: <JSON.stringify(prompt)>
 
 提醒会追加到现有历史之后，并保留可复用的前缀。提醒的 id、occurrence 和提示词只会影响追加的后缀。
 
-### 到期固定速率批次
+### 到期重复批次
 
 #### 模型看到什么
 
-当一条或多条 Every 记录逾期时，本包会排入一条稳定的用户角色 framing。`reminders_json` 是一个按目标时间和创建顺序排列的 JSON 数组；每个对象都包含 `schedule_id`、选中的最新 `occurrence_at`，以及创建时提供的 `reminder_prompt`：
+当一条或多条重复（Every 或 Cron）记录逾期时，本包会排入一条稳定的用户角色 framing。`reminders_json` 是一个按目标时间和创建顺序排列的 JSON 数组；每个对象都包含 `schedule_id`、选中的最新 `occurrence_at`，以及创建时提供的 `reminder_prompt`：
 
-##### 固定速率批次 framing
+##### 重复批次 framing
 
 ```markdown
 [SCHEDULE REMINDER BATCH]
@@ -198,7 +199,7 @@ reminders_json: <JSON.stringify(reminders)>
 
 #### Token 影响
 
-无论有多少条不同的 Every 记录到期，每个获得准入的固定速率批次只会增加一条与数据相关的用户角色消息。该消息保留在会话历史中，并持续贡献 token，直到普通压缩（compaction）移除或替换这段历史。
+无论有多少条不同的重复记录到期，每个获得准入的重复批次只会增加一条与数据相关的用户角色消息。该消息保留在会话历史中，并持续贡献 token，直到普通压缩（compaction）移除或替换这段历史。
 
 #### KV Cache 影响
 
@@ -214,8 +215,8 @@ reminders_json: <JSON.stringify(reminders)>
 - **仅限会话本地交付**——提醒只有在原会话 live 时才能准时运行；cold 会话不会收到外部通知，只有恢复后才会处理逾期记录。
 - **活动驱动的重试**——到期 preflight 被拒绝或 framing／入队失败被收容后，记录仍保持活动，但不会启动私有重试 timer；后续 agent 活动或成功的 Schedule preflight 会触发重新计算。
 - **显式本地时区**——`at` 绝不会导入浏览器上下文；调用方必须把自然语言转换为带偏移量的 RFC 3339 字符串，或带 `time_zone` 的本地对象。
-- **固定间隔，而非日历规则**——`every_seconds` 与创建锚点对齐，且运行频率不能高于每 5 分钟一次；协议不包含日历表达式或 Cron 表达式。
-- **只追赶最新一次**——逾期 Every 记录只贡献其最新一个到期发生时点，因此 Schedule 绝不会回放因错过间隔而形成的积压。
+- **日历规则仅限 UTC**——`cron` selector（五字段 Cron 表达式或日历短语）以 UTC 解释且粒度为分钟；它无法表达秒、调用方时区，或超出标准 OR 语义的 `day-of-month`／`day-of-week` AND 关系。
+- **只追赶最新一次**——逾期 Every 或 Cron 记录只贡献其最新一个到期发生时点，因此 Schedule 绝不会回放因错过间隔而形成的积压。
 - **存在狭窄的崩溃重复窗口**——同步 follow-up 获得准入后、dispatch 检查点完成前发生崩溃，可能使提醒重复；本包不承诺模型完成、用户确认或副作用恰好执行一次。
 - **加载顺序边界**——插件不会扫描或接管加载时已经 live 的 agent。
 - **目录只是只读当前状态**——可选 Web 界面没有历史记录，也不具备变更、重试或确认语义；终结记录会消失，交付仍然是普通对话输出。
@@ -228,6 +229,6 @@ reminders_json: <JSON.stringify(reminders)>
 
 本开发备注是维护者的工作上下文：尚未决定的开放方向。它明确不具权威性——已交付的行为、限制与既定理由以上文、包代码和相关 Agent Note 为准。
 
-基于日历的重复调度仍是未来的产品边界，而非休眠的兼容分支；有界固定速率决策是已交付的范围。面向 cold 会话的外部通知渠道明确不在范围内。这两个方向都没有进度计划或设计负责人。
+基于日历的重复调度是一项已交付的产品边界：`cron` selector 接受五字段 Cron 表达式与简单日历短语，以 UTC 解释，并享有与固定速率提醒相同的只追赶最新一次与会话内交付。面向 cold 会话的外部通知渠道明确不在范围内。这两个方向都没有进度计划或设计负责人。
 
 </details>

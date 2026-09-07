@@ -264,6 +264,16 @@
     },
     {
       "doc": "docs/subsystems/schedule.md",
+      "symbol": "CronRule",
+      "source": "packages/schedule/schedule/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/schedule.md",
+      "symbol": "CronScheduleRecord",
+      "source": "packages/schedule/schedule/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/schedule.md",
       "symbol": "LocalAtInput",
       "source": "packages/schedule/schedule/src/types.ts"
     },
@@ -274,7 +284,17 @@
     },
     {
       "doc": "docs/subsystems/schedule.md",
+      "symbol": "CronInput",
+      "source": "packages/schedule/schedule/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/schedule.md",
       "symbol": "OneShotScheduleRecord",
+      "source": "packages/schedule/schedule/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/schedule.md",
+      "symbol": "RecurringScheduleRecord",
       "source": "packages/schedule/schedule/src/types.ts"
     },
     {
@@ -300,6 +320,11 @@
     {
       "doc": "docs/subsystems/schedule.md",
       "symbol": "EveryScheduleDispatchChange",
+      "source": "packages/schedule/schedule/src/types.ts"
+    },
+    {
+      "doc": "docs/subsystems/schedule.md",
+      "symbol": "CronScheduleDispatchChange",
       "source": "packages/schedule/schedule/src/types.ts"
     },
     {
