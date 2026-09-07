@@ -20,6 +20,25 @@ Session fixtures retain headers and payloads but omit body sequence/time envelop
 
 Forked workers run several spec files at once, the coverage gate splits into concurrent partitions beside the other gates in its job, and the self-hosted runners share one host and one volume. Only the process is isolated: ports, predictable paths, external namespaces, and inherited children are not. Own each acquired resource through its teardown, and read a spec that passes only when it runs alone as a defect in the spec rather than an unstable runner. [dsh-ci-test-reliability](../.agents/skills/dsh-ci-test-reliability/SKILL.md) owns the allocation, restoration, synchronization, timeout-budget, platform, and teardown rules; its [flake diagnosis workflow](../.agents/skills/dsh-ci-test-reliability/references/ci-flake-diagnosis.md) classifies an existing probabilistic failure.
 
+### Known flaky windows in `pnpm run test:gui` (measured 2026-09-08)
+
+A handful of GUI specs pass in under six seconds when run in isolation but exceed their implicit timeout when vitest fans them out across forked workers. Profiled single-file runs on the same host, same commit, same node:
+
+| Spec | Suite time | Isolated time |
+|---|---|---|
+| `packages/client/ui-primitives/tests/code-block.client.spec.tsx` | 12.3s | 2.7s |
+| `packages/client/ui-conversation/tests/assembly-surfaces.client.spec.tsx` | 12.7s | 4.0s |
+| `packages/client/ui-conversation/tests/skeleton.client.spec.tsx` | 10.9s | 5.0s |
+| `packages/client/ui-settings-plugin-inventory/tests/components.client.spec.tsx` | 10.3s | 3.0s |
+| `packages/client/ui-agent-preset/tests/components.client.spec.tsx` | 6.6s | 4.0s |
+| `packages/client/ui-commands/tests/popup-view.client.spec.tsx` | 16.0s | 4.0s |
+
+The shared shape — short under load balancing, slow under fan-out — points at worker scheduling rather than test logic. Treat each green run of an isolated spec as confirming the test, not the suite. When `test:gui` reports a timeout on one of the rows above, re-run the file alone before assuming a regression.
+
+### `pnpm install` bin warnings are not errors
+
+The postinstall step logs `[WARN] Failed to create bin at node_modules/.bin/<name>` for dependencies whose upstream package does not export an executable (`@deepseek-ai/cordis`, `yaml`, `playwright`, `@anthropic-ai/sdk`, `tsserver`). pnpm attempts to link a binary that does not exist, logs the warning, and continues. The targets are loaded as libraries, not invoked as binaries, so the warnings have no functional impact. Do not add per-package `package.json` overrides to silence them — the root `pnpm.overrides` would also block legitimate CLI use of those libraries elsewhere.
+
 ## The with-key policy: inference is cheap here
 
 We are DeepSeek — do not ration real-API tests. A no-key test proves plumbing; only a with-key run proves the agent works against a real model. Cover file-writing prompts, multi-turn conversations, tool use, and mid-stream cancellation. Highest-value are **smoke tests** that boot a shipped `dsh` profile, send one prompt, and check the world — they catch the "green unit tests, broken product" class that mocks cannot ([postmortem 0001](postmortem/0001-acp-default-export-drops-inject.md)). Self-skip keeps secretless CI and keyless contributors unblocked; it is not a cost signal. Profile-level integration tests live under `apps/cli/tests/profiles/`; package-specific compositions stay with their package tests.
