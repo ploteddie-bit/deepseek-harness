@@ -12,6 +12,7 @@ import {
   allocateScheduleId,
   createAfterScheduleRecord,
   createAtScheduleRecord,
+  createCronScheduleRecord,
   createEveryScheduleRecord,
   foldScheduleEvents,
   MIN_EVERY_INTERVAL_SECONDS,
@@ -72,7 +73,28 @@ const EVERY_VIEW_SCHEMA = {
   },
 } as const
 
-const VIEW_SCHEMA = { oneOf: [AFTER_VIEW_SCHEMA, AT_VIEW_SCHEMA, EVERY_VIEW_SCHEMA] } as const
+const CRON_VIEW_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  properties: {
+    ...SHARED_VIEW_PROPERTIES,
+    kind: { type: 'string', required: true, const: 'cron' },
+    rule: {
+      type: 'object',
+      required: true,
+      additionalProperties: false,
+      properties: {
+        minutes: { type: 'array', required: true, items: { type: 'integer' } },
+        hours: { type: 'array', required: true, items: { type: 'integer' } },
+        daysOfMonth: { type: 'array', required: true, items: { type: 'integer' } },
+        months: { type: 'array', required: true, items: { type: 'integer' } },
+        daysOfWeek: { type: 'array', required: true, items: { type: 'integer' } },
+      },
+    },
+  },
+} as const
+
+const VIEW_SCHEMA = { oneOf: [AFTER_VIEW_SCHEMA, AT_VIEW_SCHEMA, EVERY_VIEW_SCHEMA, CRON_VIEW_SCHEMA] } as const
 
 /** Build one exact two-field error schema while preserving its literal code. */
 function basicErrorSchema<const C extends string>(code: C) {
@@ -147,8 +169,10 @@ const DELETE_OUTPUT_SCHEMA = {
 const CREATE_DESCRIPTION =
   'Create one reminder in the current session. Supply a non-empty prompt and exactly one selector: '
   + 'a positive safe-integer after_seconds delay, at as a strict offset date-time or local '
-  + `date/time object, or safe-integer every_seconds of at least ${MIN_EVERY_INTERVAL_SECONDS}. `
-  + 'Fixed-rate reminders stay creation-aligned, skip missed occurrences, and batch one latest '
+  + `date/time object, safe-integer every_seconds of at least ${MIN_EVERY_INTERVAL_SECONDS}, or `
+  + 'cron as a five-field Cron expression or a calendar phrase such as "every weekday at 9" '
+  + '(both interpreted in UTC). Fixed-rate reminders stay creation-aligned; calendar reminders '
+  + 'advance to their next rule occurrence; both skip missed occurrences and batch one latest '
   + 'occurrence per overdue rule. '
   + 'Delivery is session-local: the reminder runs on time only while this session '
   + 'is live and otherwise becomes overdue until the session is resumed.'
@@ -256,18 +280,21 @@ function validateCreateArgs(args: {
   after_seconds?: number
   at?: AtInput
   every_seconds?: number
+  cron?: string
 }): ScheduleToolError | undefined {
   const keys = Object.keys(args as unknown as Record<string, unknown>)
   if (keys.some(key => key !== 'prompt'
     && key !== 'after_seconds'
     && key !== 'at'
-    && key !== 'every_seconds')
+    && key !== 'every_seconds'
+    && key !== 'cron')
     || Number(args.after_seconds !== undefined)
     + Number(args.at !== undefined)
-    + Number(args.every_seconds !== undefined) !== 1) {
+    + Number(args.every_seconds !== undefined)
+    + Number(args.cron !== undefined) !== 1) {
     return {
       code: 'invalid_selector',
-      message: 'schedule_create accepts exactly one of after_seconds, at, or every_seconds.',
+      message: 'schedule_create accepts exactly one of after_seconds, at, every_seconds, or cron.',
     }
   }
   if (args.prompt.trim().length === 0) {
@@ -285,6 +312,9 @@ function validateCreateArgs(args: {
       code: 'frequency_too_high',
       message: `every_seconds must be at least ${MIN_EVERY_INTERVAL_SECONDS}.`,
     }
+  }
+  if (args.cron !== undefined && typeof args.cron !== 'string') {
+    return { code: 'invalid_rule', message: 'cron must be a string.' }
   }
   return undefined
 }
@@ -347,6 +377,11 @@ export function registerScheduleTools(
             },
           ],
         },
+        cron: {
+          type: 'string',
+          description: 'Calendar rule as a five-field Cron expression (minute hour day-of-month month day-of-week) '
+            + 'or a calendar phrase such as "every weekday at 9", interpreted in UTC.',
+        },
       },
       output: { schema: CREATE_OUTPUT_SCHEMA, render: renderValue },
       async execute(args, exec): Promise<ScheduleCreateValue> {
@@ -366,6 +401,8 @@ export function registerScheduleTools(
               record = createAtScheduleRecord(id, args.prompt, args.at, Date.now())
             } else if (args.after_seconds !== undefined) {
               record = createAfterScheduleRecord(id, args.prompt, args.after_seconds, Date.now())
+            } else if (args.cron !== undefined) {
+              record = createCronScheduleRecord(id, args.prompt, args.cron, Date.now())
             } else {
               record = createEveryScheduleRecord(
                 id,
