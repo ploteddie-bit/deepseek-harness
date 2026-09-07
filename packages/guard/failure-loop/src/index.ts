@@ -1,10 +1,11 @@
 /**
- * Advisory per-agent failure-loop detector. It enriches post-execute decisions
- * with logged model context when an agent repeats tool calls that fail — the
- * exact same failing call, a run of failing calls to one tool — or idempotent
- * (read-only) calls that succeed without changing their result. It never
- * vetoes or rewrites a call: blocking stays a downstream listener's job.
- * Configuration and chain semantics live in the package README.
+ * Per-agent failure-loop detector. It enriches post-execute decisions with
+ * logged model context when an agent repeats tool calls that fail — the exact
+ * same failing call, a run of failing calls to one tool — or idempotent
+ * (read-only) calls that succeed without changing their result. Advisory by
+ * default (it never vetoes or rewrites a call); opt in to `hardStop` to have
+ * it block once a loop passes a threshold. Configuration and chain semantics
+ * live in the package README.
  * @module @deepseek-ai/dsh-failure-loop
  */
 
@@ -41,6 +42,10 @@ export interface Config {
   idempotentTools?: string[]
   /** Tool-name patterns transparent to the detector (neither count nor reset). */
   exclude?: string[]
+  /** Loop count at which an opt-in hard stop blocks the call instead of reminding (default 3). */
+  hardStopThreshold?: number
+  /** Opt-in: block a call once any signal reaches `hardStopThreshold` (default false — advisory only). */
+  hardStop?: boolean
 }
 
 export const Config: z<Config> = z.object({
@@ -50,6 +55,8 @@ export const Config: z<Config> = z.object({
   window: z.number().default(30),
   idempotentTools: z.array(z.string()).default(['read', 'glob', 'grep', 'list_*']),
   exclude: z.array(z.string()).default([]),
+  hardStopThreshold: z.number().default(3),
+  hardStop: z.boolean().default(false),
 })
 
 /**
@@ -79,6 +86,16 @@ interface AgentState {
   history: Observation[]
 }
 
+/** A fired failure signal: which loop was detected, on which tool, at what trailing length. */
+interface Detected {
+  /** Tool name that tripped the signal. */
+  readonly name: string
+  /** Which signal fired. */
+  readonly signal: FailureSignal
+  /** Trailing streak length that fired it. */
+  readonly count: number
+}
+
 /** The three reminder bodies, keyed by the signal that fired. */
 const REMINDERS: Record<FailureSignal, (tool: string, count: number) => string> = {
   'exact-failure': (tool, count) =>
@@ -92,6 +109,21 @@ const REMINDERS: Record<FailureSignal, (tool: string, count: number) => string> 
   'idempotent-no-progress': (tool, count) =>
     `${tool} returned the same result ${count} times. Use the result already provided `
     + 'or change the query instead of repeating it unchanged.',
+}
+
+/** The three corrective feedback bodies a hard stop turns into a blocked call's error content. */
+const HARD_STOP_FEEDBACK: Record<FailureSignal, (tool: string, count: number, threshold: number) => string> = {
+  'exact-failure': (tool, count, threshold) =>
+    `Hard stop: ${tool} failed ${count} times with identical arguments (limit ${threshold}). `
+    + 'Stop retrying this call. Inspect the latest error and change strategy — different arguments, '
+    + 'a different tool, or report the blocker — instead of repeating the same call.',
+  'same-tool-failure': (tool, count, threshold) =>
+    `Hard stop: ${tool} failed ${count} times in a row (limit ${threshold}). `
+    + 'Stop retrying. Diagnose the latest error and change approach — different arguments, a narrower '
+    + 'query or path, or a different tool — or report an external blocker.',
+  'idempotent-no-progress': (tool, count, threshold) =>
+    `Hard stop: ${tool} returned the same result ${count} times (limit ${threshold}). `
+    + 'Stop repeating this call. Use the result already provided or change the query instead.',
 }
 
 /**
@@ -170,9 +202,16 @@ export function apply(ctx: Context, config: Config): void {
   const exactFailureThreshold = validateThreshold(config.exactFailureThreshold as number, 'exactFailureThreshold')
   const sameToolFailureThreshold = validateThreshold(config.sameToolFailureThreshold as number, 'sameToolFailureThreshold')
   const idempotentNoProgressThreshold = validateThreshold(config.idempotentNoProgressThreshold as number, 'idempotentNoProgressThreshold')
+  const hardStop = config.hardStop === true
+  const hardStopThreshold = validateThreshold(config.hardStopThreshold as number, 'hardStopThreshold')
   const window = validateWindow(
     config.window as number,
-    Math.max(exactFailureThreshold, sameToolFailureThreshold, idempotentNoProgressThreshold),
+    Math.max(
+      exactFailureThreshold,
+      sameToolFailureThreshold,
+      idempotentNoProgressThreshold,
+      hardStop ? hardStopThreshold : 0,
+    ),
   )
   const idempotentPatterns = (config.idempotentTools as string[]).map(wildcardToRegExp)
   const excludePatterns = (config.exclude as string[]).map(wildcardToRegExp)
@@ -190,20 +229,19 @@ export function apply(ctx: Context, config: Config): void {
   }
 
   /**
-   * Advance the calling agent's window with this outcome and return the
-   * reminder to deliver, if this call's trailing streak reaches a threshold.
-   * Counting happens here — in post-execute — because denied calls also flow
-   * through this waterfall, and a model hammering a denied call is exactly the
-   * loop worth breaking. A success breaks a failure streak; a changed result
-   * breaks a no-progress streak — both fall out of the trailing-count scan
-   * naturally.
+   * Advance the calling agent's window with this outcome and return the fired
+   * signal, if this call's trailing streak reaches a threshold. Counting
+   * happens here — in post-execute — because denied calls also flow through
+   * this waterfall, and a model hammering a denied call is exactly the loop
+   * worth breaking. A success breaks a failure streak; a changed result breaks
+   * a no-progress streak — both fall out of the trailing-count scan naturally.
    */
-  function observe(exec: ToolExecution, result: Readonly<ToolExecutionResult>): UserMessage | undefined {
+  function observe(exec: ToolExecution, result: Readonly<ToolExecutionResult>): Detected | undefined {
     // A direct `ctx.tools.execute()` caller has no model to remind and no id
     // to key on; only agent-loop calls participate.
     if (!exec.agent) return undefined
     if (!tracked(exec.name)) return undefined
-    const failed = result.isError === true
+    const failed = result.isError
     const observation: Observation = {
       name: exec.name,
       key: JSON.stringify([exec.name, canonicalize(exec.arguments)]),
@@ -242,20 +280,29 @@ export function apply(ctx: Context, config: Config): void {
       }
     }
     if (signal === undefined) return undefined
-    return createUserMessage({
-      content: [{ type: 'text', text: REMINDERS[signal](observation.name, count) }],
-      source: { ...PLUGIN_SOURCE, form: 'notice', summary: `${signal}: ${observation.name} × ${count}` },
-    })
+    return { name: observation.name, signal, count }
   }
 
-  // Observe-and-enrich, never veto: count first (state advances regardless of
-  // the downstream outcome), DELEGATE so a later listener can still block or
-  // replace, then fold the reminder onto whatever came back — additionalContexts
-  // rides both decision variants, so a blocked call still gets the nudge.
+  // Count first (state advances regardless of the downstream outcome), DELEGATE
+  // so a later listener can still block or replace, then act: with hard stop
+  // armed, a signal at or past its threshold blocks with corrective feedback;
+  // otherwise fold the reminder onto whatever came back — additionalContexts
+  // rides both decision variants, so a downstream block still gets the nudge.
   ctx.on('tools/post-execute', async (exec, result, next): Promise<PostToolDecision> => {
-    const reminder = observe(exec, result)
+    const detected = observe(exec, result)
     const downstream = await next()
-    if (!reminder) return downstream
+    if (!detected) return downstream
+    const reminder = createUserMessage({
+      content: [{ type: 'text', text: REMINDERS[detected.signal](detected.name, detected.count) }],
+      source: { ...PLUGIN_SOURCE, form: 'notice', summary: `${detected.signal}: ${detected.name} × ${detected.count}` },
+    })
+    if (hardStop && detected.count >= hardStopThreshold) {
+      return {
+        kind: 'block',
+        feedback: [{ type: 'text', text: HARD_STOP_FEEDBACK[detected.signal](detected.name, detected.count, hardStopThreshold) }],
+        ...(downstream.additionalContexts !== undefined ? { additionalContexts: downstream.additionalContexts } : {}),
+      }
+    }
     if (downstream.kind === 'block') {
       return { kind: 'block', feedback: downstream.feedback, additionalContexts: prependContext(reminder, downstream.additionalContexts) }
     }

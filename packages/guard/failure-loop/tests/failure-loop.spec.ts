@@ -62,6 +62,19 @@ function reminders(agent: Agent): { text: string; source: unknown }[] {
     }))
 }
 
+/** The agent's tool-result events, for asserting block vs. pass outcomes. */
+function toolResults(agent: Agent): SessionEvent<'tool/result'>[] {
+  return agent.session.snapshotEvents()
+    .filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
+}
+
+/** The joined text of one tool result's rendered content blocks (empty when none are text). */
+function toolResultText(event: SessionEvent<'tool/result'>): string {
+  return event.data.message.content[0].content
+    .map(block => block.type === 'text' ? block.text : '')
+    .join('')
+}
+
 /** The `notice`-form source the guard stamps, including the signal that fired. */
 const guardSource = (signal: string, tool: string, count: number) => ({
   kind: 'plugin',
@@ -340,6 +353,97 @@ describe('advisory semantics', () => {
   })
 })
 
+describe('hard stop', () => {
+  it('blocks once a signal reaches hardStopThreshold', async () => {
+    const ctx = await harness({ hardStop: true, hardStopThreshold: 2, exactFailureThreshold: 2 })
+    const adapter = new MockAdapter([
+      toolCallResponse('c1', 'failing', { q: 'same' }),
+      toolCallResponse('c2', 'failing', { q: 'same' }),
+      toolCallResponse('c3', 'failing', { q: 'same' }),
+      textResponse('done'),
+    ])
+    ctx.llm.registerAdapter(['mock'], adapter)
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await waitForIdle(ctx, agent)
+
+    const results = toolResults(agent)
+    expect(results).toHaveLength(3)
+    // The first failure is the tool's own error; the second and third are hard-stopped.
+    expect(toolResultText(results[0]!)).not.toContain('Hard stop')
+    expect(toolResultText(results[1]!)).toContain('Hard stop')
+    expect(toolResultText(results[2]!)).toContain('Hard stop')
+  })
+
+  it('stays advisory below hardStopThreshold', async () => {
+    const ctx = await harness({ hardStop: true, hardStopThreshold: 4, exactFailureThreshold: 2 })
+    const adapter = new MockAdapter([
+      toolCallResponse('c1', 'failing', { q: 'same' }),
+      toolCallResponse('c2', 'failing', { q: 'same' }),
+      toolCallResponse('c3', 'failing', { q: 'same' }),
+      textResponse('done'),
+    ])
+    ctx.llm.registerAdapter(['mock'], adapter)
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await waitForIdle(ctx, agent)
+
+    const results = toolResults(agent)
+    expect(results).toHaveLength(3)
+    expect(results.every(r => !toolResultText(r).includes('Hard stop'))).toBe(true)
+    // The advisory reminder still fires at counts 2 and 3.
+    expect(reminders(agent)).toHaveLength(2)
+  })
+
+  it('is advisory by default: past the default threshold it still never blocks', async () => {
+    const ctx = await harness() // hardStop: false by default
+    const adapter = new MockAdapter([
+      toolCallResponse('c1', 'failing', { q: 'same' }),
+      toolCallResponse('c2', 'failing', { q: 'same' }),
+      toolCallResponse('c3', 'failing', { q: 'same' }),
+      toolCallResponse('c4', 'failing', { q: 'same' }),
+      textResponse('done'),
+    ])
+    ctx.llm.registerAdapter(['mock'], adapter)
+    const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
+    agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await waitForIdle(ctx, agent)
+
+    const results = toolResults(agent)
+    expect(results).toHaveLength(4)
+    expect(results.every(r => !toolResultText(r).includes('Hard stop'))).toBe(true)
+    // Advisory reminders fire at counts 3 and 4 (default exactFailureThreshold 3).
+    expect(reminders(agent)).toHaveLength(2)
+  })
+
+  it('keys hard stop per agent: one agent blocked never blocks another', async () => {
+    const ctx = await harness({ hardStop: true, hardStopThreshold: 3 })
+    ctx.llm.registerAdapter(['mock-a'], new MockAdapter([
+      toolCallResponse('a1', 'failing', { q: 1 }),
+      toolCallResponse('a2', 'failing', { q: 1 }),
+      toolCallResponse('a3', 'failing', { q: 1 }),
+      textResponse('done'),
+    ]))
+    ctx.llm.registerAdapter(['mock-b'], new MockAdapter([
+      toolCallResponse('b1', 'failing', { q: 1 }),
+      toolCallResponse('b2', 'failing', { q: 1 }),
+      textResponse('done'),
+    ]))
+    const agentA = await ctx.agentLoop.create(SessionId('a'), { provider: 'mock-a', model: 'model-a' })
+    const agentB = await ctx.agentLoop.create(SessionId('b'), { provider: 'mock-b', model: 'model-b' })
+    agentA.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    agentB.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
+    await Promise.all([waitForIdle(ctx, agentA), waitForIdle(ctx, agentB)])
+
+    const resultsA = toolResults(agentA)
+    const resultsB = toolResults(agentB)
+    expect(resultsA).toHaveLength(3)
+    expect(resultsB).toHaveLength(2)
+    expect(toolResultText(resultsA[2]!)).toContain('Hard stop')
+    expect(resultsB.every(r => !toolResultText(r).includes('Hard stop'))).toBe(true)
+  })
+})
+
 describe('config validation fails loud', () => {
   async function spine(): Promise<Context> {
     const ctx = new Context()
@@ -372,5 +476,24 @@ describe('config validation fails loud', () => {
   it('rejects a window smaller than a threshold', async () => {
     const ctx = await spine()
     await expect(ctx.plugin(FailureLoopGuard, { window: 4, sameToolFailureThreshold: 5 })).rejects.toThrow(/smaller than a threshold/)
+  })
+
+  it('rejects a hardStopThreshold below 2', async () => {
+    const ctx = await spine()
+    await expect(ctx.plugin(FailureLoopGuard, { hardStop: true, hardStopThreshold: 1 })).rejects.toThrow(/integer >= 2/)
+  })
+
+  it('rejects a non-integer hardStopThreshold', async () => {
+    const ctx = await spine()
+    await expect(ctx.plugin(FailureLoopGuard, { hardStop: true, hardStopThreshold: 2.5 })).rejects.toThrow(/integer >= 2/)
+  })
+
+  it('rejects a window smaller than hardStopThreshold when hard stop is armed', async () => {
+    const ctx = await spine()
+    await expect(ctx.plugin(FailureLoopGuard, {
+      hardStop: true,
+      hardStopThreshold: 10,
+      window: 5,
+    })).rejects.toThrow(/smaller than a threshold/)
   })
 })
