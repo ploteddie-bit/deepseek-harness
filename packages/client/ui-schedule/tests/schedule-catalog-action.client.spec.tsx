@@ -39,13 +39,23 @@ function record(
 ): ScheduleRecord {
   const common = {
     id: ScheduleId(id),
-    kind,
     prompt: options.prompt ?? id,
     scheduledAt: new Date(scheduledAt).toISOString(),
   }
-  if (kind === 'after') return { ...common, kind, afterSeconds: 30 }
-  if (kind === 'every') return { ...common, kind, everySeconds: options.everySeconds ?? 300 }
-  return { ...common, kind }
+  switch (kind) {
+    case 'after':
+      return { ...common, kind, afterSeconds: 30 }
+    case 'every':
+      return { ...common, kind, everySeconds: options.everySeconds ?? 300 }
+    case 'cron':
+      return {
+        ...common,
+        kind,
+        rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
+      }
+    case 'at':
+      return { ...common, kind }
+  }
 }
 
 function sessionSnapshot(openState: SessionSnapshot['openState']): SessionSnapshot {

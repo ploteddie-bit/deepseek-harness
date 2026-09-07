@@ -3,13 +3,13 @@ description: "Browser-side pre-send security scan that flags credentials, IPs, a
 kind: "package-reference"
 ---
 
-# @deepseek-ai/dsh-ui-pre-send-scan
+# @deepseek-ai/dsh-client-ui-pre-send-scan
 
 English | [中文](README.zh.md)
 
 ## Summary
 
-The composer draft can carry material that should not be sent — an API key pasted by accident, a private SSH key, a `Bearer` token, or an internal IP. `dsh-ui-pre-send-scan` reads the draft through the `useInput` standard hook and scans it locally for that material, then shows a coloured badge in the `conversation.input.right` slot with the worst severity and hit count. It is an indicator, never a blocker: the send action is not intercepted, the draft is sent to the model unchanged, and no scan result text enters the session log or model context. The scan runs entirely in the browser with no network call, no host behavior, and no model-visible effect.
+The composer draft can carry material that should not be sent — an API key pasted by accident, a private SSH key, a `Bearer` token, or an internal IP. `dsh-client-ui-pre-send-scan` reads the draft through the `useInput` standard hook and scans it locally for that material, then shows a coloured badge in the `conversation.input.right` slot with the worst severity and hit count. It is an indicator, never a blocker: the send action is not intercepted, the draft is sent to the model unchanged, and no scan result text enters the session log or model context. The scan runs entirely in the browser with no network call, no host behavior, and no model-visible effect.
 
 ## Table of Contents
 
@@ -17,7 +17,6 @@ The composer draft can carry material that should not be sent — an API key pas
 - [Understand the implementation](#understand-the-implementation)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
-- [Dev Note](#dev-note)
 
 -----
 
@@ -90,13 +89,3 @@ These limits define when the indicator is a poor fit. They are current package c
 - **Indicator only** — the scan never blocks a send, so a user who ignores the badge can still send sensitive material; blocking or confirmation is not implemented.
 - **Static pattern matching** — the rules are regular expressions with no semantic validation, so a well-formed key outside the known formats, or a secret spelled differently, is not flagged.
 - **No host-side scan** — the browser half alone scans the draft; there is no server-side or logged counterpart.
-
-<a id="dev-note"></a>
-### Dev Note
-
-<details>
-<summary>Working context for maintainers — click to expand</summary>
-
-The package name `@deepseek-ai/dsh-ui-pre-send-scan` deviates from the `dsh-client-<name>` convention for `packages/client/*` ([rule](../../AGENTS.md#web-client-stack)). Renaming to `@deepseek-ai/dsh-client-ui-pre-send-scan` would touch the `paths` mapping in `tsconfig.base.json` and require regenerating `pnpm-lock.yaml`, both outside the scoped cleanup that added this README; the rename is deferred until the package is wired into a bundle.
-
-</details>

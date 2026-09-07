@@ -3,13 +3,13 @@ description: "浏览器端的发送前安全扫描，标记草稿中的凭据、
 kind: "package-reference"
 ---
 
-# @deepseek-ai/dsh-ui-pre-send-scan
+# @deepseek-ai/dsh-client-ui-pre-send-scan
 
 [English](README.md) | 中文
 
 ## 概述
 
-composer 草稿可能携带不应发送的内容——误粘贴的 API key、私钥、`Bearer` token 或内网 IP。`dsh-ui-pre-send-scan` 通过 `useInput` 标准 hook 读取草稿并在本地扫描这些内容，然后在 `conversation.input.right` 槽位显示一个彩色徽标，标出最严重级别与命中数。它是指示器，绝非阻止器：发送动作不会被拦截，草稿原样发给模型，扫描结果文本也不会进入会话日志或模型上下文。扫描完全在浏览器内进行，无网络调用、无 host 行为、无模型可见影响。
+composer 草稿可能携带不应发送的内容——误粘贴的 API key、私钥、`Bearer` token 或内网 IP。`dsh-client-ui-pre-send-scan` 通过 `useInput` 标准 hook 读取草稿并在本地扫描这些内容，然后在 `conversation.input.right` 槽位显示一个彩色徽标，标出最严重级别与命中数。它是指示器，绝非阻止器：发送动作不会被拦截，草稿原样发给模型，扫描结果文本也不会进入会话日志或模型上下文。扫描完全在浏览器内进行，无网络调用、无 host 行为、无模型可见影响。
 
 ## 目录
 
@@ -17,7 +17,6 @@ composer 草稿可能携带不应发送的内容——误粘贴的 API key、私
 - [理解实现](#understand-the-implementation)
 - [模型体验](#model-experience)
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
-- [开发备注](#dev-note)
 
 -----
 
@@ -90,13 +89,3 @@ composer 草稿可能携带不应发送的内容——误粘贴的 API key、私
 - **仅指示器**——扫描从不阻止发送，因此忽略徽标的用户仍可能发送敏感内容；阻止或确认尚未实现。
 - **静态模式匹配**——规则是正则表达式，没有语义校验，因此已知格式之外构造良好的密钥，或拼写不同的密钥不会被标记。
 - **无 host 端扫描**——仅浏览器半边扫描草稿；没有服务端或记录在案的对应物。
-
-<a id="dev-note"></a>
-### 开发备注
-
-<details>
-<summary>维护者的工作上下文——点击展开</summary>
-
-包名 `@deepseek-ai/dsh-ui-pre-send-scan` 偏离了 `packages/client/*` 的 `dsh-client-<name>` 命名约定（[规则](../../AGENTS.md#web-client-stack)）。改名为 `@deepseek-ai/dsh-client-ui-pre-send-scan` 需要改动 `tsconfig.base.json` 的 `paths` 映射并重新生成 `pnpm-lock.yaml`，两者都在添加本 README 的有界清理范围之外；该改名推迟到包接入 bundle 时进行。
-
-</details>
