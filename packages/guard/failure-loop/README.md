@@ -106,7 +106,7 @@ Reminders ride the post-execute decision's `additionalContexts` (source `{kind: 
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | Plugin entry: `Config` schema, fail-loud validation, window listeners |
-| [`src/invariant.ts`](src/invariant.ts) | Invariant companion (no runtime invariant: the window is private to one post-execute listener) |
+| — | No runtime invariant companion is published; the failure-detector window is private to one post-execute listener and exposes no package-owned event or snapshot that an independent companion can observe. |
 
 </details>
 
@@ -131,9 +131,19 @@ Read these pages when the package-level contract is not enough. They move from t
 
 At `exactFailureThreshold` identical failing calls, that agent receives the reminder below. No tool schema or normal-call text is added.
 
+##### Exact-failure reminder
+
 ```markdown
 <tool> failed <count> times with identical arguments. This looks like a failure loop. Inspect the latest error and change strategy — different arguments, a different tool, or report the blocker — instead of retrying the same call unchanged.
 ```
+
+#### Token effect
+
+Zero tokens before the threshold. Each reminder is retained history for that agent; the `<tool>` and `<count>` placeholders are the only data-dependent text.
+
+#### KV Cache effect
+
+Append-only; newly visible content follows the reusable request prefix and does not invalidate existing KV-cache entries.
 
 ### Same-tool-failure reminder
 
@@ -141,9 +151,19 @@ At `exactFailureThreshold` identical failing calls, that agent receives the remi
 
 At `sameToolFailureThreshold` failing calls to one tool (arguments may differ), that agent receives the reminder below.
 
+##### Same-tool-failure reminder
+
 ```markdown
 <tool> failed <count> times in a row. This looks like a failure loop. Diagnose the latest error before retrying: try different arguments, a narrower query or path, or a different tool. If the blocker is external, report it after one diagnostic attempt.
 ```
+
+#### Token effect
+
+Zero tokens before the threshold. Each reminder is retained history for that agent; the `<tool>` and `<count>` placeholders are the only data-dependent text.
+
+#### KV Cache effect
+
+Append-only; newly visible content follows the reusable request prefix and does not invalidate existing KV-cache entries.
 
 ### Idempotent no-progress reminder
 
@@ -151,9 +171,19 @@ At `sameToolFailureThreshold` failing calls to one tool (arguments may differ), 
 
 At `idempotentNoProgressThreshold` unchanged results from an idempotent tool, that agent receives the reminder below.
 
+##### Idempotent no-progress reminder
+
 ```markdown
 <tool> returned the same result <count> times. Use the result already provided or change the query instead of repeating it unchanged.
 ```
+
+#### Token effect
+
+Zero tokens before the threshold. Each reminder is retained history for that agent; the `<tool>` and `<count>` placeholders are the only data-dependent text.
+
+#### KV Cache effect
+
+Append-only; newly visible content follows the reusable request prefix and does not invalidate existing KV-cache entries.
 
 ### Hard-stop feedback
 
@@ -161,13 +191,19 @@ At `idempotentNoProgressThreshold` unchanged results from an idempotent tool, th
 
 With `hardStop: true`, once a signal reaches `hardStopThreshold` the offending call is blocked: its `tool/result` becomes an error whose content is the hard-stop instruction below, keyed to the same three signals.
 
+##### Exact-failure hard stop
+
 ```markdown
 Hard stop: <tool> failed <count> times with identical arguments (limit <threshold>). Stop retrying this call. Inspect the latest error and change strategy — different arguments, a different tool, or report the blocker — instead of repeating the same call.
 ```
 
+##### Same-tool-failure hard stop
+
 ```markdown
 Hard stop: <tool> failed <count> times in a row (limit <threshold>). Stop retrying. Diagnose the latest error and change approach — different arguments, a narrower query or path, or a different tool — or report an external blocker.
 ```
+
+##### Idempotent no-progress hard stop
 
 ```markdown
 Hard stop: <tool> returned the same result <count> times (limit <threshold>). Stop repeating this call. Use the result already provided or change the query instead.
@@ -176,8 +212,6 @@ Hard stop: <tool> returned the same result <count> times (limit <threshold>). St
 #### Token effect
 
 Zero tokens before `hardStopThreshold`. The blocked call's error content replaces the call's own output, so the model sees the stop instruction instead of a repeated failure; the `<tool>`, `<count>`, and `<threshold>` placeholders are the only data-dependent text.
-
-Zero tokens before a threshold. Each reminder is retained history for that agent; the `<count>` and `<tool>` placeholders are the only data-dependent text.
 
 #### KV Cache effect
 

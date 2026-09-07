@@ -106,7 +106,7 @@ guard 建立在四项承诺之上：
 | 文件 | 职责 |
 |---|---|
 | [`src/index.ts`](src/index.ts) | 插件入口：`Config` schema、大声失败校验、窗口监听器 |
-| [`src/invariant.ts`](src/invariant.ts) | 不变式伴生入口（无运行时不变式：窗口私有于一个 post-execute 监听器） |
+| — | 不发布运行时不变式伴生入口；失败检测窗口私有于一个 post-execute 监听器，不暴露可供独立伴生入口观察的包级事件或快照。 |
 
 </details>
 
@@ -131,9 +131,19 @@ guard 建立在四项承诺之上：
 
 达到 `exactFailureThreshold` 次相同失败调用时，对应 agent 会收到下面的提醒。不会添加工具 schema 或正常调用文本。
 
+##### 精确失败提醒
+
 ```markdown
 <tool> failed <count> times with identical arguments. This looks like a failure loop. Inspect the latest error and change strategy — different arguments, a different tool, or report the blocker — instead of retrying the same call unchanged.
 ```
+
+#### Token 影响
+
+达到阈值前为零 token。每条提醒都会作为该 agent 的历史记录保留；`<tool>` 与 `<count>` 占位符是仅有的随数据变化的文本。
+
+#### KV Cache 影响
+
+仅追加；新出现的内容位于可复用请求前缀之后，不会使现有 KV-cache 条目失效。
 
 ### 同工具失败提醒
 
@@ -141,9 +151,19 @@ guard 建立在四项承诺之上：
 
 对同一工具达到 `sameToolFailureThreshold` 次失败调用（参数可以不同）时，对应 agent 会收到下面的提醒。
 
+##### 同工具失败提醒
+
 ```markdown
 <tool> failed <count> times in a row. This looks like a failure loop. Diagnose the latest error before retrying: try different arguments, a narrower query or path, or a different tool. If the blocker is external, report it after one diagnostic attempt.
 ```
+
+#### Token 影响
+
+达到阈值前为零 token。每条提醒都会作为该 agent 的历史记录保留；`<tool>` 与 `<count>` 占位符是仅有的随数据变化的文本。
+
+#### KV Cache 影响
+
+仅追加；新出现的内容位于可复用请求前缀之后，不会使现有 KV-cache 条目失效。
 
 ### 幂等无进展提醒
 
@@ -151,9 +171,19 @@ guard 建立在四项承诺之上：
 
 幂等工具达到 `idempotentNoProgressThreshold` 次未变化结果时，对应 agent 会收到下面的提醒。
 
+##### 幂等无进展提醒
+
 ```markdown
 <tool> returned the same result <count> times. Use the result already provided or change the query instead of repeating it unchanged.
 ```
+
+#### Token 影响
+
+达到阈值前为零 token。每条提醒都会作为该 agent 的历史记录保留；`<tool>` 与 `<count>` 占位符是仅有的随数据变化的文本。
+
+#### KV Cache 影响
+
+仅追加；新出现的内容位于可复用请求前缀之后，不会使现有 KV-cache 条目失效。
 
 ### 硬停止反馈
 
@@ -161,13 +191,19 @@ guard 建立在四项承诺之上：
 
 设置 `hardStop: true` 后，一旦信号达到 `hardStopThreshold`，出问题的调用会被阻止：它的 `tool/result` 变成一个错误，其内容是下面与三个信号一一对应的硬停止指令。
 
+##### 精确失败硬停止
+
 ```markdown
 Hard stop: <tool> failed <count> times with identical arguments (limit <threshold>). Stop retrying this call. Inspect the latest error and change strategy — different arguments, a different tool, or report the blocker — instead of repeating the same call.
 ```
 
+##### 同工具失败硬停止
+
 ```markdown
 Hard stop: <tool> failed <count> times in a row (limit <threshold>). Stop retrying. Diagnose the latest error and change approach — different arguments, a narrower query or path, or a different tool — or report an external blocker.
 ```
+
+##### 幂等无进展硬停止
 
 ```markdown
 Hard stop: <tool> returned the same result <count> times (limit <threshold>). Stop repeating this call. Use the result already provided or change the query instead.
@@ -176,8 +212,6 @@ Hard stop: <tool> returned the same result <count> times (limit <threshold>). St
 #### Token 影响
 
 达到 `hardStopThreshold` 前为零 token。被阻止调用的错误内容会取代调用自身的输出，因此模型看到的是停止指令而不是又一次失败；`<tool>`、`<count>` 与 `<threshold>` 占位符是仅有的随数据变化的文本。
-
-达到阈值前为零 token。每条提醒都会作为该 agent 的历史记录保留；`<count>` 与 `<tool>` 占位符是仅有的随数据变化的文本。
 
 #### KV Cache 影响
 

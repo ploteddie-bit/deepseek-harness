@@ -42,4 +42,4 @@ cold 或 busy Session 也无法有效回放每个错过的间隔。这样做会�
 - 持久规则 union 包含 After、At 与 Every；工具 selector union 包含 `after_seconds`、`at` 与 `every_seconds`。
 - 重新打开长期 cold 的 Session 时只会产生当前提醒工作，不会集中触发大量历史轮次。
 - 多条逾期 Every 记录共享一个模型请求，但不共享调度状态，也不会彼此延迟。
-- 基于日历的周期性需要未来的产品边界，而不是休眠兼容代码。
+- 基于日历的周期性后来以 `cron` selector 的形式交付（见 [日历 Cron 周期](../feature/2026-09-07-calendar-cron-schedule-rules.zh.md)）；有界固定速率决策对 `every_seconds` 仍然权威。

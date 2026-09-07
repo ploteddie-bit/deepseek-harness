@@ -103,7 +103,7 @@ guard 建立在三项承诺之上：
 | 文件 | 职责 |
 |---|---|
 | [`src/index.ts`](src/index.ts) | 插件入口：`Config` schema、大声失败校验、窗口监听器 |
-| [`src/invariant.ts`](src/invariant.ts) | 不变式伴生入口（无运行时不变式：窗口私有于一个 post-execute 监听器） |
+| — | 不发布运行时不变式伴生入口；编辑/测试窗口私有于一个 post-execute 监听器，不暴露可供独立伴生入口观察的包级事件或快照。 |
 
 </details>
 
@@ -126,15 +126,13 @@ guard 建立在三项承诺之上：
 
 #### 模型看到什么
 
-编辑类或写入类工具调用之后、近期窗口内没有测试命令时，对应 agent 会收到下面的提醒。不会添加工具 schema 或正常调用文本。
+编辑类或写入类工具调用之后、近期窗口内没有测试命令时，对应 agent 会收到下面的提醒。不会添加工具 schema 或正常调用文本。自定义 `reminder` 会原样替换这段文本；`reminderText` 函数则根据工具名动态生成它。
 
 ##### 编辑后未测试提醒
 
 ```markdown
 You edited a file but no test command has run in the recent tool-call history. Run the relevant tests now to verify the change before continuing.
 ```
-
-自定义 `reminder` 会原样替换这段文本；`reminderText` 函数则根据工具名动态生成它。
 
 #### Token 影响
 
