@@ -6,7 +6,7 @@ Schedule owns durable reminders that return to the original live Session as ordi
 
 ## Durable records
 
-`ScheduleId` is a [branded id](core.md#branded-ids), unique and never reused within one Session. Version 1 supports a positive safe-integer `after_seconds` delay, an explicit absolute `at` target, or a safe-integer `every_seconds` interval of at least five minutes. Creation canonicalizes every first target into a four-digit-year RFC 3339 UTC `scheduledAt`; an `after` record retains its submitted delay, an `at` record stores only the resulting instant, and an `every` record retains its fixed interval and next target.
+`ScheduleId` is a [branded id](core.md#branded-ids), unique and never reused within one Session. Version 1 supports a positive safe-integer `after_seconds` delay, an explicit absolute `at` target, a safe-integer `every_seconds` interval of at least five minutes, or a normalized five-field calendar `rule` interpreted in UTC. Creation canonicalizes every first target into a four-digit-year RFC 3339 UTC `scheduledAt`; an `after` record retains its submitted delay, an `at` record stores only the resulting instant, an `every` record retains its fixed interval and next target, and a `cron` record retains its normalized rule and next target.
 
 ```ts type-equiv
 /** Durable one-shot reminder created from a positive delay. */
@@ -55,13 +55,50 @@ interface EveryScheduleRecord {
 ```
 
 ```ts type-equiv
+/** Normalized five-field calendar rule, interpreted in UTC. Empty means "every". */
+interface CronRule {
+  /** Allowed minutes 0-59; empty means every minute. */
+  readonly minutes: number[]
+  /** Allowed hours 0-23; empty means every hour. */
+  readonly hours: number[]
+  /** Allowed days of month 1-31; empty means every day. */
+  readonly daysOfMonth: number[]
+  /** Allowed months 1-12; empty means every month. */
+  readonly months: number[]
+  /** Allowed days of week 0=Sunday..6=Saturday; empty means every day. */
+  readonly daysOfWeek: number[]
+}
+```
+
+```ts type-equiv
+/** Durable recurring reminder driven by a calendar rule rather than a fixed interval. */
+interface CronScheduleRecord {
+  /** Session-local stable identity. */
+  readonly id: ScheduleId
+  /** Rule discriminator for a calendar-driven recurring reminder. */
+  readonly kind: 'cron'
+  /** Trimmed reminder content supplied at creation. */
+  readonly prompt: string
+  /** Normalized UTC calendar rule. */
+  readonly rule: CronRule
+  /** Earliest pending occurrence not yet dispatched. */
+  readonly scheduledAt: string
+}
+```
+
+```ts type-equiv
 /** One-shot record variants that terminate on an id-only dispatch. */
 type OneShotScheduleRecord = AfterScheduleRecord | AtScheduleRecord
 ```
 
 ```ts type-equiv
+/** Recurring record variants that advance on a decision-time dispatch. */
+type RecurringScheduleRecord = EveryScheduleRecord | CronScheduleRecord
+```
+
+```ts type-equiv
 /** The v1 durable reminder record union. */
-type ScheduleRecord = OneShotScheduleRecord | EveryScheduleRecord
+type ScheduleRecord = OneShotScheduleRecord | RecurringScheduleRecord
 ```
 
 ## Absolute-time input
@@ -89,17 +126,26 @@ The official Web overlay samples the browser's IANA zone for every prompt. Time-
 
 Schedule rejects invalid offsets and zones, offset-free strings, non-future targets, and local times inside daylight-saving gaps. A daylight-saving overlap chooses its first, earlier instant. Successful creation stores only canonical UTC `scheduledAt`, so replay never depends on ambient time-zone state.
 
-## Fixed-rate input and catch-up
+## Recurring input and catch-up
 
-`every_seconds` is a per-record interval of at least 300 seconds, anchored to creation time. It is fixed-rate recurrence only: the protocol has no calendar or Cron expression, recurrence time zone, shared cooldown, or cross-record admission gate.
+`every_seconds` is a per-record interval of at least 300 seconds, anchored to creation time.
 
-When a Session was cold or busy across several targets, one Every record contributes only its latest due occurrence. The dispatch advances it directly to the first creation-anchor-aligned target after the dispatch decision time, without enumerating, persisting, or replaying missed intervals. If that next target cannot fit in a four-digit UTC year, the final dispatch terminates the record.
+The `cron` selector is a five-field Cron expression such as `30 9 * * 1` or a simple calendar phrase such as `every weekday at 9`, normalized to a `CronRule` of allowed minutes, hours, days of month, months, and days of week, and interpreted in UTC with minute granularity.
 
-When multiple distinct Every records are overdue and no one-shot is due, each contributes one occurrence to the same follow-up batch in target and creation order. Every record keeps independent state, while all dispatches in that admitted batch use the same decision time. Batching bounds model turns; the five-minute minimum bounds each record's timer frequency.
+```ts type-equiv
+/** Calendar selector accepted by `schedule_create`: a Cron 5-field expression or a calendar phrase. */
+type CronInput = string
+```
+
+It cannot express seconds, a caller time zone, or a `day-of-month`/`day-of-week` AND relationship beyond the standard OR semantics; a rule that cannot become a record is rejected as `invalid_rule`.
+
+When a Session was cold or busy across several targets, one Every or Cron record contributes only its latest due occurrence. The dispatch advances it directly to the first creation-anchor-aligned or rule-derived target after the dispatch decision time, without enumerating, persisting, or replaying missed occurrences. If that next target cannot fit in a four-digit UTC year, the final dispatch terminates the record.
+
+When multiple distinct recurring (Every or Cron) records are overdue and no one-shot is due, each contributes one occurrence to the same follow-up batch in target and creation order. Every record keeps independent state, while all dispatches in that admitted batch use the same decision time. Batching bounds model turns; the five-minute minimum and the minute-granular calendar rule bound each record's timer frequency.
 
 ## Durable changes and replay
 
-The version-1 `schedule/change` Session event is the only durable Schedule authority. Create stores the complete record, and delete is a terminal id-only transition. A one-shot dispatch is also terminal and id-only. An Every dispatch carries the wall-clock decision time used to select its latest due occurrence and normally advances the active record instead of terminating it. Dispatch means the follow-up was synchronously queued, not that a model answer succeeded or the user read it.
+The version-1 `schedule/change` Session event is the only durable Schedule authority. Create stores the complete record, and delete is a terminal id-only transition. A one-shot dispatch is also terminal and id-only. An Every or Cron dispatch carries the wall-clock decision time used to select its latest due occurrence and normally advances the active record instead of terminating it. Dispatch means the follow-up was synchronously queued, not that a model answer succeeded or the user read it.
 
 ```ts type-equiv
 /** Creates one durable reminder record. */
@@ -140,8 +186,22 @@ interface EveryScheduleDispatchChange {
 ```
 
 ```ts type-equiv
+/** Records one calendar decision and advances directly past missed occurrences. */
+interface CronScheduleDispatchChange {
+  readonly version: 1
+  readonly operation: 'dispatch'
+  readonly id: ScheduleId
+  /** Wall-clock decision time used to select the latest due occurrence. */
+  readonly acceptedAt: string
+}
+```
+
+```ts type-equiv
 /** Durable dispatch shapes supported by the current rule set. */
-type ScheduleDispatchChange = OneShotScheduleDispatchChange | EveryScheduleDispatchChange
+type ScheduleDispatchChange =
+  | OneShotScheduleDispatchChange
+  | EveryScheduleDispatchChange
+  | CronScheduleDispatchChange
 ```
 
 ```ts type-equiv
@@ -149,7 +209,7 @@ type ScheduleDispatchChange = OneShotScheduleDispatchChange | EveryScheduleDispa
 type ScheduleChange = ScheduleCreateChange | ScheduleDeleteChange | ScheduleDispatchChange
 ```
 
-The strict decoder and fold reject unknown versions, extra fields, reused ids, mismatched one-shot or Every dispatch shapes, and delete or dispatch transitions against inactive records. A normal Session folds its complete event stream. A fork folds only events at or after its exact `inheritedEventCount`, so it retains history without adopting the parent Session's active reminders. Projection initialization receives that cut beside the immutable header, uses the shared transition, and persists both the cut, active records, and used-id history so cached restore preserves strict replay. The `schedule/change` declaration and source location are also indexed in the [persistence catalog](../persistence-catalog.md#schedulechange--log-only).
+The strict decoder and fold reject unknown versions, extra fields, reused ids, mismatched one-shot or recurring dispatch shapes, and delete or dispatch transitions against inactive records. A normal Session folds its complete event stream. A fork folds only events at or after its exact `inheritedEventCount`, so it retains history without adopting the parent Session's active reminders. Projection initialization receives that cut beside the immutable header, uses the shared transition, and persists both the cut, active records, and used-id history so cached restore preserves strict replay. The `schedule/change` declaration and source location are also indexed in the [persistence catalog](../persistence-catalog.md#schedulechange--log-only).
 
 ## Active views and management
 
@@ -185,8 +245,8 @@ The shipped Web bundle keeps `ui-schedule` disabled by default, while the explic
 
 ## Live delivery
 
-The process-local owner derives its earliest timer from the durable fold and rereads the wall clock after every bounded wait. Cold Sessions do no work; reopening one reconstructs timers and makes past targets overdue. Due one-shots take priority and enter one later turn at a time. When no one-shot is due, all overdue Every records form the single batch described above.
+The process-local owner derives its earliest timer from the durable fold and rereads the wall clock after every bounded wait. Cold Sessions do no work; reopening one reconstructs timers and makes past targets overdue. Due one-shots take priority and enter one later turn at a time. When no one-shot is due, all overdue Every and Cron records form the single batch described above.
 
 Due work waits for the Agent to become fully idle and claims the maintenance phase before it refolds state, samples the decision, queues one `followup()`, and appends the corresponding dispatch changes. It never calls `steer()` and never interrupts a current turn.
 
-The admitted one-shot or fixed-rate batch starts one normal later turn and appears only through the ordinary conversation transcript; Schedule has no independent durable Web receipt. The read-only active catalog above never represents delivery success. If framing or synchronous queue admission fails, no dispatch is recorded and the reminder stays active. The narrow crash interval after admission but before durable dispatch can repeat reminder content after recovery, so the boundary is best-effort at-least-once rather than exactly-once delivery.
+The admitted one-shot or recurring batch starts one normal later turn and appears only through the ordinary conversation transcript; Schedule has no independent durable Web receipt. The read-only active catalog above never represents delivery success. If framing or synchronous queue admission fails, no dispatch is recorded and the reminder stays active. The narrow crash interval after admission but before durable dispatch can repeat reminder content after recovery, so the boundary is best-effort at-least-once rather than exactly-once delivery.

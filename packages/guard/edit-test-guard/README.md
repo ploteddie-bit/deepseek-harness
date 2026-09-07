@@ -5,6 +5,8 @@ kind: "package-reference"
 
 # @deepseek-ai/dsh-edit-test-guard
 
+English | [中文](README.zh.md)
+
 ## Summary
 
 A model can edit files for a long stretch without ever running the test suite, accumulating changes that nothing has verified. `dsh-edit-test-guard` notices the pattern and reminds the model to test: after an edit- or write-style tool call it checks whether the agent has run a test command within a recent window of tool calls, and if not, delivers a short reminder to run the relevant tests before continuing. The reminder is advice, never a block: the edit always lands, the tool result is unchanged, and the decision to test now, later, or never stays with the model. It tracks each agent separately, so one agent's test run never silences another agent's reminder, and the window bounds how far back it looks.
