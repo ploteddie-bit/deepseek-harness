@@ -1,0 +1,40 @@
+/* Solid severity badge: the state-primary fill with inverted layer-3 text,
+   mirroring the broken-preset badge precedent in ui-agent-preset. */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  height: 36px;
+  border: none;
+  border-radius: 999px;
+  corner-shape: round;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--dsw-alias-bg-layer-3);
+  cursor: pointer;
+}
+
+.badge[data-severity='critical'] {
+  background: var(--dsw-alias-state-error-primary);
+}
+
+.badge[data-severity='warn'] {
+  background: var(--dsw-alias-state-warn-primary);
+}
+
+.badge[data-severity='info'] {
+  background: var(--dsw-alias-state-business-primary);
+}
+
+.badge[data-severity='off'] {
+  background: var(--dsw-alias-label-caption);
+}
+
+.badge[aria-pressed='false'] {
+  opacity: 0.55;
+}
