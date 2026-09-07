@@ -29,7 +29,7 @@ Use Schedule when you want a reminder to arrive as a message in the same convers
 
 ### When to choose it
 
-Choose Schedule when you want reminders delivered as messages in the same live conversation. Avoid it when delivery must reach you outside the session — there is no email, SMS, push, or browser notification — or when you need calendar-style rules such as "every weekday at 9": repeating reminders run on a fixed interval only.
+Choose Schedule when you want reminders delivered as messages in the same live conversation. Avoid it when delivery must reach you outside the session — there is no email, SMS, push, or browser notification. Repeating reminders run either on a fixed interval of at least five minutes or on a calendar rule — a five-field Cron expression such as `30 9 * * 1` or a phrase such as `every weekday at 9` — both interpreted in UTC.
 
 ### Enable Schedule
 
@@ -45,7 +45,7 @@ Enable the overlay before starting the session you want reminders in: a session 
 
 ### Schedule a reminder
 
-One-time reminders come in two forms: after a delay — for example "in 30 minutes" — or at an absolute time, given either as an instant with an explicit offset such as `2026-09-01T15:00:00+08:00` or as a local date and time with a named zone such as `Europe/Berlin` (the browser's zone applies only when the time-context overlay is present). Repeating reminders run on a fixed interval of at least 5 minutes and stay aligned to the time you first set them. Every reminder needs content to show when it fires.
+One-time reminders come in two forms: after a delay — for example "in 30 minutes" — or at an absolute time, given either as an instant with an explicit offset such as `2026-09-01T15:00:00+08:00` or as a local date and time with a named zone such as `Europe/Berlin` (the browser's zone applies only when the time-context overlay is present). Repeating reminders run on a fixed interval of at least 5 minutes and stay aligned to the time you first set them, or on a calendar rule — a five-field Cron expression such as `30 9 * * 1` or a phrase such as `every weekday at 9` — interpreted in UTC. Every reminder needs content to show when it fires.
 
 A successful create returns the reminder with its id, target time, state, and delivery mode; `schedule_list` shows all pending reminders in the order you created them; canceling by id removes a pending reminder, and an unknown or already-finished id reports `schedule_not_found` without changing anything.
 
@@ -89,6 +89,7 @@ The package rests on one separation and three commitments:
 | [`src/index.ts`](src/index.ts) | Plugin entry: `inject`, `agent/created` observation, per-root runtime and tool installation |
 | [`src/tools.ts`](src/tools.ts) | Tool definitions, preflight, serialized transactions, closed error union |
 | [`src/domain.ts`](src/domain.ts) | Strict decoding, fold, time validation, framing, occurrence arithmetic |
+| [`src/calendar.ts`](src/calendar.ts) | Pure five-field Cron and calendar-phrase parsing plus UTC occurrence arithmetic |
 | [`src/runtime.ts`](src/runtime.ts) | Live timer owner: maintenance claim, follow-up, dispatch barrier |
 | [`src/persistence.ts`](src/persistence.ts) | Schedule-owned use of the shared session durability barrier |
 | [`src/projection.ts`](src/projection.ts) | Optional seed-aware Session projection and strict checkpoint schema |
@@ -98,7 +99,7 @@ The package rests on one separation and three commitments:
 
 ### Durable state and replay
 
-A normal Session folds its complete event stream. A fork folds only `session.ownEvents()`, so a child never inherits its parent's reminders. The Schedule projection receives the Session's exact `inheritedEventCount` from the projection registry and applies the same transition function after that cut. Every create record carries a stable Session-local `ScheduleId`, the trimmed prompt, and a four-digit-year RFC 3339 UTC `scheduledAt`; an `after` record also stores `afterSeconds`, an `at` record stores no copy of its submitted offset or local fields, and an `every` record stores `everySeconds` with `scheduledAt` as the earliest creation-anchor-aligned occurrence not yet dispatched. Delete and one-shot dispatch carry only the id; an `every` dispatch adds `acceptedAt`, and replay advances directly to the first anchor-aligned target after that decision time.
+A normal Session folds its complete event stream. A fork folds only `session.ownEvents()`, so a child never inherits its parent's reminders. The Schedule projection receives the Session's exact `inheritedEventCount` from the projection registry and applies the same transition function after that cut. Every create record carries a stable Session-local `ScheduleId`, the trimmed prompt, and a four-digit-year RFC 3339 UTC `scheduledAt`; an `after` record also stores `afterSeconds`, an `at` record stores no copy of its submitted offset or local fields, an `every` record stores `everySeconds` with `scheduledAt` as the earliest creation-anchor-aligned occurrence not yet dispatched, and a `cron` record stores its normalized `rule` with `scheduledAt` as the earliest pending occurrence. Delete and one-shot dispatch carry only the id; an `every` or `cron` dispatch adds `acceptedAt`, and replay advances directly to the first anchor-aligned or rule-derived target after that decision time.
 
 ### Client projection
 
@@ -118,7 +119,7 @@ Every read or decision from the fold first awaits `ctx.sessions.flush(session)`;
 
 ### Live owner
 
-The owner splits long waits into bounded timer segments and rereads the wall clock after every wake. Due work claims the idle maintenance phase, samples one decision time, builds the complete escaped framing before `followup()`, appends dispatch only after synchronous enqueue returns, releases maintenance, and then awaits durability. Missed fixed-rate intervals are never enumerated: integer arithmetic selects each record's latest due creation-anchor-aligned occurrence and advances it directly to the first future target.
+The owner splits long waits into bounded timer segments and rereads the wall clock after every wake. Due work claims the idle maintenance phase, samples one decision time, builds the complete escaped framing before `followup()`, appends dispatch only after synchronous enqueue returns, releases maintenance, and then awaits durability. Missed recurring occurrences are never enumerated: integer arithmetic selects each fixed-rate record's latest due anchor-aligned occurrence, calendar arithmetic selects each Cron record's latest due rule occurrence, and both advance directly to the first future target.
 
 An overdue reminder first checkpoints persistence, then claims the Agent's idle maintenance phase through `runMaintenance()`; if a turn or another maintenance task owns the Agent, the claim is rejected, the record stays active, and the owner retries after `whenIdle()`. A successful maintenance task refolds, samples one decision time, builds the fixed framing, synchronously queues `followup()`, and appends the dispatch before releasing the phase. Dispatch means the follow-up was queued and recorded, not that the model succeeded or the user read the answer. Framing or synchronous follow-up failure writes no dispatch; an append failure faults the owner because the message may already be queued; a barrier rejection leaves dispatch pending for a later ordinary preflight. Agent or plugin disposal cancels timers and stops new work without deleting durable records.
 
@@ -182,13 +183,13 @@ Each dispatched one-shot reminder adds one data-dependent user-role message. It 
 
 The reminder appends after existing history and preserves its reusable prefix. Its id, occurrence, and prompt affect only the appended suffix.
 
-### Due fixed-rate batch
+### Due recurring batch
 
 #### What the model sees
 
-When one or more Every records are overdue, the package queues one stable user-role framing. `reminders_json` is a JSON array in target and creation order; each object has `schedule_id`, the selected latest `occurrence_at`, and the `reminder_prompt` supplied at creation:
+When one or more recurring (Every or Cron) records are overdue, the package queues one stable user-role framing. `reminders_json` is a JSON array in target and creation order; each object has `schedule_id`, the selected latest `occurrence_at`, and the `reminder_prompt` supplied at creation:
 
-##### Fixed-rate batch framing
+##### Recurring batch framing
 
 ```markdown
 [SCHEDULE REMINDER BATCH]
@@ -198,7 +199,7 @@ reminders_json: <JSON.stringify(reminders)>
 
 #### Token effect
 
-Each admitted fixed-rate batch adds one data-dependent user-role message regardless of how many distinct Every records are due. It remains in Session history and contributes tokens until ordinary compaction removes or replaces that history.
+Each admitted recurring batch adds one data-dependent user-role message regardless of how many distinct recurring records are due. It remains in Session history and contributes tokens until ordinary compaction removes or replaces that history.
 
 #### KV Cache effect
 
@@ -214,8 +215,8 @@ These limits describe when Schedule does not fit your use case or needs special 
 - **Session-local delivery only** — a reminder runs on time only while its original Session is live; a cold Session receives no external notification and processes an overdue record only after resume.
 - **Activity-driven retry** — a rejected due preflight or contained framing/enqueue failure leaves the record active but starts no private retry timer; later Agent activity or a successful Schedule preflight triggers recomputation.
 - **Explicit local zone** — `at` never imports browser context; callers must translate natural language into either an offset-bearing RFC 3339 string or a local object with `time_zone`.
-- **Fixed intervals, not calendar rules** — `every_seconds` is creation-anchor-aligned and cannot run more often than every five minutes; calendar or Cron expressions are not part of the protocol.
-- **Latest-only catch-up** — an overdue Every record contributes only its latest due occurrence, so Schedule never replays a missed backlog.
+- **UTC-only calendar rules** — a `cron` selector (five-field Cron expression or calendar phrase) is interpreted in UTC with minute granularity; it cannot express seconds, a caller time zone, or a `day-of-month`/`day-of-week` AND relationship beyond the standard OR semantics.
+- **Latest-only catch-up** — an overdue Every or Cron record contributes only its latest due occurrence, so Schedule never replays a missed backlog.
 - **Narrow crash duplicate window** — a crash after synchronous follow-up admission but before the dispatch checkpoint can repeat the reminder; the package does not claim model completion, user acknowledgement, or exactly-once effects.
 - **Load-order boundary** — the plugin does not scan or adopt Agents that were already live when it loaded.
 - **Catalog is read-only current state** — the optional Web surface has no history, mutation, retry, or acknowledgement semantics; terminal records disappear and delivery remains ordinary conversation output.
@@ -228,6 +229,6 @@ These limits describe when Schedule does not fit your use case or needs special 
 
 This Dev Note is working context for maintainers: open directions that are not decided. It is explicitly non-authoritative — shipped behavior, limits, and accepted rationale live in the sections above, the package code, and the linked Agent Notes.
 
-Calendar-based recurrence remains a future product boundary rather than a dormant compatibility branch; the bounded fixed-rate decision is the shipped scope. An external notification channel for cold Sessions stays explicitly out of scope. Neither direction has a schedule or design owner.
+Calendar-based recurrence is now a shipped product boundary: a `cron` selector accepts five-field Cron expressions and simple calendar phrases, interpreted in UTC, with the same latest-only catch-up and in-session delivery as fixed-rate reminders. An external notification channel for cold Sessions stays explicitly out of scope. Neither direction has a schedule or design owner.
 
 </details>

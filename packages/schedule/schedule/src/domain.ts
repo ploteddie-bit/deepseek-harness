@@ -9,14 +9,24 @@ import type {
   AfterScheduleRecord,
   AtInput,
   AtScheduleRecord,
+  CronInput,
+  CronRule,
+  CronScheduleRecord,
   EveryScheduleRecord,
   LocalAtInput,
   OneShotScheduleRecord,
+  RecurringScheduleRecord,
   ScheduleChange,
   ScheduleId as ScheduleIdType,
   ScheduleRecord,
   ScheduleView,
 } from './types.ts'
+import {
+  CalendarRuleError,
+  nextCronOccurrence,
+  parseCronRule,
+  previousCronOccurrence,
+} from './calendar.ts'
 
 /** Durable Schedule protocol version implemented by this package. */
 export const SCHEDULE_CHANGE_VERSION = 1 as const
@@ -100,6 +110,14 @@ export interface EveryOccurrence {
   /** Latest anchor-aligned occurrence due at the decision time. */
   readonly occurrenceAt: string
   /** First anchor-aligned target after the decision, or exhaustion. */
+  readonly nextScheduledAt?: string
+}
+
+/** One latest-only calendar decision derived without enumerating a backlog. */
+export interface CronOccurrence {
+  /** Latest calendar occurrence due at the decision time. */
+  readonly occurrenceAt: string
+  /** First calendar target after the decision, or exhaustion. */
   readonly nextScheduledAt?: string
 }
 
@@ -447,6 +465,56 @@ function decodeEveryRecord(value: unknown): EveryScheduleRecord {
   })
 }
 
+/** Decode one sorted, deduplicated calendar field within its exact bounds. */
+function decodeCronField(value: unknown, min: number, max: number, name: string): number[] {
+  if (!Array.isArray(value)) throw new ScheduleLogError(`cron ${name} must be an array`)
+  const values = value.map((entry) => {
+    if (!Number.isSafeInteger(entry) || (entry as number) < min || (entry as number) > max) {
+      throw new ScheduleLogError(`cron ${name} must contain safe integers between ${min} and ${max}`)
+    }
+    return entry as number
+  })
+  for (let index = 1; index < values.length; index += 1) {
+    if ((values[index] as number) <= (values[index - 1] as number)) {
+      throw new ScheduleLogError(`cron ${name} must be sorted and unique`)
+    }
+  }
+  return values
+}
+
+/** Decode the exact normalized calendar rule embedded in a cron record. */
+function decodeCronRule(value: unknown): CronRule {
+  if (!isRecord(value)
+    || !hasExactKeys(value, ['minutes', 'hours', 'daysOfMonth', 'months', 'daysOfWeek'])) {
+    throw new ScheduleLogError('cron rule must contain exactly minutes, hours, daysOfMonth, months, and daysOfWeek')
+  }
+  return Object.freeze({
+    minutes: decodeCronField(value['minutes'], 0, 59, 'minutes'),
+    hours: decodeCronField(value['hours'], 0, 23, 'hours'),
+    daysOfMonth: decodeCronField(value['daysOfMonth'], 1, 31, 'daysOfMonth'),
+    months: decodeCronField(value['months'], 1, 12, 'months'),
+    daysOfWeek: decodeCronField(value['daysOfWeek'], 0, 6, 'daysOfWeek'),
+  })
+}
+
+/** Decode the exact v1 calendar record shape. */
+function decodeCronRecord(value: unknown): CronScheduleRecord {
+  if (!isRecord(value) || !hasExactKeys(value, ['id', 'kind', 'prompt', 'rule', 'scheduledAt'])) {
+    throw new ScheduleLogError('cron schedule must contain exactly id, kind, prompt, rule, and scheduledAt')
+  }
+  const prompt = value['prompt']
+  if (typeof prompt !== 'string' || prompt.length === 0 || prompt.trim() !== prompt) {
+    throw new ScheduleLogError('cron prompt must be non-empty and already trimmed')
+  }
+  return Object.freeze({
+    id: decodeId(value['id']),
+    kind: 'cron',
+    prompt,
+    rule: decodeCronRule(value['rule']),
+    scheduledAt: decodeInstant(value['scheduledAt']),
+  })
+}
+
 /** Decode one current durable record variant by its exact discriminator. */
 function decodeScheduleRecord(value: unknown): ScheduleRecord {
   if (!isRecord(value)) throw new ScheduleLogError('schedule record must be an object')
@@ -454,7 +522,8 @@ function decodeScheduleRecord(value: unknown): ScheduleRecord {
     case 'after': return decodeAfterRecord(value)
     case 'at': return decodeAtRecord(value)
     case 'every': return decodeEveryRecord(value)
-    default: throw new ScheduleLogError('v1 schedule kind must be "after", "at", or "every"')
+    case 'cron': return decodeCronRecord(value)
+    default: throw new ScheduleLogError('v1 schedule kind must be "after", "at", "every", or "cron"')
   }
 }
 
@@ -551,17 +620,53 @@ export function resolveEveryOccurrence(
   })
 }
 
+/**
+ * Resolve one calendar decision without enumerating a backlog.
+ * @param record - Active calendar record whose target is the earliest unaccepted occurrence.
+ * @param acceptedAt - Wall-clock decision time in epoch milliseconds.
+ * @returns The latest due occurrence and first strictly future target, if representable.
+ */
+export function resolveCronOccurrence(
+  record: CronScheduleRecord,
+  acceptedAt: number,
+): CronOccurrence {
+  const target = Date.parse(record.scheduledAt)
+  if (!Number.isSafeInteger(acceptedAt)
+    || acceptedAt < MIN_FOUR_DIGIT_YEAR_MS
+    || acceptedAt > MAX_FOUR_DIGIT_YEAR_MS) {
+    throw new ScheduleLogError('cron acceptedAt must be a representable four-digit-year instant')
+  }
+  if (acceptedAt < target) {
+    throw new ScheduleLogError('cron dispatch cannot precede the active scheduledAt')
+  }
+  const after = nextCronOccurrence(record.rule, acceptedAt)
+  if (after === undefined) {
+    const latest = previousCronOccurrence(record.rule, MAX_FOUR_DIGIT_YEAR_MS + 1)
+    if (latest === undefined) throw new ScheduleLogError('cron occurrence arithmetic must stay within range')
+    return Object.freeze({ occurrenceAt: new Date(latest).toISOString() })
+  }
+  const latest = previousCronOccurrence(record.rule, after)
+  /* v8 ignore next -- an occurrence strictly before "after" always exists at or after the target. */
+  const occurrence = latest ?? target
+  return Object.freeze({
+    occurrenceAt: new Date(occurrence).toISOString(),
+    nextScheduledAt: new Date(after).toISOString(),
+  })
+}
+
 type DecodedDispatch = Extract<ScheduleChange, { operation: 'dispatch' }>
 
 /** Apply one decoded dispatch to its exact active record. */
 function dispatchedRecord(record: ScheduleRecord, change: DecodedDispatch): ScheduleRecord | undefined {
   const hasAcceptedAt = 'acceptedAt' in change
-  if (record.kind !== 'every') {
+  if (record.kind !== 'every' && record.kind !== 'cron') {
     if (hasAcceptedAt) throw new ScheduleLogError('one-shot dispatch must not contain acceptedAt')
     return undefined
   }
-  if (!hasAcceptedAt) throw new ScheduleLogError('every dispatch must contain acceptedAt')
-  const occurrence = resolveEveryOccurrence(record, Date.parse(change.acceptedAt))
+  if (!hasAcceptedAt) throw new ScheduleLogError('recurring dispatch must contain acceptedAt')
+  const occurrence = record.kind === 'every'
+    ? resolveEveryOccurrence(record, Date.parse(change.acceptedAt))
+    : resolveCronOccurrence(record, Date.parse(change.acceptedAt))
   return occurrence.nextScheduledAt === undefined
     ? undefined
     : Object.freeze({ ...record, scheduledAt: occurrence.nextScheduledAt })
@@ -785,6 +890,52 @@ export function createEveryScheduleRecord(
 }
 
 /**
+ * Validate a calendar selector and compute its first strictly future UTC occurrence.
+ * @param id - Already allocated session-local id.
+ * @param prompt - Reminder content supplied at creation.
+ * @param cron - Five-field Cron expression or simple calendar phrase, interpreted in UTC.
+ * @param now - Single creation-time wall-clock sample in epoch milliseconds.
+ * @returns Frozen durable calendar record.
+ */
+export function createCronScheduleRecord(
+  id: ScheduleIdType,
+  prompt: string,
+  cron: CronInput,
+  now: number,
+): CronScheduleRecord {
+  const normalizedPrompt = prompt.trim()
+  if (normalizedPrompt.length === 0) {
+    throw new ScheduleInputError('invalid_prompt', 'prompt must be non-empty after trimming.')
+  }
+  if (typeof cron !== 'string') {
+    throw new ScheduleInputError('invalid_rule', 'cron must be a string.')
+  }
+  let rule: CronRule
+  try {
+    rule = parseCronRule(cron)
+  } catch (error: unknown) {
+    if (error instanceof CalendarRuleError) {
+      throw new ScheduleInputError('invalid_rule', error.message, { cause: error })
+    }
+    throw error
+  }
+  const next = nextCronOccurrence(rule, now)
+  if (next === undefined) {
+    throw new ScheduleInputError(
+      'time_out_of_range',
+      'The scheduled time must be representable as a four-digit-year RFC 3339 UTC instant.',
+    )
+  }
+  return Object.freeze({
+    id,
+    kind: 'cron',
+    prompt: normalizedPrompt,
+    rule,
+    scheduledAt: futureInstant(next, now),
+  })
+}
+
+/**
  * Derive one execution-local management view.
  * @param record - Active durable record.
  * @param now - Wall-clock sample used for its timing state.
@@ -819,7 +970,7 @@ export function renderReminderFraming(record: OneShotScheduleRecord): string {
  * @returns Stable model-visible text whose dynamic payload is canonical JSON.
  */
 export function renderEveryReminderBatchFraming(
-  reminders: readonly { readonly record: EveryScheduleRecord; readonly occurrenceAt: string }[],
+  reminders: readonly { readonly record: RecurringScheduleRecord; readonly occurrenceAt: string }[],
 ): string {
   const payload = reminders.map(({ record, occurrenceAt }) => ({
     schedule_id: record.id,

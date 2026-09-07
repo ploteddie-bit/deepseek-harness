@@ -22,14 +22,24 @@ export {
   allocateScheduleId,
   createAfterScheduleRecord,
   createAtScheduleRecord,
+  createCronScheduleRecord,
   createEveryScheduleRecord,
   decodeScheduleChange,
   foldScheduleEvents,
   renderReminderFraming,
   renderEveryReminderBatchFraming,
   resolveEveryOccurrence,
+  resolveCronOccurrence,
   scheduleView,
 } from './domain.ts'
+export {
+  CalendarRuleError,
+  parseCronRule,
+  parseCron5Field,
+  parseCalendarPhrase,
+  nextCronOccurrence,
+  previousCronOccurrence,
+} from './calendar.ts'
 export { registerScheduleTools } from './tools.ts'
 
 /** Cordis function-plugin name. */

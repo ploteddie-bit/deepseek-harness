@@ -152,7 +152,7 @@ describe('Schedule tool protocol', () => {
     expect(value(await execute(test, 'schedule_create', { prompt: 'x', after_seconds: 1, at: 'later' })))
       .toEqual({
         code: 'invalid_selector',
-        message: 'schedule_create accepts exactly one of after_seconds, at, or every_seconds.',
+        message: 'schedule_create accepts exactly one of after_seconds, at, every_seconds, or cron.',
       })
     expect(value(await execute(test, 'schedule_create', { prompt: 'x', every_seconds: 1.5 })))
       .toEqual({ code: 'invalid_rule', message: 'every_seconds must be a safe integer.' })
@@ -277,6 +277,44 @@ describe('Schedule tool protocol', () => {
         state: 'overdue',
       }),
     ])
+  })
+
+  it('creates and lists a calendar record from a Cron or phrase selector', async () => {
+    const test = await harness()
+    expect(value(await execute(test, 'schedule_create', {
+      prompt: 'weekday standup', cron: '30 9 * * 1-5',
+    }))).toEqual({
+      id: 'schedule-1',
+      kind: 'cron',
+      prompt: 'weekday standup',
+      rule: { minutes: [30], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1, 2, 3, 4, 5] },
+      scheduledAt: '2026-08-06T09:30:00.000Z',
+      state: 'scheduled',
+      deliveryMode: 'session-local',
+    })
+    expect(value(await execute(test, 'schedule_create', {
+      prompt: 'weekly review', cron: 'every monday at 9am',
+    }))).toMatchObject({
+      id: 'schedule-2',
+      kind: 'cron',
+      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
+    })
+    expect(value(await execute(test, 'schedule_list', {}))).toEqual([
+      expect.objectContaining({ id: 'schedule-1', kind: 'cron' }),
+      expect.objectContaining({ id: 'schedule-2', kind: 'cron' }),
+    ])
+  })
+
+  it('returns a stable invalid_rule after preflight for a malformed calendar selector', async () => {
+    const test = await harness()
+    expect(value(await execute(test, 'schedule_create', {
+      prompt: 'bad calendar', cron: '60 9 * * *',
+    }))).toEqual({
+      code: 'invalid_rule',
+      message: 'Cron value 60 is outside 0-59.',
+    })
+    expect(test.flushes.count).toBe(1)
+    expect(test.agent.session.snapshotEvents().filter(event => event.type === 'schedule/change')).toEqual([])
   })
 
   it('returns stable at validation errors after persistence preflight', async () => {

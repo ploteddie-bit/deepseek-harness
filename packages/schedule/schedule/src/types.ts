@@ -49,6 +49,37 @@ export interface EveryScheduleRecord {
   readonly scheduledAt: string
 }
 
+/** Normalized five-field calendar rule, interpreted in UTC. Empty means "every". */
+export interface CronRule {
+  /** Allowed minutes 0-59; empty means every minute. */
+  readonly minutes: number[]
+  /** Allowed hours 0-23; empty means every hour. */
+  readonly hours: number[]
+  /** Allowed days of month 1-31; empty means every day. */
+  readonly daysOfMonth: number[]
+  /** Allowed months 1-12; empty means every month. */
+  readonly months: number[]
+  /** Allowed days of week 0=Sunday..6=Saturday; empty means every day. */
+  readonly daysOfWeek: number[]
+}
+
+/** Durable recurring reminder driven by a calendar rule rather than a fixed interval. */
+export interface CronScheduleRecord {
+  /** Session-local stable identity. */
+  readonly id: ScheduleId
+  /** Rule discriminator for a calendar-driven recurring reminder. */
+  readonly kind: 'cron'
+  /** Trimmed reminder content supplied at creation. */
+  readonly prompt: string
+  /** Normalized UTC calendar rule. */
+  readonly rule: CronRule
+  /** Earliest pending occurrence not yet dispatched. */
+  readonly scheduledAt: string
+}
+
+/** Calendar selector accepted by `schedule_create`: a Cron 5-field expression or a calendar phrase. */
+export type CronInput = string
+
 /** Structured local-calendar input accepted by `schedule_create`. */
 export interface LocalAtInput {
   /** Four-digit ISO calendar date. */
@@ -65,8 +96,11 @@ export type AtInput = string | LocalAtInput
 /** One-shot record variants that terminate on an id-only dispatch. */
 export type OneShotScheduleRecord = AfterScheduleRecord | AtScheduleRecord
 
+/** Recurring record variants that advance on a decision-time dispatch. */
+export type RecurringScheduleRecord = EveryScheduleRecord | CronScheduleRecord
+
 /** The v1 durable reminder record union. */
-export type ScheduleRecord = OneShotScheduleRecord | EveryScheduleRecord
+export type ScheduleRecord = OneShotScheduleRecord | RecurringScheduleRecord
 
 /** Creates one durable reminder record. */
 export interface ScheduleCreateChange {
@@ -98,8 +132,20 @@ export interface EveryScheduleDispatchChange {
   readonly acceptedAt: string
 }
 
+/** Records one calendar decision and advances directly past missed occurrences. */
+export interface CronScheduleDispatchChange {
+  readonly version: 1
+  readonly operation: 'dispatch'
+  readonly id: ScheduleId
+  /** Wall-clock decision time used to select the latest due occurrence. */
+  readonly acceptedAt: string
+}
+
 /** Durable dispatch shapes supported by the current rule set. */
-export type ScheduleDispatchChange = OneShotScheduleDispatchChange | EveryScheduleDispatchChange
+export type ScheduleDispatchChange =
+  | OneShotScheduleDispatchChange
+  | EveryScheduleDispatchChange
+  | CronScheduleDispatchChange
 
 /** Strict version-1 durable Schedule mutation union. */
 export type ScheduleChange = ScheduleCreateChange | ScheduleDeleteChange | ScheduleDispatchChange

@@ -9,12 +9,14 @@ import {
   canonicalizeTimeZone,
   createAfterScheduleRecord,
   createAtScheduleRecord,
+  createCronScheduleRecord,
   createEveryScheduleRecord,
   decodeScheduleChange,
   foldScheduleEvents,
   MIN_EVERY_INTERVAL_SECONDS,
   renderEveryReminderBatchFraming,
   renderReminderFraming,
+  resolveCronOccurrence,
   resolveEveryOccurrence,
   scheduleView,
 } from '../src/domain.ts'
@@ -51,11 +53,30 @@ function everyCreateData(
   }
 }
 
+function cronCreateData(
+  id = 'schedule-cron',
+  prompt = 'check calendar',
+  scheduledAt = '2026-08-10T09:00:00.000Z',
+) {
+  return {
+    version: 1,
+    operation: 'create',
+    schedule: {
+      id,
+      kind: 'cron',
+      prompt,
+      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
+      scheduledAt,
+    },
+  }
+}
+
 describe('version-1 Schedule decoding and folding', () => {
   it('decodes and freezes each exact v1 operation', () => {
     const create = decodeScheduleChange(createData())
     const at = decodeScheduleChange(atCreateData())
     const every = decodeScheduleChange(everyCreateData())
+    const cron = decodeScheduleChange(cronCreateData())
     const remove = decodeScheduleChange({ version: 1, operation: 'delete', id: 'schedule-1' })
     const dispatch = decodeScheduleChange({ version: 1, operation: 'dispatch', id: 'schedule-1' })
     const everyDispatch = decodeScheduleChange({
@@ -68,6 +89,7 @@ describe('version-1 Schedule decoding and folding', () => {
     expect(create).toEqual(createData())
     expect(at).toEqual(atCreateData())
     expect(every).toEqual(everyCreateData())
+    expect(cron).toEqual(cronCreateData())
     expect(remove).toEqual({ version: 1, operation: 'delete', id: 'schedule-1' })
     expect(dispatch).toEqual({ version: 1, operation: 'dispatch', id: 'schedule-1' })
     expect(everyDispatch).toEqual({
@@ -79,6 +101,7 @@ describe('version-1 Schedule decoding and folding', () => {
     expect(Object.isFrozen(create)).toBe(true)
     expect(Object.isFrozen(at)).toBe(true)
     expect(Object.isFrozen(every)).toBe(true)
+    expect(Object.isFrozen(cron)).toBe(true)
     if (create.operation !== 'create') throw new Error('expected create')
     expect(Object.isFrozen(create.schedule)).toBe(true)
   })
@@ -111,6 +134,16 @@ describe('version-1 Schedule decoding and folding', () => {
     { ...createData(), schedule: null },
     { ...atCreateData(), schedule: { ...atCreateData().schedule, kind: 'every' } },
     { ...atCreateData(), schedule: { ...atCreateData().schedule, kind: 'later' } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, extra: true } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, kind: 'later' } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, prompt: ' ' } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, scheduledAt: 'not-an-instant' } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, extra: [] } } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: 'bad' } } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [60] } } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [1, 1] } } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [5, 1] } } },
+    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, daysOfWeek: [7] } } },
   ])('rejects malformed durable data %#', (data) => {
     expect(() => decodeScheduleChange(data)).toThrow(ScheduleLogError)
   })
@@ -333,10 +366,100 @@ describe('fixed-rate records and durable progression', () => {
   })
 })
 
+describe('calendar records and durable progression', () => {
+  const now = Date.parse('2026-09-06T00:00:00.000Z') // Sunday
+
+  it('creates the first strictly future occurrence from a Cron selector', () => {
+    expect(createCronScheduleRecord(
+      ScheduleId('schedule-cron'),
+      '  check calendar  ',
+      '0 9 * * 1',
+      now,
+    )).toEqual({
+      id: 'schedule-cron',
+      kind: 'cron',
+      prompt: 'check calendar',
+      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
+      scheduledAt: '2026-09-07T09:00:00.000Z',
+    })
+  })
+
+  it('normalizes a calendar phrase selector into the same durable rule', () => {
+    expect(createCronScheduleRecord(
+      ScheduleId('schedule-cron'),
+      'every weekday',
+      'every weekday at 9',
+      now,
+    ).rule).toEqual({ minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1, 2, 3, 4, 5] })
+  })
+
+  it('rejects an empty prompt before interpreting the selector', () => {
+    try {
+      createCronScheduleRecord(ScheduleId('schedule-cron'), '   ', '0 9 * * 1', now)
+      throw new Error('expected prompt failure')
+    } catch (error: unknown) {
+      expect(error).toBeInstanceOf(ScheduleInputError)
+      expect((error as ScheduleInputError).code).toBe('invalid_prompt')
+    }
+  })
+
+  it.each([
+    ['', 'invalid_rule'],
+    ['   ', 'invalid_rule'],
+    ['60 9 * * *', 'invalid_rule'],
+    ['not a cron', 'invalid_rule'],
+    [42 as never, 'invalid_rule'],
+  ] as const)('rejects invalid cron input %#', (cron, code) => {
+    try {
+      createCronScheduleRecord(ScheduleId('schedule-cron'), 'x', cron, now)
+      throw new Error('expected cron input failure')
+    } catch (error: unknown) {
+      expect(error).toBeInstanceOf(ScheduleInputError)
+      expect((error as ScheduleInputError).code).toBe(code)
+    }
+  })
+
+  it('selects the latest due occurrence and the next future target', () => {
+    const record = createCronScheduleRecord(ScheduleId('schedule-cron'), 'x', '0 9 * * 1', now)
+    expect(resolveCronOccurrence(record, Date.parse('2026-09-14T10:00:00.000Z'))).toEqual({
+      occurrenceAt: '2026-09-14T09:00:00.000Z',
+      nextScheduledAt: '2026-09-21T09:00:00.000Z',
+    })
+    expect(() => resolveCronOccurrence(record, Date.parse('2026-09-07T08:59:59.999Z')))
+      .toThrow(/cannot precede/)
+    expect(() => resolveCronOccurrence(record, Number.NaN)).toThrow(/acceptedAt/)
+  })
+
+  it('advances one calendar record and requires a decision time', () => {
+    const create = scheduleEvent(cronCreateData(), 0)
+    const dispatch = scheduleEvent({
+      version: 1,
+      operation: 'dispatch',
+      id: 'schedule-cron',
+      acceptedAt: '2026-08-10T11:00:00.000Z',
+    }, 1)
+    expect(foldScheduleEvents([create, dispatch])).toEqual({
+      active: [{
+        id: 'schedule-cron',
+        kind: 'cron',
+        prompt: 'check calendar',
+        rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
+        scheduledAt: '2026-08-17T09:00:00.000Z',
+      }],
+      seenIds: ['schedule-cron'],
+    })
+    expect(() => foldScheduleEvents([
+      create,
+      scheduleEvent({ version: 1, operation: 'dispatch', id: 'schedule-cron' }, 1),
+    ])).toThrow(/must contain acceptedAt/)
+  })
+})
+
 describe('absolute record and time-zone resolution', () => {
   const now = Date.parse('2026-08-05T12:00:00.000Z')
 
   it.each([
+    ['2026-09-20T09:00:00Z', '2026-09-20T09:00:00.000Z'],
     ['2026-08-06T09:00:00+08:00', '2026-08-06T01:00:00.000Z'],
     ['2026-08-06T01:00:00Z', '2026-08-06T01:00:00.000Z'],
     ['2026-08-06T01:00:00+00:00', '2026-08-06T01:00:00.000Z'],
