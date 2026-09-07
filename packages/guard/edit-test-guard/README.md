@@ -103,7 +103,7 @@ Reminders ride the post-execute decision's `additionalContexts` (source `{kind: 
 | File | Role |
 |---|---|
 | [`src/index.ts`](src/index.ts) | Plugin entry: `Config` schema, fail-loud validation, window listener |
-| [`src/invariant.ts`](src/invariant.ts) | Invariant companion (no runtime invariant: the window is private to one post-execute listener) |
+| — | No runtime invariant companion is published; the edit/test window is private to one post-execute listener and exposes no package-owned event or snapshot that an independent companion can observe. |
 
 </details>
 
@@ -126,15 +126,13 @@ Read these pages when the package-level contract is not enough. They move from t
 
 #### What the model sees
 
-After an edit- or write-style tool call with no test command in the recent window, that agent receives the reminder below. No tool schema or normal-call text is added.
+After an edit- or write-style tool call with no test command in the recent window, that agent receives the reminder below. No tool schema or normal-call text is added. A custom `reminder` replaces this text verbatim; a `reminderText` function produces it dynamically from the tool name.
 
 ##### Edit-without-test reminder
 
 ```markdown
 You edited a file but no test command has run in the recent tool-call history. Run the relevant tests now to verify the change before continuing.
 ```
-
-A custom `reminder` replaces this text verbatim; a `reminderText` function produces it dynamically from the tool name.
 
 #### Token effect
 

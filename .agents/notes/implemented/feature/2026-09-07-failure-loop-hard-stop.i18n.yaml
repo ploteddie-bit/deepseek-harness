@@ -1,0 +1,6 @@
+# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
+# side as of the last confirmed-consistent state. Both languages carry equal authority;
+# after editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-07-failure-loop-hard-stop.md
+2026-09-07-failure-loop-hard-stop.md: c221fe9bbe21d2b3d56dc76e98b337d426a94b08
+2026-09-07-failure-loop-hard-stop.zh.md: cbb71e18a26a7cb2364891e9e01b6da10a27e5be

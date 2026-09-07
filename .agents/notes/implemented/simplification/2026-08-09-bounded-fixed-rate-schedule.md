@@ -41,4 +41,4 @@ Strict decoder and invariant tests reject unsupported rule and dispatch shapes. 
 - The durable rule union is After, At, and Every; the tool selector union is `after_seconds`, `at`, and `every_seconds`.
 - Reopening a long-cold Session produces current reminder work, not a historical turn storm.
 - Multiple overdue Every records share one model request without sharing schedule state or delaying one another.
-- Calendar-based recurrence requires a future product boundary rather than dormant compatibility code.
+- Calendar-based recurrence later shipped as a `cron` selector (see [calendar Cron recurrence](../feature/2026-09-07-calendar-cron-schedule-rules.md)); the bounded fixed-rate decision remains authoritative for `every_seconds`.
