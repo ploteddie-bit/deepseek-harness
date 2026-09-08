@@ -27,7 +27,7 @@ The plugin contributes a single badge to the composer's right-side tool row. Not
 
 ### What you get
 
-A `critical` badge for a detected API key, private key, or GitHub/Slack token; a `warn` badge for an RFC 1918 or loopback IP, a cloud signed URL, a `Bearer` token, or a `password=`/`passwd=`-style assignment; and an `info` badge for a credential-file path such as `~/.ssh/...`. Each hit carries a short context snippet, capped at ~80 characters. The scan stops at 20 hits per draft.
+A `critical` badge for a detected API key, private key, or GitHub/Slack token; a `warn` badge for an RFC 1918 or loopback IP, a cloud signed URL, a `Bearer` token, or a `password=`/`passwd=`-style assignment; and an `info` badge for a credential-file path such as `~/.ssh/...` (generic draft pattern, shown unprefixed by design; on the local machine Edy it would appear as `Edy:~/.ssh/...`). Each hit carries a short context snippet, capped at ~80 characters. The scan stops at 20 hits per draft.
 
 -----
 

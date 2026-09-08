@@ -27,7 +27,7 @@ composer 草稿可能携带不应发送的内容——误粘贴的 API key、私
 
 ### 你会得到什么
 
-检测到 API key、私钥或 GitHub/Slack token 时显示 `critical` 徽标；检测到 RFC 1918 或回环 IP、云签名 URL、`Bearer` token 或 `password=`/`passwd=` 式赋值时显示 `warn`；检测到 `~/.ssh/...` 等凭据文件路径时显示 `info`。每条命中带一段简短上下文片段，上限约 80 字符。扫描在每个草稿上最多停在 20 条命中。
+检测到 API key、私钥或 GitHub/Slack token 时显示 `critical` 徽标；检测到 RFC 1918 或回环 IP、云签名 URL、`Bearer` token 或 `password=`/`passwd=` 式赋值时显示 `warn`；检测到 `~/.ssh/...` 等凭据文件路径时显示 `info`（此为草稿中的通用模式，特意不带机器前缀；在本机 Edy 上即 `Edy:~/.ssh/...`）。每条命中带一段简短上下文片段，上限约 80 字符。扫描在每个草稿上最多停在 20 条命中。
 
 -----
 
