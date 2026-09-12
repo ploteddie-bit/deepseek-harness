@@ -6,7 +6,6 @@ import { defineContentToolFixture } from '@deepseek-ai/dsh-tools'
 import type { Agent } from '@deepseek-ai/dsh-agent'
 import AgentLoop from '@deepseek-ai/dsh-agent-loop'
 import { mountAgentLoopTestDependencies } from '@deepseek-ai/dsh-agent-loop-testkit'
-import SessionProjectionRegistry from '@deepseek-ai/dsh-session-projection'
 import * as EditTestGuard from '@deepseek-ai/dsh-edit-test-guard'
 import type { Config } from '@deepseek-ai/dsh-edit-test-guard'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
@@ -26,8 +25,6 @@ const testToolSignal = new AbortController().signal
 async function harness(config: Config = {}): Promise<Context> {
   const ctx = new Context()
   await mountAgentLoopTestDependencies(ctx)
-  // AgentLoop declares the registry as a required injection.
-  await ctx.plugin(SessionProjectionRegistry)
   await ctx.plugin(AgentLoop, { agents: [] })
   await ctx.plugin(EditTestGuard, config)
   ctx.tools.register(defineContentToolFixture({ name: 'edit', description: 'e', parameters: {}, async execute() { return [{ type: 'text', text: 'ok' }] } }))
@@ -251,7 +248,6 @@ describe('config validation fails loud', () => {
   async function spine(): Promise<Context> {
     const ctx = new Context()
     await mountAgentLoopTestDependencies(ctx)
-    await ctx.plugin(SessionProjectionRegistry)
     await ctx.plugin(AgentLoop, { agents: [] })
     return ctx
   }
