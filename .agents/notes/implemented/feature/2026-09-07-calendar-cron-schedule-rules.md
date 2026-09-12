@@ -6,7 +6,7 @@ English | [中文](2026-09-07-calendar-cron-schedule-rules.zh.md)
 
 ## Problem
 
-The [bounded fixed-rate decision](../simplification/2026-08-09-bounded-fixed-rate-schedule.md) removed Cron and calendar expressions to keep Session-local reminders small: only `every_seconds` repeated, with no calendar grammar, evaluator dependency, or time-zone policy. That left calendar-style recurrence — "every weekday at 9" — outside the shipped protocol. Users who wanted a weekday, daily, or monthly reminder had to fall back to a fixed interval, which drifts relative to the wall-clock calendar.
+The [bounded fixed-rate decision](../../archived/simplification/2026-08-09-bounded-fixed-rate-schedule.md) removed Cron and calendar expressions to keep Session-local reminders small: only `every_seconds` repeated, with no calendar grammar, evaluator dependency, or time-zone policy. That left calendar-style recurrence — "every weekday at 9" — outside the shipped protocol. Users who wanted a weekday, daily, or monthly reminder had to fall back to a fixed interval, which drifts relative to the wall-clock calendar.
 
 ## Decision
 
