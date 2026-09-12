@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The composer draft can carry material that should not be sent — an API key pasted by accident, a private SSH key, a `Bearer` token, or an internal IP. `dsh-client-ui-pre-send-scan` reads the draft through the `useInput` standard hook and scans it locally for that material, then shows a coloured badge in the `conversation.input.right` slot with the worst severity and hit count. It is an indicator, never a blocker: the send action is not intercepted, the draft is sent to the model unchanged, and no scan result text enters the session log or model context. The scan runs entirely in the browser with no network call, no host behavior, and no model-visible effect.
+The composer draft can carry material that should not be sent — an API key pasted by accident, a private SSH key, a `Bearer` token, or an internal IP. This plugin scans the draft locally and shows a coloured badge with the worst severity and hit count. It is an indicator, never a blocker: the send action is not intercepted, the draft reaches the model unchanged, and no scan result enters the session log or model context. The scan runs entirely in the browser, with no network call and no model-visible effect.
 
 ## Table of Contents
 

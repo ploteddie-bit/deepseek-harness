@@ -2,5 +2,5 @@
 # side as of the last confirmed-consistent state. Both languages carry equal authority;
 # after editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-09-07-calendar-cron-schedule-rules.md
-2026-09-07-calendar-cron-schedule-rules.md: 18de2338b1e023265df3479460fa86b5940fc3a1
-2026-09-07-calendar-cron-schedule-rules.zh.md: 6bfc8068a11da381c78cb13957bf5955174aef74
+2026-09-07-calendar-cron-schedule-rules.md: 8a39181f20ef1f6882e4d32b7662c23a14fc7122
+2026-09-07-calendar-cron-schedule-rules.zh.md: 1417f7cc93701736f22550ef1e0465587306ea23

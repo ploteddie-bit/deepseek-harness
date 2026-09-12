@@ -6,7 +6,7 @@ Status: implemented
 
 ## 问题
 
-[有界固定速率决策](../simplification/2026-08-09-bounded-fixed-rate-schedule.zh.md) 移除了 Cron 与日历表达式，以保持 Session 内提醒的精简：只有 `every_seconds` 会重复，没有日历语法、求值器依赖或时区策略。这让日历式周期——例如“每个工作日早上 9 点”——被排除在已交付协议之外。想要工作日、每日或每月提醒的用户只能退回到固定间隔，而固定间隔会相对墙钟日历漂移。
+[有界固定速率决策](../../archived/simplification/2026-08-09-bounded-fixed-rate-schedule.md) 移除了 Cron 与日历表达式，以保持 Session 内提醒的精简：只有 `every_seconds` 会重复，没有日历语法、求值器依赖或时区策略。这让日历式周期——例如“每个工作日早上 9 点”——被排除在已交付协议之外。想要工作日、每日或每月提醒的用户只能退回到固定间隔，而固定间隔会相对墙钟日历漂移。
 
 ## 决策
 
