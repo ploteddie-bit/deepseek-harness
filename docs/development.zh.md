@@ -41,6 +41,8 @@ node scripts/install-lefthook.mjs
 
 如果包装脚本拒绝现有 Git 配置或报告陈旧锁，请遵循其诊断和所链接的 Agent Note，不要凭猜测编辑 worktree 元数据。移动检出目录后，请重新运行包装脚本以重新生成自有路径。
 
+安装过程会为上游包未导出可执行文件的依赖记录 `[WARN] Failed to create bin at node_modules/.bin/<name>`（`@deepseek-ai/cordis`、`yaml`、`playwright`、`@anthropic-ai/sdk`、`tsserver`）。pnpm 尝试链接一个并不存在的二进制文件，记录警告后继续。这些目标是以库的形式加载，而不是作为二进制调用，因此这些警告没有功能影响。不要为消除它们而添加逐包的 `package.json` override —— 根级 `pnpm.overrides` 也会阻断这些库在其他地方合法的 CLI 使用。
+
 新克隆后请先运行一次类型检查：
 
 ```sh
