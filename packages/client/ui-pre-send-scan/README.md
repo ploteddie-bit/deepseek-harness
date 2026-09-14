@@ -17,6 +17,7 @@ The composer draft can carry material that should not be sent — an API key pas
 - [Understand the implementation](#understand-the-implementation)
 - [Model Experience](#model-experience)
 - [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
+- [Dev Note](#dev-note)
 
 -----
 
@@ -89,3 +90,19 @@ These limits define when the indicator is a poor fit. They are current package c
 - **Indicator only** — the scan never blocks a send, so a user who ignores the badge can still send sensitive material; blocking or confirmation is not implemented.
 - **Static pattern matching** — the rules are regular expressions with no semantic validation, so a well-formed key outside the known formats, or a secret spelled differently, is not flagged.
 - **No host-side scan** — the browser half alone scans the draft; there is no server-side or logged counterpart.
+
+<a id="dev-note"></a>
+### Dev Note
+
+<details>
+<summary>Working context for maintainers — click to expand</summary>
+
+The scan is pure data and pure functions: `src/client/scanner.ts` pairs each rule with a name, a severity, and a regular expression, and the badge renders only what the scan returns. Adding or tuning a detection is therefore a data edit, not a control-flow edit.
+
+`tests/scanner.client.spec.ts` covers the rule list and the hits it reports; run it with `pnpm vitest run packages/client/ui-pre-send-scan`.
+
+The host half (`src/index.ts`) applies nothing and the browser half ships through `exports["./client"]`, so scanner changes never reach a non-browser surface.
+
+</details>
+
+**Runtime invariant:** No companion is published. The scan is browser-local and exposes no package-owned event or snapshot that an independent companion can observe.
