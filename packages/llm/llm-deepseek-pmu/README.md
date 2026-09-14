@@ -14,6 +14,8 @@ You can talk to DeepSeek through a second, independent route that uses its own A
 ## Table of Contents
 
 - [Use this package](#use-this-package)
+- [Model Experience](#model-experience)
+- [Known Limitations and Deferred Work](#known-limitations-and-deferred-work)
 - [Dev Note](#dev-note)
 
 -----
@@ -38,7 +40,30 @@ Then select the `deep-pmu` provider in the Models page or from the picker.
 
 -----
 
+<a id="model-experience"></a>
+## Model Experience
+
+Indirectly, through the reused `DeepSeekAdapter` from `@deepseek-ai/dsh-llm-deepseek`, which owns every model-visible request field and the response rendering this route streams.
+
+#### KV Cache effect
+
+The route adds no cache behaviour of its own: the reused adapter's request assembly, image representation, and reasoning passback decide the reusable prefix, and a different API key or endpoint selects a different provider cache domain.
+
+## Known Limitations and Deferred Work
+
+<a id="known-limitations-and-deferred-work"></a>
+
+These limits define where this route stops and the reused adapter takes over. They are current package constraints, not a task backlog.
+
+- **`baseURL` is fixed to `https://api.deepseek.com`** — the plugin always resolves `PUBLIC_BASE_URL` and exposes no `baseURL` setting, so this route cannot be pointed at an OpenAI-compatible gateway.
+- **Only `apiKeyEnv` is configurable** — thinking policy, image budgets, request caps, and the retry policy keep the defaults that `resolveAdapterOptions` supplies.
+- **The advisory catalog ships two text-only models** — `deepseek-flash` and `deepseek-v4-pro`; the route declares no image-capable entry and no model using `systemPromptUpdate: in-history`, so it cannot advertise vision or the in-history system-prompt mode.
+- **A rejected settings section keeps the last good connection facts** — the plugin logs the failure and keeps serving, so an invalid `llm-deepseek-pmu` section degrades to the previous values instead of failing the next request. Only the first resolution, with no last good value, throws.
+- **Provider registration duplicates the sibling adapter's wiring** — extracting a shared helper for the reuse pattern is deferred until a third route needs it.
+
 <a id="dev-note"></a>
-## Dev Note
+### Dev Note
 
 The route reuses `DeepSeekAdapter` and its resolution logic from `@deepseek-ai/dsh-llm-deepseek`, owns a distinct provider route, and never modifies `llm-deepseek`.
+
+**Runtime invariant:** No companion is published. This package registers a second adapter instance on the existing `ctx.llm` seam and exposes no independent event sequence or mutable data relation beyond contracts enforced at its owning seam.

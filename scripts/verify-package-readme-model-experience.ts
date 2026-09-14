@@ -140,6 +140,7 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/bundle/headless': { kind: 'none', reason: 'The one-shot runner submits the task as an ordinary user message; prompts and tools belong to the composed base and headless bundles.' },
   'packages/llm/llm': { kind: 'none', reason: 'The adapter registry forwards already-assembled requests unchanged.' },
   'packages/llm/token-meter': { kind: 'indirect', reason: 'The measurement service leaves model-visible changes to its consumers.' },
+  'packages/llm/llm-deepseek-pmu': { kind: 'indirect', reason: 'The route registers a second instance of the dsh-llm-deepseek adapter, which owns every model-visible request field and the response rendering.' },
   'packages/lsp/lsp': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-lsp.' },
   'packages/lsp/lsp-stdio': { kind: 'indirect', reason: 'The provider backend delegates model rendering to dsh-tool-lsp.' },
   'packages/subprocess/subprocess': { kind: 'indirect', reason: 'The seam delegates all model rendering to consumer seams such as the bash executor family.' },
