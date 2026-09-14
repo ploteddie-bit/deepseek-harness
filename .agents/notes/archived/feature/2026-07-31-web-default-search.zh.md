@@ -1,6 +1,7 @@
 # Agent Note: 已交付组合中的默认 Web 搜索
 
 Status: implemented
+Archived: 2026-09-14
 
 [English](2026-07-31-web-default-search.md) | 中文
 

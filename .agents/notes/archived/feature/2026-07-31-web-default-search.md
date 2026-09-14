@@ -1,6 +1,7 @@
 # Agent Note: Default Web search in shipped compositions
 
 Status: implemented
+Archived: 2026-09-14
 
 English | [中文](2026-07-31-web-default-search.zh.md)
 
