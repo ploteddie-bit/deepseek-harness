@@ -132,11 +132,23 @@ describe('resolveOpenInAppApps', () => {
   it('does not offer the Linux file manager without a desktop session', async () => {
     const home = await tempRoot()
     const resolveExecutable = pathTable({ 'xdg-open': '/usr/bin/xdg-open' })
+    // osRelease is injected so the desktop probe never reads the running kernel:
+    // a WSL host reports "microsoft" there and would otherwise pass this test for
+    // the wrong reason (its Explorer handoff counts as a desktop).
     await expect(resolveLaunch(byId('filemanager'), TIMEOUT_MS, bare({
-      platform: 'linux', home, env: linuxEnv(home), resolveExecutable,
+      platform: 'linux', osRelease: 'generic', home, env: linuxEnv(home), resolveExecutable,
     }))).resolves.toBeNull()
     await expect(resolveLaunch(byId('filemanager'), TIMEOUT_MS, bare({
-      platform: 'linux', home, env: { ...linuxEnv(home), WAYLAND_DISPLAY: 'wayland-0' }, resolveExecutable,
+      platform: 'linux', osRelease: 'generic', home, env: { ...linuxEnv(home), WAYLAND_DISPLAY: 'wayland-0' }, resolveExecutable,
+    }))).resolves.toEqual({ launch: { kind: 'argv', command: '/usr/bin/xdg-open', args: [] }, icon: undefined })
+  })
+
+  it('offers the Linux file manager on WSL without a desktop session', async () => {
+    const home = await tempRoot()
+    const resolveExecutable = pathTable({ 'xdg-open': '/usr/bin/xdg-open' })
+    // On WSL the handoff goes to Explorer, so no DISPLAY/WAYLAND is required.
+    await expect(resolveLaunch(byId('filemanager'), TIMEOUT_MS, bare({
+      platform: 'linux', osRelease: '5.15.90.1-microsoft-standard-WSL2', home, env: linuxEnv(home), resolveExecutable,
     }))).resolves.toEqual({ launch: { kind: 'argv', command: '/usr/bin/xdg-open', args: [] }, icon: undefined })
   })
 

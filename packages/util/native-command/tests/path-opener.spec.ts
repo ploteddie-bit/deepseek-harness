@@ -368,14 +368,20 @@ describe('native file manager', () => {
     await expect(revealNativePath('/file', AbortSignal.abort(new Error('cancelled')), { run })).rejects.toThrow('cancelled')
     expect(run).not.toHaveBeenCalled()
     await expect(revealNativePath('/file', signal(), { platform: 'darwin', run })).rejects.toThrow('desktop failed')
-    expect(nativeFileManager()).toBe(process.platform === 'darwin' ? 'finder' : process.platform === 'win32' ? 'explorer' : 'directory')
+    // Both Linux flavours are asserted explicitly: relying on the running host
+    // would make this test pass on desktop Linux and fail inside WSL, where the
+    // kernel release contains "microsoft" and the manager is Explorer.
+    expect(nativeFileManager({ platform: 'linux', env: {}, osRelease: 'generic' })).toBe('directory')
+    expect(nativeFileManager({ platform: 'linux', env: {}, osRelease: '5.15.90.1-microsoft-standard-WSL2' })).toBe('explorer')
   })
 })
 
 
 it('uses the native runner for a file-manager handoff when none is injected', async () => {
   execFileMock.mockImplementation((_command, _args, _options, callback) => { callback(null, '', '') })
-  await revealNativePath('/tmp/report.txt', signal())
+  // Desktop Linux is declared explicitly so the fallback is the xdg-open call
+  // under test; on a WSL host the uninjected default would probe wslpath instead.
+  await revealNativePath('/tmp/report.txt', signal(), { platform: 'linux', env: {}, osRelease: 'generic' })
   expect(execFileMock).toHaveBeenCalled()
 })
 

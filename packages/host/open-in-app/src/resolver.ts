@@ -14,7 +14,7 @@
 
 import { spawn } from 'node:child_process'
 import { readdir, readFile, stat } from 'node:fs/promises'
-import { homedir, platform as osPlatform } from 'node:os'
+import { homedir, platform as osPlatform, release as osRelease } from 'node:os'
 import { dirname, isAbsolute, join } from 'node:path'
 import {
   canOpenNativePath, openNativePath, runNativeCommand, type NativeCommandRunner,
@@ -98,6 +98,12 @@ export const launchDetachedApp: OpenInAppLauncher = (command, args, options) =>
 /** Injectable platform facts for deterministic tests. */
 export interface OpenInAppInternals {
   platform?: NodeJS.Platform
+  /**
+   * Kernel release override used to distinguish WSL from desktop Linux; without
+   * it the desktop-session probe reads the running kernel and a WSL host is
+   * indistinguishable from a desktop Linux one inside an otherwise hermetic test.
+   */
+  osRelease?: string
   /** SSH launch fact from the inherited process layer, independent of `.env` values. */
   ssh?: boolean
   /** Bundle-directory roots replacing `/Applications` and `~/Applications`. */
@@ -115,6 +121,7 @@ export interface OpenInAppInternals {
 /** Platform facts after the one explicit defaulting step at each public entry. */
 export interface ResolvedInternals {
   platform: NodeJS.Platform
+  osRelease: string
   ssh: boolean
   applicationRoots: readonly string[]
   env: Readonly<Record<string, string | undefined>>
@@ -140,6 +147,7 @@ export function resolveInternals(internals: OpenInAppInternals): ResolvedInterna
   }
   return {
     platform: internals.platform ?? osPlatform(),
+    osRelease: internals.osRelease ?? osRelease(),
     ssh: internals.ssh ?? false,
     applicationRoots: internals.applicationRoots ?? ['/Applications', join(home, 'Applications')],
     env: internals.env ?? process.env,
@@ -520,6 +528,7 @@ async function locate(
     case 'cli': {
       if (locator.requiresDesktop === true && !canOpenNativePath({
         platform: internals.platform,
+        osRelease: internals.osRelease,
         env: { ...internals.env },
       })) return null
       const found = await internals.resolveExecutable(locator.name)
