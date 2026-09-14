@@ -39,6 +39,8 @@ node scripts/install-lefthook.mjs
 
 If the wrapper rejects existing Git configuration or reports a stale lock, follow its diagnostic and the linked Agent Note rather than editing worktree metadata speculatively. After moving a checkout, rerun the wrapper to regenerate the owned path.
 
+The install logs `[WARN] Failed to create bin at node_modules/.bin/<name>` for dependencies whose upstream package does not export an executable (`@deepseek-ai/cordis`, `yaml`, `playwright`, `@anthropic-ai/sdk`, `tsserver`). pnpm attempts to link a binary that does not exist, logs the warning, and continues. The targets are loaded as libraries, not invoked as binaries, so the warnings have no functional impact. Do not add per-package `package.json` overrides to silence them — the root `pnpm.overrides` would also block legitimate CLI use of those libraries elsewhere.
+
 Run typecheck once after a fresh clone:
 
 ```sh

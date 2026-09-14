@@ -25,6 +25,21 @@ Classify from recorded evidence, not from the eventual fix:
 
 If evidence supports more than one independent fact, report each one. Do not collapse a timeout, signal, exit code, and assertion into a single inferred outcome.
 
+## Known load-sensitive `test:gui` windows
+
+A handful of GUI specs pass in under six seconds in isolation but exceed their implicit timeout when vitest fans them out across forked workers. Profiled single-file runs on one host, one commit, and one node version (measured 2026-09-08):
+
+| Spec | Suite time | Isolated time |
+|---|---|---|
+| `packages/client/ui-primitives/tests/code-block.client.spec.tsx` | 12.3s | 2.7s |
+| `packages/client/ui-conversation/tests/assembly-surfaces.client.spec.tsx` | 12.7s | 4.0s |
+| `packages/client/ui-conversation/tests/skeleton.client.spec.tsx` | 10.9s | 5.0s |
+| `packages/client/ui-settings-plugin-inventory/tests/components.client.spec.tsx` | 10.3s | 3.0s |
+| `packages/client/ui-agent-preset/tests/components.client.spec.tsx` | 6.6s | 4.0s |
+| `packages/client/ui-commands/tests/popup-view.client.spec.tsx` | 16.0s | 4.0s |
+
+The shared pattern — short under load balancing, slow under fan-out — points at worker scheduling rather than test logic. Treat each green run of an isolated spec as confirming the test, not the suite. When `test:gui` reports a timeout on one of these rows, re-run the file alone and classify it under load-sensitive synchronization before assuming a regression.
+
 ## Reproduce the smallest relevant topology
 
 Start with the owning test file or focused test name. Increase concurrency only to the first topology that reproduces the signature:
