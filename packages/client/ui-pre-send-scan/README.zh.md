@@ -17,6 +17,7 @@ composer 草稿可能携带不应发送的内容——误粘贴的 API key、私
 - [理解实现](#understand-the-implementation)
 - [模型体验](#model-experience)
 - [已知限制与延期工作](#known-limitations-and-deferred-work)
+- [开发备注](#dev-note)
 
 -----
 
@@ -89,3 +90,19 @@ composer 草稿可能携带不应发送的内容——误粘贴的 API key、私
 - **仅指示器**——扫描从不阻止发送，因此忽略徽标的用户仍可能发送敏感内容；阻止或确认尚未实现。
 - **静态模式匹配**——规则是正则表达式，没有语义校验，因此已知格式之外构造良好的密钥，或拼写不同的密钥不会被标记。
 - **无 host 端扫描**——仅浏览器半边扫描草稿；没有服务端或记录在案的对应物。
+
+<a id="dev-note"></a>
+### 开发备注
+
+<details>
+<summary>维护者工作上下文——点击展开</summary>
+
+扫描是纯数据与纯函数：`src/client/scanner.ts` 为每条规则配上名称、严重级别与正则表达式，徽标只渲染扫描返回的结果。因此新增或调整检测项属于数据改动，而非控制流改动。
+
+`tests/scanner.client.spec.ts` 覆盖规则表及其报告的结果；运行方式：`pnpm vitest run packages/client/ui-pre-send-scan`。
+
+宿主部分（`src/index.ts`）不执行任何操作，浏览器部分通过 `exports["./client"]` 发布，因此扫描器的改动不会触及非浏览器界面。
+
+</details>
+
+**运行时不变式：** 不发布伴生入口。扫描仅在浏览器本地进行，不暴露可供独立伴生模块观察的包自有事件或快照。
