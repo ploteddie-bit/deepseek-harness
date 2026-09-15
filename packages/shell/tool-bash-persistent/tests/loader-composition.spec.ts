@@ -74,7 +74,7 @@ suite('persistent Bash through a real cordis.yml Loader composition', () => {
   // under a saturated suite the replacement shell can still be silent when the
   // tool returns and the exact prompt assertion below sees ''. Retry absorbs
   // that scheduling jitter; the assertion itself stays strict.
-  it('preserves cwd and environment across calls', { retry: 2 }, async () => {
+  it('preserves cwd and environment across calls', { retry: 2, timeout: 20_000 }, async () => {
     root = await mkdtemp(join(tmpdir(), 'dsh-persistent-bash-loader-'))
     const configPath = join(root, 'cordis.yml')
     await writeFile(configPath, [
@@ -188,5 +188,5 @@ suite('persistent Bash through a real cordis.yml Loader composition', () => {
     const exited = text(await execute('exit', 'exit'))
     expect(exited).toContain('next bash call starts from the workspace')
     expect(text(await execute('after-exit', 'printf "%s\\n" "$PWD"'))).toBe(`${root}\n[Command finished with exit code 0]`)
-  }, 20_000)
+  })
 })
