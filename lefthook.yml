@@ -52,19 +52,4 @@ pre-merge-commit:
 pre-push:
   jobs:
     - name: typecheck
-      run: |
-        # Skip typecheck on pushes that aren't going to the canonical 'origin' remote
-        # (GitHub upstream where CI runs the full matrix anyway). Forgejo local pushes
-        # at http://192.168.1.250:3000/eddie/deepseek-harness.git are done by URL and
-        # don't set 'origin' on the receiver, so the typecheck still costs ~2 min
-        # locally for no CI gain. CI owns the full matrix per AGENTS.md line 92-95.
-        target=""
-        while read local_ref local_sha remote_ref remote_sha; do
-          target="$remote_ref"
-        done
-        case "$target" in
-          refs/heads/master|refs/heads/main|refs/heads/sync-*|refs/heads/fix/*|refs/heads/feat/*|refs/heads/chore/*)
-            echo "lefthook: skip pre-push typecheck on local branch push ($target)"
-            exit 0 ;;
-        esac
-        pnpm run typecheck
+      run: pnpm run typecheck
