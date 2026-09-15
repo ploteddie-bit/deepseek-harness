@@ -55,7 +55,7 @@ export DEEPSEEK_PMU_API_KEY=sk-...
 
 这些限制说明本路由在哪里停止、由复用的适配器接续。它们是当前包约束，不是任务积压。
 
-- **`baseURL` 固定为 `https://api.deepseek.com`**——插件始终解析 `PUBLIC_BASE_URL`，且不提供 `baseURL` 设置，因此本路由无法指向 OpenAI 兼容网关。
+- **不提供 `baseURL` 或 `protocol` 设置**——插件两者都不声明，因此本路由与官方路由以相同方式解析端点，二者指向同一根地址。若要指向 OpenAI 兼容网关，需要本插件未提供的 `baseURL` 字段。
 - **只有 `apiKeyEnv` 可配置**——思考策略、图片预算、请求上限与重试策略都沿用 `resolveAdapterOptions` 提供的默认值。
 - **通告目录只包含两个纯文本模型**——`deepseek-flash` 与 `deepseek-v4-pro`；本路由不声明任何支持图片的条目，也不声明使用 `systemPromptUpdate: in-history` 的模型，因此无法通告视觉能力或 in-history 系统提示词模式。
 - **被拒绝的设置节会保留上一次可用的连接事实**——插件记录失败并继续服务，因此非法的 `llm-deepseek-pmu` 设置节会退化为先前的值，而不是让下一个请求失败。只有首次解析且没有可用历史值时才抛出。

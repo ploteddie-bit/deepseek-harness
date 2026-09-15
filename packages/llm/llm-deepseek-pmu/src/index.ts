@@ -18,7 +18,6 @@ import { getOrCreateAnonymousUserId, type AnonymousUserId } from '@deepseek-ai/d
 import {
   DEFAULT_CONTEXT_WINDOW,
   DeepSeekAdapter,
-  PUBLIC_BASE_URL,
   resolveAdapterOptions,
 } from '@deepseek-ai/dsh-llm-deepseek'
 import type { DeepSeekCatalogModel, DeepSeekConnectionOptions } from '@deepseek-ai/dsh-llm-deepseek'
@@ -58,7 +57,7 @@ export function apply(ctx: Context, config: Config): void {
     try {
       const apiKeyEnv = raw.apiKeyEnv ?? DEFAULT_API_KEY_ENV
       const next = resolveAdapterOptions(
-        { apiKeyEnv, baseURL: PUBLIC_BASE_URL, models: PMU_MODELS },
+        { apiKeyEnv, models: PMU_MODELS },
         launchEnvironmentOf(ctx),
       )
       lastRaw = raw

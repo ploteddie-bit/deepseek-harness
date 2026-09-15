@@ -55,7 +55,7 @@ The route adds no cache behaviour of its own: the reused adapter's request assem
 
 These limits define where this route stops and the reused adapter takes over. They are current package constraints, not a task backlog.
 
-- **`baseURL` is fixed to `https://api.deepseek.com`** — the plugin always resolves `PUBLIC_BASE_URL` and exposes no `baseURL` setting, so this route cannot be pointed at an OpenAI-compatible gateway.
+- **No `baseURL` or `protocol` setting** — the plugin declares neither, so the route resolves its endpoint the way the official route does and both reach the same root. Pointing it at an OpenAI-compatible gateway needs a `baseURL` field this plugin does not expose.
 - **Only `apiKeyEnv` is configurable** — thinking policy, image budgets, request caps, and the retry policy keep the defaults that `resolveAdapterOptions` supplies.
 - **The advisory catalog ships two text-only models** — `deepseek-flash` and `deepseek-v4-pro`; the route declares no image-capable entry and no model using `systemPromptUpdate: in-history`, so it cannot advertise vision or the in-history system-prompt mode.
 - **A rejected settings section keeps the last good connection facts** — the plugin logs the failure and keeps serving, so an invalid `llm-deepseek-pmu` section degrades to the previous values instead of failing the next request. Only the first resolution, with no last good value, throws.
