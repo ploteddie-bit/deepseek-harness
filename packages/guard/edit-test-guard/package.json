@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-edit-test-guard",
   "description": "Advisory edit-test guard plugin: reminds the model to run tests after editing files",
-  "version": "0.1.5-rc.2",
+  "version": "0.1.6-alpha.2",
   "publishConfig": {
     "access": "public"
   },
