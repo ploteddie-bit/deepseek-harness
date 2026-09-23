@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     TEMPLATE OFFICIEL : eddie-cockpit-v1
+     Document de travail VIVANT obligatoire — remplace tout handover markdown.
+     Règle AGENTS.md (gravée 2026-09-10) : c'est la bible de chaque projet.
+     Générer une instance :  python3 $HOME/.kimi-code/bin/new-cockpit.py <projet> <repertoire>
+     Personnalisation : remplir le bloc DONNEES (const COCKPIT) dans le code JavaScript.
+     Persistance : localStorage (clé = cockpit-deepseek-harness). Aucune dépendance externe.
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏠 Le Chantier — deepseek-harness</title>
+<style>
+:root{--fond:#0d1117;--carte:#161b22;--carte2:#1c232c;--bord:#21262d;--texte:#e6edf3;--muted:#8b949e;--orange:#d4540b;--orange2:#f97316;--cyan:#3366ff;--vert:#3fb950;--rouge:#f85149;--ambre:#d29922}
+*{box-sizing:border-box}body{margin:0;background:var(--fond);color:var(--texte);font:15px/1.6 -apple-system,'Segoe UI',Roboto,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:20px}a{color:#58a6ff;text-decoration:none}a:hover{text-decoration:underline}
+h1{font-size:24px;margin:0 0 4px}h2{font-size:19px;color:var(--orange2);border-bottom:2px solid var(--bord);padding-bottom:6px;margin-top:0}
+.muted{color:var(--muted)}.small{font-size:13px}
+header{background:linear-gradient(160deg,#161b22,#0d1117);border:1px solid var(--bord);border-radius:14px;padding:18px 22px;margin-bottom:16px}
+.titre{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px}
+.horloge{font-family:ui-monospace,monospace;font-size:13px;color:var(--cyan)}
+.jauges{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px}
+.jauge{flex:1;min-width:180px;background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:10px 14px}
+.jauge .num{font-size:22px;font-weight:700;color:var(--orange2);font-family:ui-monospace,monospace}
+.jauge .lbl{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.barre{height:8px;background:#0a0d12;border-radius:4px;overflow:hidden;margin-top:8px}.barre>div{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange2));width:0%;transition:width .8s}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.tab{padding:9px 16px;background:var(--carte);border:1px solid var(--bord);border-radius:9px;cursor:pointer;font-size:14px;color:var(--muted);user-select:none}
+.tab:hover{color:var(--texte)}.tab.actif{background:var(--carte2);color:var(--orange2);border-color:var(--orange);font-weight:600}
+.vue{display:none}.vue.actif{display:block}
+.carte{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:16px 18px;margin:12px 0}
+.zone{display:inline-block;font-size:11px;padding:2px 9px;border-radius:10px;margin:2px 4px 2px 0}
+.z-vert{background:#12301f;color:var(--vert)}.z-orange{background:#332a14;color:var(--ambre)}.z-rouge{background:#3a1e1e;color:var(--rouge)}
+.src{display:flex;align-items:center;gap:10px;background:var(--carte);border:1px solid var(--bord);border-radius:10px;padding:10px 14px;margin:8px 0;flex-wrap:wrap}
+.src .ic{font-size:18px;width:26px;text-align:center}.src .nom{font-weight:600;min-width:190px}
+.src .chemin{font-family:ui-monospace,monospace;font-size:12px;color:var(--muted);flex:1;min-width:200px;word-break:break-all}
+.src .copier,.src .ouvrir{font-size:12px;padding:4px 10px;border-radius:7px;border:1px solid var(--bord);background:var(--carte2);color:var(--texte);cursor:pointer}
+.src .copier:hover{border-color:var(--orange);color:var(--orange2)}.src .ouvrir{color:#58a6ff;border-color:#1f3a5f}
+.cat{margin-top:22px;font-size:13px;color:var(--orange2);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+.chantier{background:var(--carte);border:1px solid var(--bord);border-radius:12px;padding:14px 16px;margin:10px 0}
+.chantier.fait{border-color:var(--vert);opacity:.75}
+.chantier .titre-ch{display:flex;align-items:center;gap:10px}
+.chantier input[type=checkbox]{width:18px;height:18px;accent-color:var(--vert);cursor:pointer}
+.critere{font-size:13px;color:var(--muted);margin:8px 0 4px}
+.cmd{display:flex;gap:8px;align-items:center;background:#0a0d12;border:1px solid var(--bord);border-radius:8px;padding:7px 10px;margin:6px 0;font-family:ui-monospace,monospace;font-size:12px}
+.cmd code{flex:1;color:#79c0ff;word-break:break-all}
+.cmd button{font-size:11px;padding:3px 9px;border-radius:6px;border:1px solid var(--bord);background:var(--carte2);color:var(--texte);cursor:pointer}
+.regle{display:flex;gap:12px;background:var(--carte);border:1px solid var(--bord);border-left:4px solid var(--rouge);border-radius:10px;padding:12px 14px;margin:10px 0}
+.regle .n{font-size:20px;font-weight:800;color:var(--rouge);font-family:ui-monospace,monospace}
+.bloc4{background:var(--carte);border:1px solid var(--bord);border-left:4px solid var(--cyan);border-radius:10px;padding:12px 16px;margin-top:18px;font-size:13px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--carte2);border:1px solid var(--vert);color:var(--vert);padding:10px 22px;border-radius:10px;transition:transform .3s;font-size:14px;z-index:99}
+.toast.visible{transform:translateX(-50%) translateY(0)}
+#pb-input{width:70%;background:#0a0d12;border:1px solid var(--bord);border-radius:8px;color:var(--texte);padding:8px 12px;font-size:14px}
+#pb-zone{background:#0a0d12;border:1px solid var(--bord);border-radius:8px;color:var(--texte);padding:8px}
+#pb-ajoute{background:var(--orange);border:none;color:#fff;border-radius:8px;padding:8px 16px;cursor:pointer;font-weight:600}
+#pb-notes{width:100%;min-height:110px;background:#0a0d12;border:1px solid var(--bord);border-radius:8px;color:var(--texte);padding:10px 12px;font-size:14px;resize:vertical}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="titre"><div><h1>🏠 Le Chantier — deepseek-harness</h1><div class="muted small" id="sous-titre">Document de travail vivant — la bible du projet (eddie-cockpit-v1)</div></div><div class="horloge" id="horloge">--:--:--</div></div>
+  <div class="jauges">
+    <div class="jauge"><div class="lbl">Phase</div><div class="num" id="phase" style="font-size:16px">Démarrage</div><div class="barre"><div id="barre-phase"></div></div><div class="small muted" id="phase-detail">à personnaliser : phase courante du projet</div></div>
+    <div class="jauge"><div class="lbl">Échéance suivante</div><div class="num" id="cd-echeance">--</div><div class="small muted">à personnaliser : prochaine échéance</div></div>
+    <div class="jauge"><div class="lbl">Chantiers validés</div><div class="num" id="cd-chantiers">0 / 0</div><div class="barre"><div id="barre-chantiers"></div></div></div>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab actif" data-vue="pensebete">📋 Pense-bête</div>
+  <div class="tab" data-vue="contexte">🧭 Contexte</div>
+  <div class="tab" data-vue="sources">🔗 Les Sources</div>
+  <div class="tab" data-vue="chantiers">✅ Les Chantiers</div>
+  <div class="tab" data-vue="regles">🧠 Les Règles</div>
+</div>
+
+<div class="vue actif" id="vue-pensebete">
+  <h2>📋 Pense-bête permanent</h2>
+  <p class="small muted">Coche quand c'est fait et prouvé. Ajout rapide : Entrée. Tout se souvient.</p>
+  <div class="carte">
+    <input id="pb-input" placeholder="nouvelle étape…"> <select id="pb-zone"><option value="v">🟢 verte</option><option value="o" selected>🟠 orange</option><option value="r">🔴 rouge</option></select>
+    <button id="pb-ajoute" onclick="pbAjoute()">Ajouter</button> <span id="pb-compteur" style="font-family:ui-monospace,monospace;color:var(--orange2)"></span>
+  </div>
+  <div id="pb-liste"></div>
+  <div class="carte"><div class="small muted" style="margin-bottom:6px">📝 Bloc-notes libre (sauvegarde auto) :</div>
+    <textarea id="pb-notes" placeholder="idées, rappels, choses à ne pas oublier…"></textarea><div class="small muted" id="pb-sauve">—</div></div>
+</div>
+
+<div class="vue" id="vue-contexte"><h2>🧭 Contexte du projet</h2><div id="ctx-carte"></div></div>
+<div class="vue" id="vue-sources"><h2>Cartographie des sources</h2><p class="small muted">Chaque source : chemin exact (📋 copier) et lien direct quand ouvrable (↗ ouvrir).</p><div id="src-liste"></div></div>
+<div class="vue" id="vue-chantiers"><h2>Les chantiers — coche, ça se souvient</h2><div id="liste-chantiers"></div></div>
+<div class="vue" id="vue-regles"><h2>🧠 Les règles non négociables</h2><div id="regles-liste"></div></div>
+
+<div class="bloc4">
+  <b>Statut réel :</b> <b>sync amont effectué le 24/09/2026</b> sur la branche dédiée <code>sync-up-0.1.7-rc.1-20260923</code> : merge complet d'<code>origin/master</code> (1617 commits rattrapés, divergence finale <b>37 local | 0 amont</b>), version racine <b>0.1.7-rc.1</b>, résolution manuelle des 7 conflits de merge (3 package.json combinés origin + ajouts locaux prouvés, docs testing prises côté amont sous le plafond 1350, imports schedule combinés), adaptation de nos 3 paquets locaux aux API retirées (kind <code>plugin</code> merge-extensible, modèle <code>ToolResultMessage</code>, <code>installSection</code> retiré, leafs tsconfig bifaces) et nettoyage de 4 dossiers fantômes (source supprimée par l'amont, 0 tracké) qui cassaient le glob tsdown. Audits antérieurs : chantiers de l'onglet Chantiers. · <b>Portée réelle :</b> travail local sur <code>Edy:~/deepseek-harness/</code> — aucun push, PR pull/1 inchangée · <b>Preuve :</b> <code>pnpm run build</code> → <b>exit 0, 492 paquets</b> · tests guards → <b>40/40</b> · démarrage réel <code>pnpm dsh --profile web</code> → URL <code>127.0.0.1:3080</code> · <code>git rev-list</code> → 37|0 · commits <code>97eb6a2480</code> (merge) + <code>e2d4f0c953</code> (adaptations) · <b>Prochaine étape :</b> arbitrer la PR pull/1 sur la nouvelle base, pousser la branche de sync sur Forgejo si souhaité, trancher les chantiers restants (corbeille des résidus, branches backup, scripts /tmp).
+</div>
+<div class="toast" id="toast">📋 Copié</div>
+</div>
+
+<script>
+/* ═══ DONNEES — personnaliser ici (le reste du moteur ne se touche pas) ═══ */
+const COCKPIT={
+  cle:'cockpit-deepseek-harness',
+  contexte:"<b>Audit du workspace deepseek-harness</b> — réalisé le 15/09/2026. État Git vérifié : arbre de travail <span class='zone z-vert'>🟢 propre</span> (0 modification, 0 stash, 1 seul worktree), HEAD sur la branche <code>fix/dette-technique-gates-docs-20260914</code> (commit 9d7eed4cd6, « fix(open-in-app): inject osRelease so the desktop probe stays hermetic »). Hygiène fichiers : aucun <code>.bak</code>/<code>.v1</code>/<code>.orig</code>/<code>.rej</code> dans le repo ; aucun <code>.db</code>/<code>.sqlite</code> à la racine ; <code>.env</code> présent mais ignoré par <code>.gitignore</code> (ligne 2) et non suivi — aucune fuite de credentials. Taille du checkout : 2,0 Go (node_modules et lib/ buildés, ignorés — normal).<br><br><b>Révision du 18/09/2026 :</b> le workspace est <span class='zone z-vert'>🟢 à jour</span> — branche <code>sync-0.1.6-alpha.1-20260915</code>, <b>0 commit de retard</b> sur <code>origin/master</code>, 33 d'avance, et ces 33 commits sont poussés sur Forgejo (SHA identique). <code>master</code> local porte le même commit que la branche courante depuis le 17/09 : le retard de master signalé le 15/09 est soldé. <code>pnpm run constraints</code> est <span class='zone z-vert'>🟢 vert</span> (exit 0) après alignement de 4 paquets maison sur la version racine <code>0.1.6-alpha.2</code> et écartement de 8 répertoires de paquets orphelins (retirés ou déplacés par l'amont entre le 11 et le 14/09) vers <code>Edy:~/.corbeille-dsh-residus-20260918-2149</code>. <code>pnpm run hygiene</code> : 16/16 PASS. Le profil web se compose toujours (613 lignes, exit 0).<br><br><b>Révision du 24/09/2026 — sync amont 0.1.7-rc.1 :</b> décision Eddie (arbitrage Jev) : rattrapage sur <b>branche dédiée</b> <code>sync-up-0.1.7-rc.1-20260923</code>. 7 conflits résolus manuellement (3 package.json : base = origin + ajouts locaux prouvés <code>edit-test-guard</code>/<code>failure-loop</code>/<code>llm-deepseek-pmu</code>/<code>ui-pre-send-scan</code> ; docs testing : côté origin sous le plafond 1350 ; schedule/runtime : imports combinés calendar + <code>declare module</code>). Build cassé ensuite par l'écart d'API : kind <code>plugin</code> sorti du cœur (déclaré via <code>MessageSourceMap</code>), <code>ToolResultMessage</code> plat (plus de <code>ToolResultBlock</code> imbriqué), <code>installSection</code> retiré (les forms se dérivent du config editor), leafs tsconfig bifaces. 4 dossiers fantômes sans <code>package.json</code> (supprimés par l'amont, 0 tracké) matchaient le glob <code>packages/*/*</code> de <code>tsdown.config.ts</code> — supprimés sur verdict Jev 0,99. <b>Preuves : build exit 0 / 492 paquets · 40/40 tests guards · dsh web démarre sur :3080 · divergence 37|0</b>.<br><br><b>Reste à faire :</b> les 4 <code>package.json</code> alignés ne sont pas encore commités — tant qu'ils restent modifiés, la synchro quotidienne (<code>Edy:~/.local/bin/dsh-auto-sync.sh</code>, cron 9h17) sort en « SKIP: working tree sale » et ne synchronise plus rien.<br><br><b>Hors workspace, signalé :</b> une douzaine de scripts dans <code>/tmp</code> (<code>ae_*.py</code>, <code>compare_tests.py</code>, <code>revue-reel2.py</code>…) — certains ressemblent à des outils récurrents (<code>journal.sh</code>, <code>backup-home-rsync.sh</code>, <code>health-check.sh</code>) : à trier (archiver les récurrents, supprimer les jetables) — suppression non exécutée, décision d'Eddie requise.",
+  echeanceJours:7, echeanceHeure:9,
+  sources:[ /* {ic:'🐙',nom:'',chemin:'',url:''} */
+    {ic:'🏠',nom:'Cockpit (ce fichier)',chemin:'Edy:~/deepseek-harness/docs/cockpit.html'},
+    {ic:'📕',nom:'Racine AGENTS.md',chemin:'Edy:~/deepseek-harness/AGENTS.md'},
+    {ic:'🏛️',nom:'Architecture',chemin:'Edy:~/deepseek-harness/docs/architecture.md'},
+    {ic:'🧪',nom:'Politique de test',chemin:'Edy:~/deepseek-harness/docs/testing.md'},
+    {ic:'📦',nom:'Groupes de packages',chemin:'Edy:~/deepseek-harness/packages/README.md'},
+    {ic:'🐙',nom:'Remote origin',chemin:'github (fetch origin/master)',url:'https://github.com/'},
+    {ic:'🦊',nom:'Remote forgejo',chemin:'http://192.168.1.250:3000/eddie/deepseek-harness.git',url:'http://192.168.1.250:3000/eddie/deepseek-harness'},
+  ],
+  chantiers:[ /* {n:'',c:'',cmds:['','']} */
+    {n:'Commiter l’alignement des 4 paquets maison sur 0.1.6-alpha.2 (rétablit la synchro automatique)',c:'git status --porcelain ne montre plus de paquet modifié ; le prochain run de dsh-auto-sync.sh ne sort plus en « SKIP: working tree sale »',cmds:['cd $HOME/deepseek-harness && git status --porcelain packages/*/*/package.json','cd $HOME/deepseek-harness && pnpm run constraints']},
+    {n:'Décider du sort de la corbeille des 8 résidus de paquets (Edy:~/.corbeille-dsh-residus-20260918-2149)',c:'la corbeille est supprimée définitivement (action d’Eddie : Aegis bloque toute suppression par l’agent) ou conservée avec sa raison écrite',cmds:['ls $HOME/.corbeille-dsh-residus-20260918-2149','cd $HOME/deepseek-harness && pnpm run clean && pnpm run build']},
+    {n:'Décider du sort des branches locales non mergées (backup/*, sync-*, fix/dette-technique-gates-docs-20260914)',c:'chaque branche mergée, poussée, ou supprimée explicitement',cmds:['git branch -a --no-merged master','git for-each-ref --sort=-committerdate --format="%(refname:short) %(committerdate:short)" refs/heads']},
+    {n:'Élargir la sauvegarde distante au-delà de Forgejo (origin GitHub est en lecture seule)',c:'git ls-remote origin affiche la branche courante, ou la sauvegarde distante est explicitement limitée à Forgejo',cmds:['git ls-remote origin sync-0.1.6-alpha.1-20260915','git ls-remote forgejo sync-0.1.6-alpha.1-20260915']},
+    {n:'Trier les scripts de /tmp (archiver les récurrents, supprimer les jetables)',c:'plus aucun script non classé dans /tmp ; les récurrents ont un home versionné',cmds:['ls /tmp/*.py /tmp/*.sh']},
+  ],
+  regles:[ /* règles non négociables du projet */
+    'Preuve brute obligatoire : « ça devrait marcher » est interdit.',
+    'Un binaire/service ne part jamais en production sans le commit Git correspondant sur main.',
+    'Jamais de patch par script externe réécrivant les sources ; édition native (outil edit / IDE) uniquement.',
+    'Aucun .bak / .bak.* / .v1 dans le repo ; données runtime hors racine du repo.',
+    'Zone rouge (credentials, suppression) : jamais seul — .env reste ignoré et non commité.',
+  ],
+};
+/* ═════════════ moteur (ne pas modifier) ═════════════ */
+function tic(){const n=new Date();document.getElementById('horloge').textContent=n.toLocaleTimeString('fr-FR')+' · '+n.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+ const e=new Date(n);const delta=((7-n.getDay())%7);e.setDate(n.getDate()+delta);e.setHours(COCKPIT.echeanceHeure,0,0,0);if(e<=n)e.setDate(e.getDate()+7);
+ const s=Math.floor((e-n)/1000),j=Math.floor(s/86400),h=Math.floor(s%86400/3600),m=Math.floor(s%3600/60);
+ document.getElementById('cd-echeance').textContent=(j>0?j+'j ':'')+h+'h '+String(m).padStart(2,'0')+'m';}
+tic();setInterval(tic,1000);
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('actif'));document.querySelectorAll('.vue').forEach(x=>x.classList.remove('actif'));t.classList.add('actif');document.getElementById('vue-'+t.dataset.vue).classList.add('actif')});
+function toast(){const t=document.getElementById('toast');t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),1400)}
+function bindCopier(){document.querySelectorAll('[data-copier]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.dataset.copier).then(()=>toast())})}
+document.getElementById('ctx-carte').innerHTML='<div class="carte">'+COCKPIT.contexte+'</div>';
+document.getElementById('src-liste').innerHTML=COCKPIT.sources.map(s=>`<div class="src"><span class="ic">${s.ic||'📎'}</span><span class="nom">${s.nom}</span><span class="chemin">${s.chemin}</span><button class="copier" data-copier="${s.chemin.replace(/"/g,'&quot;')}">📋 copier</button>${s.url?`<a class="ouvrir" href="${s.url}" target="_blank">↗ ouvrir</a>`:''}</div>`).join('');
+const etatCh=JSON.parse(localStorage.getItem(COCKPIT.cle+'-chantiers')||'{}');
+function renduCh(){
+ document.getElementById('liste-chantiers').innerHTML=COCKPIT.chantiers.map((c,i)=>
+  `<div class="chantier ${etatCh[i]?'fait':''}"><div class="titre-ch"><input type="checkbox" ${etatCh[i]?'checked':''} onchange="cocheCh(${i})"><b>${c.n}</b></div><div class="critere">✓ Critère : ${c.c}</div>`+
+  (c.cmds||[]).map(x=>`<div class="cmd"><code>${x.replace(/</g,'&lt;')}</code><button data-copier="${x.replace(/"/g,'&quot;')}">📋 copier</button></div>`).join('')+'</div>').join('');
+ bindCopier();
+ const nb=Object.values(etatCh).filter(Boolean).length;
+ document.getElementById('cd-chantiers').textContent=nb+' / '+COCKPIT.chantiers.length;
+ document.getElementById('barre-chantiers').style.width=(COCKPIT.chantiers.length?nb/COCKPIT.chantiers.length*100:0)+'%';}
+function cocheCh(i){etatCh[i]=!etatCh[i];localStorage.setItem(COCKPIT.cle+'-chantiers',JSON.stringify(etatCh));renduCh()}
+renduCh();
+document.getElementById('regles-liste').innerHTML=COCKPIT.regles.map((r,i)=>`<div class="regle"><div class="n">${i+1}</div><div>${r}</div></div>`).join('');
+/* pense-bête */
+const PB_SEED=[]; /* {id,z,t} — étapes pré-remplies du chantier courant */
+const PBK=COCKPIT.cle+'-pb';
+let pb=JSON.parse(localStorage.getItem(PBK)||'null')||{coche:{},ajoutees:[],notes:''};
+function pbSave(){localStorage.setItem(PBK,JSON.stringify(pb))}
+function pbRendu(){
+ const toutes=[...PB_SEED.map(x=>({...x,seed:true})),...pb.ajoutees];
+ document.getElementById('pb-liste').innerHTML=toutes.map(t=>{
+  const zf={v:['z-vert','🟢'],o:['z-orange','🟠'],r:['z-rouge','🔴']}[t.z||'o'];const fait=pb.coche[t.id];
+  return `<div class="src" style="${fait?'opacity:.55':''}"><span class="ic">${fait?'✅':'⬜'}</span><span class="nom" style="${fait?'text-decoration:line-through':''}"><span class="zone ${zf[0]}">${zf[1]}</span>${t.t}</span>${t.seed?'':`<button class="copier" onclick="pbSupprime('${t.id}')">🗑️</button>`}<button class="copier" onclick="pbCoche('${t.id}')">${fait?'↩︎ à faire':'✔ fait'}</button></div>`}).join('');
+ const reste=toutes.filter(t=>!pb.coche[t.id]).length;
+ document.getElementById('pb-compteur').textContent=reste+' à faire · '+(toutes.length-reste)+' faites';}
+function pbCoche(id){pb.coche[id]=!pb.coche[id];pbSave();pbRendu()}
+function pbSupprime(id){pb.ajoutees=pb.ajoutees.filter(t=>t.id!==id);delete pb.coche[id];pbSave();pbRendu()}
+function pbAjoute(){const inp=document.getElementById('pb-input');const t=inp.value.trim();if(!t)return;
+ pb.ajoutees.push({id:'pers-'+Date.now(),z:document.getElementById('pb-zone').value,t});inp.value='';pbSave();pbRendu()}
+document.getElementById('pb-input').addEventListener('keydown',e=>{if(e.key==='Enter')pbAjoute()});
+const notesEl=document.getElementById('pb-notes');notesEl.value=pb.notes||'';
+notesEl.addEventListener('input',()=>{pb.notes=notesEl.value;pbSave();document.getElementById('pb-sauve').textContent='sauvegardé à '+new Date().toLocaleTimeString('fr-FR')});
+pbRendu();
+</script>
+</body>
+</html>
