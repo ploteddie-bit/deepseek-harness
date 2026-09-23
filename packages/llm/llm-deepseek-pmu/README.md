@@ -58,7 +58,7 @@ These limits define where this route stops and the reused adapter takes over. Th
 - **No `baseURL` or `protocol` setting** — the plugin declares neither, so the route resolves its endpoint the way the official route does and both reach the same root. Pointing it at an OpenAI-compatible gateway needs a `baseURL` field this plugin does not expose.
 - **Only `apiKeyEnv` is configurable** — thinking policy, image budgets, request caps, and the retry policy keep the defaults that `resolveAdapterOptions` supplies.
 - **The advisory catalog ships two text-only models** — `deepseek-flash` and `deepseek-v4-pro`; the route declares no image-capable entry and no model using `systemPromptUpdate: in-history`, so it cannot advertise vision or the in-history system-prompt mode.
-- **A rejected settings section keeps the last good connection facts** — the plugin logs the failure and keeps serving, so an invalid `llm-deepseek-pmu` section degrades to the previous values instead of failing the next request. Only the first resolution, with no last good value, throws.
+- **Connection options resolve from the plugin's fixed Config** — the host swaps the plugin instance when the `llm-deepseek-pmu` section changes, so form validation rejects an invalid entry before persistence and a running instance never sees it. Within one instance, a later failed resolution keeps and logs the last good connection facts; only the first resolution, with no last good value, throws.
 - **Provider registration duplicates the sibling adapter's wiring** — extracting a shared helper for the reuse pattern is deferred until a third route needs it.
 
 <a id="dev-note"></a>
