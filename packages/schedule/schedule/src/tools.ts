@@ -282,7 +282,7 @@ function validateCreateArgs(args: {
   every_seconds?: number
   cron?: string
 }): ScheduleToolError | undefined {
-  const keys = Object.keys(args as unknown as Record<string, unknown>)
+  const keys = Object.keys(args)
   if (keys.some(key => key !== 'prompt'
     && key !== 'after_seconds'
     && key !== 'at'
