@@ -224,8 +224,8 @@ describe('advisory fold onto the downstream decision', () => {
     expect(found[1]!.text).toBe('downstream-ctx')
     // The block's feedback reached the tool result unchanged.
     const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
-    expect(results.every(r => r.data.message.content[0].isError)).toBe(true)
-    expect(results[0]!.data.message.content[0].content).toEqual([{ type: 'text', text: 'nope' }])
+    expect(results.every(r => r.data.message.isError)).toBe(true)
+    expect(results[0]!.data.message.content).toEqual([{ type: 'text', text: 'nope' }])
   })
 
   it('never blocks: an edit still succeeds and the reminder rides as context', async () => {
@@ -240,7 +240,7 @@ describe('advisory fold onto the downstream decision', () => {
     await waitForIdle(ctx, agent)
 
     const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
-    expect(results.every(r => !r.data.message.content[0].isError)).toBe(true)
+    expect(results.every(r => !r.data.message.isError)).toBe(true)
   })
 })
 

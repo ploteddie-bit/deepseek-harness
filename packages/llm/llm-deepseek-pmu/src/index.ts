@@ -48,11 +48,11 @@ export const Config: z<Config> = z.object({
 })
 
 export function apply(ctx: Context, config: Config): void {
-  let current: () => Config = () => config
+  ctx.inject(['settings'], (child) => { child.effect(() => child.settings.configure({ auto: false }, ctx.fiber)) })
   let lastRaw: Config | undefined
   let lastGood: DeepSeekConnectionOptions | undefined
   const options = (): DeepSeekConnectionOptions => {
-    const raw = current()
+    const raw = config
     if (raw === lastRaw && lastGood !== undefined) return lastGood
     try {
       const apiKeyEnv = raw.apiKeyEnv ?? DEFAULT_API_KEY_ENV
@@ -114,13 +114,4 @@ export function apply(ctx: Context, config: Config): void {
     { provider: PROVIDER, displayName: 'DeepSeek PMU', settingsNs: NS, settingsPath: [] },
   ])
   ctx.llm.registerAdapter([PROVIDER], adapter)
-
-  ctx.inject(['settings'], (settingsCtx) => {
-    settingsCtx.settings.installSection(ctx, NS, Config, config, {
-      setSource: (source) => {
-        current = source
-      },
-      onChange: () => {},
-    })
-  })
 }

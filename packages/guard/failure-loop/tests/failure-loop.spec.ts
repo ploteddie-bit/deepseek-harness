@@ -67,7 +67,7 @@ function toolResults(agent: Agent): SessionEvent<'tool/result'>[] {
 
 /** The joined text of one tool result's rendered content blocks (empty when none are text). */
 function toolResultText(event: SessionEvent<'tool/result'>): string {
-  return event.data.message.content[0].content
+  return event.data.message.content
     .map(block => block.type === 'text' ? block.text : '')
     .join('')
 }
@@ -313,7 +313,7 @@ describe('advisory semantics', () => {
     expect(reminders(agent)).toHaveLength(1)
     const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
     expect(results).toHaveLength(5)
-    expect(results.every(r => r.data.message.content[0].isError !== true)).toBe(true)
+    expect(results.every(r => r.data.message.isError !== true)).toBe(true)
   })
 
   it('folds the reminder onto a downstream block and keeps its feedback', async () => {
@@ -345,8 +345,8 @@ describe('advisory semantics', () => {
     expect(found[2]).toEqual({ text: 'downstream-ctx', source: { kind: 'plugin', plugin: 'test' } })
     // The block's feedback reached the tool result unchanged.
     const results = agent.session.snapshotEvents().filter((e): e is SessionEvent<'tool/result'> => e.type === 'tool/result')
-    expect(results.every(r => r.data.message.content[0].isError)).toBe(true)
-    expect(results[1]!.data.message.content[0].content).toEqual([{ type: 'text', text: 'nope' }])
+    expect(results.every(r => r.data.message.isError)).toBe(true)
+    expect(results[1]!.data.message.content).toEqual([{ type: 'text', text: 'nope' }])
   })
 })
 
