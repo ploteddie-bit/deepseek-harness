@@ -18,16 +18,13 @@
       "path": "../../llm/llm"
     },
     {
-      "path": "../../fs/fs"
+      "path": "../../credentials/credentials"
     },
     {
       "path": "../../util/launch-environment"
     },
     {
-      "path": "../../settings/settings"
-    },
-    {
-      "path": "../../identity/anonymous-user-id"
+      "path": "../../../vendor/loader"
     },
     {
       "path": "../llm-deepseek"

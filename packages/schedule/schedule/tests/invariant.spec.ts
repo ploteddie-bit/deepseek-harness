@@ -18,6 +18,7 @@ function create(id: string): ScheduleChange {
     schedule: {
       id: ScheduleId(id),
       kind: 'after',
+      title: 'check logs',
       prompt: 'check logs',
       afterSeconds: 1,
       scheduledAt: '2026-08-05T12:00:01.000Z',
@@ -32,23 +33,10 @@ function createEvery(id: string): ScheduleChange {
     schedule: {
       id: ScheduleId(id),
       kind: 'every',
+      title: 'check metrics',
       prompt: 'check metrics',
       everySeconds: 300,
       scheduledAt: '2026-08-05T12:05:00.000Z',
-    },
-  }
-}
-
-function createCron(id: string): ScheduleChange {
-  return {
-    version: 1,
-    operation: 'create',
-    schedule: {
-      id: ScheduleId(id),
-      kind: 'cron',
-      prompt: 'check calendar',
-      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
-      scheduledAt: '2026-08-10T09:00:00.000Z',
     },
   }
 }
@@ -95,25 +83,6 @@ describe('Schedule package invariant', () => {
       operation: 'dispatch',
       id: ScheduleId('schedule-every'),
       acceptedAt: '2026-08-05T12:17:34.000Z',
-    })
-    expect(session.snapshotEvents()).toHaveLength(2)
-    await ctx.fiber.dispose()
-  })
-
-  it('requires a decision time for Cron dispatch and advances the live stream', async () => {
-    const { ctx } = await harness()
-    const session = ctx.sessions.create(SessionId('schedule-cron-invariant'))
-    session.append('schedule/change', createCron('schedule-cron'))
-    expect(() => session.append('schedule/change', {
-      version: 1,
-      operation: 'dispatch',
-      id: ScheduleId('schedule-cron'),
-    })).toThrow(InvariantError)
-    session.append('schedule/change', {
-      version: 1,
-      operation: 'dispatch',
-      id: ScheduleId('schedule-cron'),
-      acceptedAt: '2026-08-10T11:00:00.000Z',
     })
     expect(session.snapshotEvents()).toHaveLength(2)
     await ctx.fiber.dispose()

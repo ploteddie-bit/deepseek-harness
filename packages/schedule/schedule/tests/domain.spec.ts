@@ -6,17 +6,19 @@ import {
   ScheduleInputError,
   ScheduleLogError,
   allocateScheduleId,
+  applyScheduleChanges,
+  canonicalizeCronExpression,
   canonicalizeTimeZone,
   createAfterScheduleRecord,
   createAtScheduleRecord,
-  createCronScheduleRecord,
   createEveryScheduleRecord,
   decodeScheduleChange,
+  decodeScheduleRecord,
   foldScheduleEvents,
+  MAX_TITLE_LENGTH,
   MIN_EVERY_INTERVAL_SECONDS,
-  renderEveryReminderBatchFraming,
+  renderRecurringReminderBatchFraming,
   renderReminderFraming,
-  resolveCronOccurrence,
   resolveEveryOccurrence,
   scheduleView,
 } from '../src/domain.ts'
@@ -29,7 +31,7 @@ function createData(id = 'schedule-1', prompt = 'check logs', scheduledAt = '202
   return {
     version: 1,
     operation: 'create',
-    schedule: { id, kind: 'after', prompt, afterSeconds: 30, scheduledAt },
+    schedule: { id, kind: 'after', title: 'check logs', prompt, afterSeconds: 30, scheduledAt },
   }
 }
 
@@ -37,7 +39,7 @@ function atCreateData(id = 'schedule-at', prompt = 'join meeting', scheduledAt =
   return {
     version: 1,
     operation: 'create',
-    schedule: { id, kind: 'at', prompt, scheduledAt },
+    schedule: { id, kind: 'at', title: 'join meeting', prompt, scheduledAt },
   }
 }
 
@@ -49,25 +51,7 @@ function everyCreateData(
   return {
     version: 1,
     operation: 'create',
-    schedule: { id, kind: 'every', prompt, everySeconds: 300, scheduledAt },
-  }
-}
-
-function cronCreateData(
-  id = 'schedule-cron',
-  prompt = 'check calendar',
-  scheduledAt = '2026-08-10T09:00:00.000Z',
-) {
-  return {
-    version: 1,
-    operation: 'create',
-    schedule: {
-      id,
-      kind: 'cron',
-      prompt,
-      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
-      scheduledAt,
-    },
+    schedule: { id, kind: 'every', title: 'check metrics', prompt, everySeconds: 300, scheduledAt },
   }
 }
 
@@ -76,7 +60,6 @@ describe('version-1 Schedule decoding and folding', () => {
     const create = decodeScheduleChange(createData())
     const at = decodeScheduleChange(atCreateData())
     const every = decodeScheduleChange(everyCreateData())
-    const cron = decodeScheduleChange(cronCreateData())
     const remove = decodeScheduleChange({ version: 1, operation: 'delete', id: 'schedule-1' })
     const dispatch = decodeScheduleChange({ version: 1, operation: 'dispatch', id: 'schedule-1' })
     const everyDispatch = decodeScheduleChange({
@@ -89,7 +72,6 @@ describe('version-1 Schedule decoding and folding', () => {
     expect(create).toEqual(createData())
     expect(at).toEqual(atCreateData())
     expect(every).toEqual(everyCreateData())
-    expect(cron).toEqual(cronCreateData())
     expect(remove).toEqual({ version: 1, operation: 'delete', id: 'schedule-1' })
     expect(dispatch).toEqual({ version: 1, operation: 'dispatch', id: 'schedule-1' })
     expect(everyDispatch).toEqual({
@@ -101,9 +83,44 @@ describe('version-1 Schedule decoding and folding', () => {
     expect(Object.isFrozen(create)).toBe(true)
     expect(Object.isFrozen(at)).toBe(true)
     expect(Object.isFrozen(every)).toBe(true)
-    expect(Object.isFrozen(cron)).toBe(true)
     if (create.operation !== 'create') throw new Error('expected create')
     expect(Object.isFrozen(create.schedule)).toBe(true)
+  })
+
+  it('decodes and folds a v1 create record written before titles existed', () => {
+    const untitled = [
+      { version: 1, operation: 'create', schedule: {
+        id: 'after', kind: 'after', prompt: 'check logs', afterSeconds: 30, scheduledAt: '2026-08-05T12:00:00.000Z' } },
+      { version: 1, operation: 'create', schedule: {
+        id: 'at', kind: 'at', prompt: 'join meeting', scheduledAt: '2026-08-06T01:00:00.000Z' } },
+      { version: 1, operation: 'create', schedule: {
+        id: 'every', kind: 'every', prompt: 'check metrics', everySeconds: 300, scheduledAt: '2026-08-05T12:05:00.000Z' } },
+    ]
+    for (const data of untitled) {
+      const decoded = decodeScheduleChange(data)
+      if (decoded.operation !== 'create') throw new Error('expected create')
+      expect(Object.hasOwn(decoded.schedule, 'title')).toBe(false)
+    }
+    expect(foldScheduleEvents(untitled.map((data, seq) => scheduleEvent(data, seq)))).toEqual({
+      active: [
+        expect.objectContaining({ id: 'after' }),
+        expect.objectContaining({ id: 'at' }),
+        expect.objectContaining({ id: 'every' }),
+      ],
+      seenIds: ['after', 'at', 'every'],
+    })
+  })
+
+  it('still refuses a historical create record whose present title is malformed', () => {
+    const cases = [
+      { ...createData().schedule, title: '' },
+      { ...atCreateData().schedule, title: ' padded' },
+      { ...everyCreateData().schedule, title: 'x'.repeat(MAX_TITLE_LENGTH + 1) },
+      { ...createData().schedule, title: undefined, extra: true },
+    ]
+    for (const schedule of cases) {
+      expect(() => decodeScheduleChange({ version: 1, operation: 'create', schedule })).toThrow(ScheduleLogError)
+    }
   })
 
   it.each([
@@ -122,7 +139,7 @@ describe('version-1 Schedule decoding and folding', () => {
     { ...atCreateData(), schedule: { ...atCreateData().schedule, prompt: ' ' } },
     { ...everyCreateData(), schedule: { ...everyCreateData().schedule, extra: true } },
     { ...everyCreateData(), schedule: { ...everyCreateData().schedule, prompt: ' ' } },
-    { ...everyCreateData(), schedule: { ...everyCreateData().schedule, everySeconds: 299 } },
+    { ...everyCreateData(), schedule: { ...everyCreateData().schedule, everySeconds: 59 } },
     { ...everyCreateData(), schedule: { ...everyCreateData().schedule, everySeconds: 300.5 } },
     { ...everyCreateData(), schedule: { ...everyCreateData().schedule, everySeconds: '300' } },
     { ...everyCreateData(), schedule: { ...everyCreateData().schedule, everySeconds: Number.MAX_SAFE_INTEGER } },
@@ -134,16 +151,6 @@ describe('version-1 Schedule decoding and folding', () => {
     { ...createData(), schedule: null },
     { ...atCreateData(), schedule: { ...atCreateData().schedule, kind: 'every' } },
     { ...atCreateData(), schedule: { ...atCreateData().schedule, kind: 'later' } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, extra: true } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, kind: 'later' } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, prompt: ' ' } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, scheduledAt: 'not-an-instant' } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, extra: [] } } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: 'bad' } } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [60] } } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [1, 1] } } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, minutes: [5, 1] } } },
-    { ...cronCreateData(), schedule: { ...cronCreateData().schedule, rule: { ...cronCreateData().schedule.rule, daysOfWeek: [7] } } },
   ])('rejects malformed durable data %#', (data) => {
     expect(() => decodeScheduleChange(data)).toThrow(ScheduleLogError)
   })
@@ -191,16 +198,75 @@ describe('version-1 Schedule decoding and folding', () => {
 
 describe('after record and model framing', () => {
   it('builds canonical records and derives scheduled or overdue views', () => {
-    const record = createAfterScheduleRecord(ScheduleId('schedule-1'), '  check logs  ', 30, 1_000)
+    const record = createAfterScheduleRecord(ScheduleId('schedule-1'), '  check logs  ', 30, 1_000, 'check logs')
     expect(record).toEqual({
       id: 'schedule-1',
       kind: 'after',
+      title: 'check logs',
       prompt: 'check logs',
       afterSeconds: 30,
       scheduledAt: '1970-01-01T00:00:31.000Z',
     })
-    expect(scheduleView(record, 30_999)).toMatchObject({ state: 'scheduled', deliveryMode: 'session-local' })
-    expect(scheduleView(record, 31_000)).toMatchObject({ state: 'overdue', deliveryMode: 'session-local' })
+    expect(scheduleView(record, 30_999)).toMatchObject({ state: 'scheduled', deliveryMode: 'host' })
+    expect(scheduleView(record, 31_000)).toMatchObject({ state: 'overdue', deliveryMode: 'host' })
+  })
+
+  it('stores a supplied title verbatim, trimmed, for a multi-line instruction', () => {
+    expect(createAfterScheduleRecord(
+      ScheduleId('named'), 'Deploy the release\nCheck risks', 30, 1_000, '  Release check  ',
+    )).toMatchObject({ title: 'Release check', prompt: 'Deploy the release\nCheck risks' })
+    expect(createAfterScheduleRecord(
+      ScheduleId('first-line'), 'Deploy the release\nCheck risks', 30, 1_000, 'Deploy the release',
+    )).toMatchObject({ title: 'Deploy the release', prompt: 'Deploy the release\nCheck risks' })
+  })
+
+  it('accepts a title at the cap and rejects a missing, blank, or over-long creation title', () => {
+    const longest = 'x'.repeat(MAX_TITLE_LENGTH)
+    expect(createAfterScheduleRecord(ScheduleId('longest'), 'Prompt', 30, 1_000, longest))
+      .toMatchObject({ title: longest })
+    for (const [title, message] of [
+      [undefined, 'required'],
+      ['   ', 'required'],
+      [`${longest}y`, `at most ${MAX_TITLE_LENGTH}`],
+    ] as const) {
+      try {
+        createAfterScheduleRecord(ScheduleId('bad-title'), 'Prompt', 30, 1_000, title as string)
+        throw new Error('expected title failure')
+      } catch (error: unknown) {
+        expect(error).toBeInstanceOf(ScheduleInputError)
+        expect((error as ScheduleInputError).code).toBe('invalid_prompt')
+        expect((error as ScheduleInputError).message).toContain(message)
+      }
+    }
+  })
+
+  it('round-trips a valid stored title', () => {
+    const stored = {
+      id: 'stored-at', kind: 'at', title: 'Deploy the release', prompt: 'Deploy the release\nCheck risks',
+      scheduledAt: '2026-08-06T01:00:00.000Z',
+    }
+    expect(decodeScheduleRecord(stored)).toEqual(stored)
+  })
+
+  it.each([
+    ['after', { id: 'missing-title', kind: 'after', prompt: 'Prompt', afterSeconds: 60, scheduledAt: '2026-08-06T01:00:00.000Z' }],
+    ['at', { id: 'missing-title', kind: 'at', prompt: 'Prompt', scheduledAt: '2026-08-06T01:00:00.000Z' }],
+    ['every', { id: 'missing-title', kind: 'every', prompt: 'Prompt', everySeconds: 300, scheduledAt: '2026-08-06T01:00:00.000Z' }],
+    ['daily', { id: 'missing-title', kind: 'daily', prompt: 'Prompt', time: '09:00:00.000', timeZone: 'UTC', scheduledAt: '2026-08-06T01:00:00.000Z' }],
+    ['weekly', { id: 'missing-title', kind: 'weekly', prompt: 'Prompt', time: '09:00:00.000', timeZone: 'UTC', weekdays: [1], scheduledAt: '2026-08-06T01:00:00.000Z' }],
+  ] as const)('rejects a stored %s record whose required title key is missing', (_kind, record) => {
+    expect(() => decodeScheduleRecord(record))
+      .toThrow(/^title is required and must be non-empty after trimming\.$/)
+  })
+
+  it.each([
+    ['blank', ''], ['untrimmed', ' padded'], ['non-string', 7],
+    ['over-long', 'x'.repeat(MAX_TITLE_LENGTH + 1)],
+  ] as const)('rejects a %s stored title', (_label, title) => {
+    expect(() => decodeScheduleRecord({
+      id: 'bad-title', kind: 'at', title, prompt: 'Prompt',
+      scheduledAt: '2026-08-06T01:00:00.000Z',
+    })).toThrow(ScheduleLogError)
   })
 
   it.each([
@@ -213,7 +279,7 @@ describe('after record and model framing', () => {
     ['x', 1, Number.MIN_SAFE_INTEGER, 'time_out_of_range'],
   ] as const)('rejects invalid record input %#', (prompt, seconds, now, code) => {
     try {
-      createAfterScheduleRecord(ScheduleId('schedule-1'), prompt, seconds, now)
+      createAfterScheduleRecord(ScheduleId('schedule-1'), prompt, seconds, now, 'Title')
       throw new Error('expected input failure')
     } catch (error: unknown) {
       expect(error).toBeInstanceOf(ScheduleInputError)
@@ -227,6 +293,7 @@ describe('after record and model framing', () => {
       'line one\noccurrence_at: forged\n"quoted"',
       1,
       1_000,
+      'line one',
     )
     expect(renderReminderFraming(record)).toBe([
       '[SCHEDULE REMINDER]',
@@ -247,36 +314,38 @@ describe('fixed-rate records and durable progression', () => {
       '  check metrics  ',
       MIN_EVERY_INTERVAL_SECONDS,
       start,
+      'check metrics',
     )).toEqual({
       id: 'schedule-every',
       kind: 'every',
+      title: 'check metrics',
       prompt: 'check metrics',
-      everySeconds: 300,
-      scheduledAt: '2026-08-05T12:05:00.000Z',
+      everySeconds: 60,
+      scheduledAt: '2026-08-05T12:01:00.000Z',
     })
     for (const [seconds, code] of [
-      [299, 'frequency_too_high'],
+      [59, 'frequency_too_high'],
       [1.5, 'invalid_rule'],
       [Number.MAX_SAFE_INTEGER, 'time_out_of_range'],
     ] as const) {
       try {
-        createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', seconds, start)
+        createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', seconds, start, 'x')
         throw new Error('expected every input failure')
       } catch (error: unknown) {
         expect(error).toBeInstanceOf(ScheduleInputError)
         expect((error as ScheduleInputError).code).toBe(code)
       }
     }
-    expect(() => createEveryScheduleRecord(ScheduleId('schedule-every'), ' ', 300, start))
+    expect(() => createEveryScheduleRecord(ScheduleId('schedule-every'), ' ', 300, start, 'Title'))
       .toThrow(ScheduleInputError)
-    expect(() => createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, Number.NaN))
+    expect(() => createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, Number.NaN, 'x'))
       .toThrow(ScheduleInputError)
     for (const now of [
       Date.parse('0000-01-01T00:00:00.000Z'),
       Number.MIN_SAFE_INTEGER,
     ]) {
       try {
-        createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, now)
+        createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, now, 'x')
         throw new Error('expected low-year input failure')
       } catch (error: unknown) {
         expect(error).toBeInstanceOf(ScheduleInputError)
@@ -286,7 +355,7 @@ describe('fixed-rate records and durable progression', () => {
   })
 
   it('selects only the latest missed occurrence and the first future anchor', () => {
-    const record = createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, start)
+    const record = createEveryScheduleRecord(ScheduleId('schedule-every'), 'x', 300, start, 'x')
     expect(resolveEveryOccurrence(record, Date.parse(record.scheduledAt))).toEqual({
       occurrenceAt: '2026-08-05T12:05:00.000Z',
       nextScheduledAt: '2026-08-05T12:10:00.000Z',
@@ -314,6 +383,7 @@ describe('fixed-rate records and durable progression', () => {
       active: [{
         id: 'schedule-every',
         kind: 'every',
+        title: 'check metrics',
         prompt: 'check metrics',
         everySeconds: 300,
         scheduledAt: '2026-08-05T12:20:00.000Z',
@@ -337,7 +407,7 @@ describe('fixed-rate records and durable progression', () => {
 
   it('terminates at the representable boundary and renders one escaped multi-record batch', () => {
     const final = {
-      ...createEveryScheduleRecord(ScheduleId('schedule-final'), 'final', 300, start),
+      ...createEveryScheduleRecord(ScheduleId('schedule-final'), 'final', 300, start, 'final'),
       scheduledAt: '9999-12-31T23:59:59.999Z',
     }
     expect(resolveEveryOccurrence(final, Date.parse(final.scheduledAt))).toEqual({
@@ -353,9 +423,9 @@ describe('fixed-rate records and durable progression', () => {
       }, 1),
     ])).toEqual({ active: [], seenIds: [final.id] })
 
-    const first = createEveryScheduleRecord(ScheduleId('schedule-one'), 'line\n"quoted"', 300, start)
-    const second = createEveryScheduleRecord(ScheduleId('schedule-two'), 'check metrics', 600, start)
-    expect(renderEveryReminderBatchFraming([
+    const first = createEveryScheduleRecord(ScheduleId('schedule-one'), 'line\n"quoted"', 300, start, 'line')
+    const second = createEveryScheduleRecord(ScheduleId('schedule-two'), 'check metrics', 600, start, 'check metrics')
+    expect(renderRecurringReminderBatchFraming([
       { record: first, occurrenceAt: '2026-08-05T12:15:00.000Z' },
       { record: second, occurrenceAt: '2026-08-05T12:10:00.000Z' },
     ])).toBe([
@@ -366,100 +436,10 @@ describe('fixed-rate records and durable progression', () => {
   })
 })
 
-describe('calendar records and durable progression', () => {
-  const now = Date.parse('2026-09-06T00:00:00.000Z') // Sunday
-
-  it('creates the first strictly future occurrence from a Cron selector', () => {
-    expect(createCronScheduleRecord(
-      ScheduleId('schedule-cron'),
-      '  check calendar  ',
-      '0 9 * * 1',
-      now,
-    )).toEqual({
-      id: 'schedule-cron',
-      kind: 'cron',
-      prompt: 'check calendar',
-      rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
-      scheduledAt: '2026-09-07T09:00:00.000Z',
-    })
-  })
-
-  it('normalizes a calendar phrase selector into the same durable rule', () => {
-    expect(createCronScheduleRecord(
-      ScheduleId('schedule-cron'),
-      'every weekday',
-      'every weekday at 9',
-      now,
-    ).rule).toEqual({ minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1, 2, 3, 4, 5] })
-  })
-
-  it('rejects an empty prompt before interpreting the selector', () => {
-    try {
-      createCronScheduleRecord(ScheduleId('schedule-cron'), '   ', '0 9 * * 1', now)
-      throw new Error('expected prompt failure')
-    } catch (error: unknown) {
-      expect(error).toBeInstanceOf(ScheduleInputError)
-      expect((error as ScheduleInputError).code).toBe('invalid_prompt')
-    }
-  })
-
-  it.each([
-    ['', 'invalid_rule'],
-    ['   ', 'invalid_rule'],
-    ['60 9 * * *', 'invalid_rule'],
-    ['not a cron', 'invalid_rule'],
-    [42 as never, 'invalid_rule'],
-  ] as const)('rejects invalid cron input %#', (cron, code) => {
-    try {
-      createCronScheduleRecord(ScheduleId('schedule-cron'), 'x', cron, now)
-      throw new Error('expected cron input failure')
-    } catch (error: unknown) {
-      expect(error).toBeInstanceOf(ScheduleInputError)
-      expect((error as ScheduleInputError).code).toBe(code)
-    }
-  })
-
-  it('selects the latest due occurrence and the next future target', () => {
-    const record = createCronScheduleRecord(ScheduleId('schedule-cron'), 'x', '0 9 * * 1', now)
-    expect(resolveCronOccurrence(record, Date.parse('2026-09-14T10:00:00.000Z'))).toEqual({
-      occurrenceAt: '2026-09-14T09:00:00.000Z',
-      nextScheduledAt: '2026-09-21T09:00:00.000Z',
-    })
-    expect(() => resolveCronOccurrence(record, Date.parse('2026-09-07T08:59:59.999Z')))
-      .toThrow(/cannot precede/)
-    expect(() => resolveCronOccurrence(record, Number.NaN)).toThrow(/acceptedAt/)
-  })
-
-  it('advances one calendar record and requires a decision time', () => {
-    const create = scheduleEvent(cronCreateData(), 0)
-    const dispatch = scheduleEvent({
-      version: 1,
-      operation: 'dispatch',
-      id: 'schedule-cron',
-      acceptedAt: '2026-08-10T11:00:00.000Z',
-    }, 1)
-    expect(foldScheduleEvents([create, dispatch])).toEqual({
-      active: [{
-        id: 'schedule-cron',
-        kind: 'cron',
-        prompt: 'check calendar',
-        rule: { minutes: [0], hours: [9], daysOfMonth: [], months: [], daysOfWeek: [1] },
-        scheduledAt: '2026-08-17T09:00:00.000Z',
-      }],
-      seenIds: ['schedule-cron'],
-    })
-    expect(() => foldScheduleEvents([
-      create,
-      scheduleEvent({ version: 1, operation: 'dispatch', id: 'schedule-cron' }, 1),
-    ])).toThrow(/must contain acceptedAt/)
-  })
-})
-
 describe('absolute record and time-zone resolution', () => {
   const now = Date.parse('2026-08-05T12:00:00.000Z')
 
   it.each([
-    ['2026-09-20T09:00:00Z', '2026-09-20T09:00:00.000Z'],
     ['2026-08-06T09:00:00+08:00', '2026-08-06T01:00:00.000Z'],
     ['2026-08-06T01:00:00Z', '2026-08-06T01:00:00.000Z'],
     ['2026-08-06T01:00:00+00:00', '2026-08-06T01:00:00.000Z'],
@@ -467,9 +447,10 @@ describe('absolute record and time-zone resolution', () => {
     ['2026-08-06T01:00:00.12Z', '2026-08-06T01:00:00.120Z'],
     ['2026-08-05T20:30:00-05:30', '2026-08-06T02:00:00.000Z'],
   ])('normalizes strict offset input %s', (at, scheduledAt) => {
-    expect(createAtScheduleRecord(ScheduleId('schedule-at'), '  join meeting  ', at, now)).toEqual({
+    expect(createAtScheduleRecord(ScheduleId('schedule-at'), '  join meeting  ', at, now, 'join meeting')).toEqual({
       id: 'schedule-at',
       kind: 'at',
+      title: 'join meeting',
       prompt: 'join meeting',
       scheduledAt,
     })
@@ -487,14 +468,14 @@ describe('absolute record and time-zone resolution', () => {
     '2026-08-06T01:00:00+01:60',
     '0000-01-01T00:00:00Z',
   ])('rejects invalid strict offset input %s', (at) => {
-    expect(() => createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, now))
+    expect(() => createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, now, 'x'))
       .toThrow(ScheduleInputError)
   })
 
   it('distinguishes non-future and out-of-range absolute targets', () => {
     for (const at of ['2026-08-05T12:00:00Z', '2026-08-05T11:59:59Z']) {
       try {
-        createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, now)
+        createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, now, 'x')
         throw new Error('expected not-future failure')
       } catch (error: unknown) {
         expect(error).toBeInstanceOf(ScheduleInputError)
@@ -507,7 +488,7 @@ describe('absolute record and time-zone resolution', () => {
       ['2026-08-06T01:00:00Z', Number.NaN],
     ] as const) {
       try {
-        createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, sampleNow)
+        createAtScheduleRecord(ScheduleId('schedule-at'), 'x', at, sampleNow, 'x')
         throw new Error('expected range failure')
       } catch (error: unknown) {
         expect(error).toBeInstanceOf(ScheduleInputError)
@@ -534,17 +515,17 @@ describe('absolute record and time-zone resolution', () => {
   it('resolves explicit local time, rejects a DST gap, and chooses the first overlap instant', () => {
     expect(createAtScheduleRecord(ScheduleId('shanghai'), 'x', {
       date: '2026-08-06', time: '09:00:00.25', time_zone: 'Asia/Shanghai',
-    }, now).scheduledAt).toBe('2026-08-06T01:00:00.250Z')
+    }, now, 'x').scheduledAt).toBe('2026-08-06T01:00:00.250Z')
     expect(createAtScheduleRecord(ScheduleId('utc'), 'x', {
       date: '2026-08-06', time: '09:00:00', time_zone: 'UTC',
-    }, now).scheduledAt).toBe('2026-08-06T09:00:00.000Z')
+    }, now, 'x').scheduledAt).toBe('2026-08-06T09:00:00.000Z')
     expect(createAtScheduleRecord(ScheduleId('overlap'), 'x', {
       date: '2026-11-01', time: '01:30:00', time_zone: 'America/New_York',
-    }, now).scheduledAt).toBe('2026-11-01T05:30:00.000Z')
+    }, now, 'x').scheduledAt).toBe('2026-11-01T05:30:00.000Z')
     try {
       createAtScheduleRecord(ScheduleId('gap'), 'x', {
         date: '2026-03-08', time: '02:30:00', time_zone: 'America/New_York',
-      }, Date.parse('2026-01-01T00:00:00.000Z'))
+      }, Date.parse('2026-01-01T00:00:00.000Z'), 'x')
       throw new Error('expected gap failure')
     } catch (error: unknown) {
       expect(error).toBeInstanceOf(ScheduleInputError)
@@ -559,6 +540,11 @@ describe('absolute record and time-zone resolution', () => {
     [{ date: '2026-08-06', time: '09:00:00', time_zone: 8 }],
     [{ date: '2026-02-30', time: '09:00:00', time_zone: 'UTC' }],
     [{ date: '2026-08-06', time: '24:00:00', time_zone: 'UTC' }],
+    [{ date: '2026-08-06', time: '23:60:00', time_zone: 'UTC' }],
+    [{ date: '2026-08-06', time: '23:59:60', time_zone: 'UTC' }],
+    [{ date: '0000-08-06', time: '23:59:59', time_zone: 'UTC' }],
+    [{ date: '2026-08-06', time: '9:00:00', time_zone: 'UTC' }],
+    [{ date: '2026-08-06', time: '09:00:00.1234', time_zone: 'UTC' }],
     [{ date: '2026/08/06', time: '09:00:00', time_zone: 'UTC' }],
     [42],
   ])('rejects malformed local selector %#', (at) => {
@@ -567,17 +553,18 @@ describe('absolute record and time-zone resolution', () => {
       'x',
       at as never,
       now,
+      'x',
     )).toThrow(ScheduleInputError)
   })
 
   it('rejects empty prompts and local instants outside the four-digit range', () => {
     expect(() => createAtScheduleRecord(
-      ScheduleId('schedule-at'), ' ', '2026-08-06T01:00:00Z', now,
+      ScheduleId('schedule-at'), ' ', '2026-08-06T01:00:00Z', now, 'Title',
     )).toThrow(ScheduleInputError)
     try {
       createAtScheduleRecord(ScheduleId('schedule-at'), 'x', {
         date: '9999-12-31', time: '23:59:59.999', time_zone: 'America/New_York',
-      }, now)
+      }, now, 'x')
       throw new Error('expected local range failure')
     } catch (error: unknown) {
       expect(error).toBeInstanceOf(ScheduleInputError)
@@ -591,12 +578,48 @@ describe('absolute record and time-zone resolution', () => {
       'join meeting',
       '2026-08-06T09:00:00+08:00',
       now,
+      'join meeting',
     )
     expect(scheduleView(record, now)).toEqual({
       ...record,
       state: 'scheduled',
-      deliveryMode: 'session-local',
+      deliveryMode: 'host',
     })
     expect(renderReminderFraming(record)).toContain('occurrence_at: 2026-08-06T01:00:00.000Z')
+  })
+})
+
+describe('durable decoding and folding edges', () => {
+  const weeklyRecord = {
+    id: 'schedule-weekly',
+    kind: 'weekly',
+    title: 'Weekly check',
+    prompt: 'check metrics',
+    time: '09:00:00.000',
+    timeZone: 'UTC',
+    weekdays: [1, 3],
+    scheduledAt: '2026-08-06T01:00:00.000Z',
+  }
+
+  it.each([
+    { prompt: '' },
+    { prompt: ' padded' },
+    { prompt: 7 },
+    { time: 7 },
+    { timeZone: 7 },
+    { time: '24:00:00' },
+  ])('rejects the malformed durable weekly field %#', (fields) => {
+    expect(() => decodeScheduleRecord({ ...weeklyRecord, ...fields })).toThrow(ScheduleLogError)
+  })
+
+  it('applies one decoded delete change to a retained active record', () => {
+    const record = createAfterScheduleRecord(ScheduleId('retained'), 'check logs', 30, 1_000, 'check logs')
+    const change = decodeScheduleChange({ version: 1, operation: 'delete', id: record.id })
+    expect(applyScheduleChanges({ active: [record], seenIds: [record.id] }, [change]))
+      .toEqual({ active: [], seenIds: [record.id] })
+  })
+
+  it('encodes a non-uniform cron field as comma-separated runs', () => {
+    expect(canonicalizeCronExpression('1,2,5 0 * * *')).toBe('1-2,5 0 * * *')
   })
 })
