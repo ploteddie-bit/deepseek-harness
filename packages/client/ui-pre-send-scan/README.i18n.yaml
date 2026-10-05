@@ -1,6 +1,55 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/client/ui-pre-send-scan/README.md
-README.md: 4192141f682c55502ed2c42042a2c670c7571bdd
-README.zh.md: 909bb583c04af9e5c421ab60d49a4cbfa7d713df
+/:
+  en: 189e3f8252bb7895
+  zh: b9fa9695fc8d5d19
+/deepseek-ai-dsh-client-ui-pre-send-scan:
+  en: 102b8c82eab65212
+  zh: 692e106fe545ebbf
+/deepseek-ai-dsh-client-ui-pre-send-scan/summary:
+  en: 82d2d11c4486f1fa
+  zh: 5a561692c81ea673
+/deepseek-ai-dsh-client-ui-pre-send-scan/table-of-contents:
+  en: 76368b6b1da79c80
+  zh: 52384aee991ac542
+/deepseek-ai-dsh-client-ui-pre-send-scan/use-this-package:
+  en: fdb665634c842a50
+  zh: b2ac7c457102176d
+/deepseek-ai-dsh-client-ui-pre-send-scan/use-this-package/what-you-get:
+  en: ebb3091cd56cb88f
+  zh: 132d5a5c00d4ee54
+/deepseek-ai-dsh-client-ui-pre-send-scan/understand-the-implementation:
+  en: 42b15ac6321706aa
+  zh: 4ed0861911abaf5d
+/deepseek-ai-dsh-client-ui-pre-send-scan/understand-the-implementation/design-philosophy:
+  en: 08cb77e34c70e8ae
+  zh: fe69b954b1c26a15
+/deepseek-ai-dsh-client-ui-pre-send-scan/understand-the-implementation/detection-the-rule-list:
+  en: 2147463bac8d51c1
+  zh: f91b665602c2dfdc
+/deepseek-ai-dsh-client-ui-pre-send-scan/understand-the-implementation/source-map:
+  en: d67bc897d65f5c8b
+  zh: d8a1dca7a80b110c
+/deepseek-ai-dsh-client-ui-pre-send-scan/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-client-ui-pre-send-scan/model-experience/pre-send-scan-indicator:
+  en: b2d3c90c1d9c6ceb
+  zh: 68c63b4b8e89054e
+/deepseek-ai-dsh-client-ui-pre-send-scan/model-experience/pre-send-scan-indicator/what-the-model-sees:
+  en: c34dd92f050c5ffd
+  zh: e690383b57d4e8f7
+/deepseek-ai-dsh-client-ui-pre-send-scan/model-experience/pre-send-scan-indicator/token-effect:
+  en: bb5eb2757bc9fda6
+  zh: dd10f491a2ced453
+/deepseek-ai-dsh-client-ui-pre-send-scan/model-experience/pre-send-scan-indicator/kv-cache-effect:
+  en: c0453b5f9399f6af
+  zh: 6f716823cfa97370
+/deepseek-ai-dsh-client-ui-pre-send-scan/known-limitations-and-deferred-work:
+  en: dd5a627a31261d0e
+  zh: 1e00dc118382a394
+/deepseek-ai-dsh-client-ui-pre-send-scan/known-limitations-and-deferred-work/dev-note:
+  en: 161ca9c08176a2ea
+  zh: 796fdedc2b29263d
