@@ -69,8 +69,8 @@
     cwd: !!js process.cwd()
 
 - insert:
-    - id: hooks-claude-code
-      name: '@deepseek-ai/dsh-hooks-claude-code'
+    - id: hooks-command
+      name: '@deepseek-ai/dsh-hooks-command'
       config:
         configPath: ./hooks.json
 

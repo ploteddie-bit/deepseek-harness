@@ -1,14 +1,14 @@
 /**
- * Parse Claude Code's event-to-matcher-group hook format into shared {@link MatcherGroup}s.
+ * Parse the event-to-matcher-group hook format into shared {@link MatcherGroup}s.
  * Only command hooks run; other hook types are returned as skipped so the
  * bridge can warn. Plugin-root and project-directory substitutions are applied
  * to commands at parse time.
- * @module @deepseek-ai/dsh-hooks-claude-code/config
+ * @module @deepseek-ai/dsh-hooks-command/config
  */
 
 import { matcherDiagnostic, type MatcherGroup } from '@deepseek-ai/dsh-hook-protocol'
 
-const CLAUDE_EVENTS = [
+const HOOK_EVENTS = [
   'SessionStart',
   'UserPromptSubmit',
   'PreToolUse',
@@ -19,7 +19,7 @@ const CLAUDE_EVENTS = [
 ] as const
 
 /** A parsed CC config: event name → its matcher groups (command hooks only). */
-export type ClaudeCodeHookConfig = Record<string, MatcherGroup[]>
+export type HookCommandConfig = Record<string, MatcherGroup[]>
 
 /** A skipped non-command hook, surfaced so the bridge can warn about it. */
 export interface SkippedHook {
@@ -28,8 +28,8 @@ export interface SkippedHook {
 }
 
 /** The outcome of parsing one config file: the runnable groups + what was skipped. */
-export interface ParsedClaudeConfig {
-  config: ClaudeCodeHookConfig
+export interface ParsedHookConfig {
+  config: HookCommandConfig
   skipped: SkippedHook[]
 }
 
@@ -75,15 +75,15 @@ export function substituteCommand(command: string, vars: SubstitutionVars): stri
  *   none).
  * @returns the runnable per-event groups plus the skipped non-command hooks.
  */
-export function parseClaudeCodeConfig(raw: unknown, vars: SubstitutionVars = {}): ParsedClaudeConfig {
-  const config: ClaudeCodeHookConfig = {}
+export function parseHookConfig(raw: unknown, vars: SubstitutionVars = {}): ParsedHookConfig {
+  const config: HookCommandConfig = {}
   const skipped: SkippedHook[] = []
   // Accept either `{ hooks: { … } }` (a settings file) or the bare event map.
   const root = asObject(raw)
   const hooksMap = root ? asObject(root.hooks) ?? root : undefined
   if (!hooksMap) return { config, skipped }
 
-  for (const event of CLAUDE_EVENTS) {
+  for (const event of HOOK_EVENTS) {
     const rawGroups = hooksMap[event]
     if (!Array.isArray(rawGroups)) continue
     const groups: MatcherGroup[] = []

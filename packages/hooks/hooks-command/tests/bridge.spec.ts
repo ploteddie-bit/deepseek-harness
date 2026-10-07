@@ -14,12 +14,12 @@ import { LocalBashExecutor } from '@deepseek-ai/dsh-bash-local'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import { scopeTarget } from '@deepseek-ai/dsh-scope'
 import SubagentRuntime, { SubagentRunId } from '@deepseek-ai/dsh-subagent'
-import * as HooksClaude from '@deepseek-ai/dsh-hooks-claude-code'
+import * as HooksClaude from '@deepseek-ai/dsh-hooks-command'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 /**
  * Full-loop bridge tests: a scripted mock MODEL drives the REAL agent loop + REAL
- * bash executor, and the REAL `dsh-hooks-claude-code` bridge runs REAL shell hook
+ * bash executor, and the REAL `dsh-hooks-command` bridge runs REAL shell hook
  * scripts written to a temp dir — only the model is mocked (the "prefer the real
  * implementation" rule). Each test writes a `hooks.json` + executable scripts,
  * loads the bridge pointed at them, and asserts the hook's effect on the loop.
@@ -88,7 +88,7 @@ async function waitFor(predicate: () => boolean, timeout = 5000, interval = 10):
   }
 }
 
-describe('hooks-claude-code bridge — UserPromptSubmit', () => {
+describe('hooks-command bridge — UserPromptSubmit', () => {
   it('a UserPromptSubmit hook that exits 2 closes a blocked turn without a step', async () => {
     // UserPromptSubmit ignores its malformed matcher field, then exit 2 blocks
     // with the reason on stderr.
@@ -129,11 +129,11 @@ describe('hooks-claude-code bridge — UserPromptSubmit', () => {
     // The injected context reached the model and is recorded with the plugin source.
     expect(JSON.stringify(adapter.requests[0]!.messages)).toContain('remember: be brief')
     const ctxMsg = events(agent).find(e => e.type === 'user/message' && e.data.source.kind !== 'user')
-    expect(ctxMsg?.type === 'user/message' && ctxMsg.data.source).toEqual({ kind: 'hooks-claude-code' })
+    expect(ctxMsg?.type === 'user/message' && ctxMsg.data.source).toEqual({ kind: 'hooks-command' })
   })
 })
 
-describe('hooks-claude-code bridge — PreToolUse', () => {
+describe('hooks-command bridge — PreToolUse', () => {
   it('a matching PreToolUse hook that exits 2 denies the tool (isError result), tool never runs', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
     dirs.push(dir)
@@ -180,7 +180,7 @@ describe('hooks-claude-code bridge — PreToolUse', () => {
   })
 })
 
-describe('hooks-claude-code bridge — PostToolUse', () => {
+describe('hooks-command bridge — PostToolUse', () => {
   it('a PostToolUse hook that blocks (exit 2) turns the result into an isError with feedback', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
     dirs.push(dir)
@@ -249,7 +249,7 @@ describe('hooks-claude-code bridge — PostToolUse', () => {
   })
 })
 
-describe('hooks-claude-code bridge — SessionStart', () => {
+describe('hooks-command bridge — SessionStart', () => {
   it('a SessionStart hook injects additionalContext the first request sees', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
     dirs.push(dir)
@@ -274,7 +274,7 @@ describe('hooks-claude-code bridge — SessionStart', () => {
   })
 })
 
-describe('hooks-claude-code bridge — SubagentStart / SubagentStop (observe)', () => {
+describe('hooks-command bridge — SubagentStart / SubagentStop (observe)', () => {
   it('runs SubagentStart and SubagentStop hooks when the subagent lifecycle events fire', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
     dirs.push(dir)
@@ -349,7 +349,7 @@ describe('hooks-claude-code bridge — SubagentStart / SubagentStop (observe)', 
   })
 })
 
-describe('hooks-claude-code bridge — load resilience', () => {
+describe('hooks-command bridge — load resilience', () => {
   it('a missing config file registers no hooks and does not crash the loop', async () => {
     const adapter = new MockAdapter([textResponse('fine')])
     const ctx = new Context()
@@ -433,12 +433,12 @@ describe('hooks-claude-code bridge — load resilience', () => {
     // (`exports.default ?? exports`), DROP `inject`, and crash at load with
     // "cannot get property … without inject". Guard the shape directly.
     expect('default' in HooksClaude).toBe(false)
-    expect(HooksClaude.name).toBe('hooks-claude-code')
+    expect(HooksClaude.name).toBe('hooks-command')
     expect(HooksClaude.inject).toEqual(['shell', 'sessionProjections'])
     const loader = Object.create(Loader.prototype) as Loader
     const unwrapped = loader.unwrapExports(HooksClaude) as Record<string, unknown>
     expect(unwrapped).toBe(HooksClaude)
-    expect(unwrapped.name).toBe('hooks-claude-code')
+    expect(unwrapped.name).toBe('hooks-command')
     expect(unwrapped.inject).toEqual(['shell', 'sessionProjections'])
     expect(typeof unwrapped.apply).toBe('function')
   })

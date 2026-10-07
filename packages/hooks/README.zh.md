@@ -25,7 +25,7 @@ hooks 组让 agent 运行可以复用为 Claude Code 或 Codex 编写的 shell �
 | 包 | 职责 | 形态 |
 |---|---|---|
 | [`hook-protocol`](hook-protocol/README.zh.md) | 两个桥接共享的钩子引擎；不得直接配置 | 库 |
-| [`hooks-claude-code`](hooks-claude-code/README.zh.md) | 在 agent 运行期间运行你现有的 Claude Code `hooks.json` 钩子 | 插件 |
+| [`hooks-command`](hooks-command/README.zh.md) | 在 agent 运行期间运行你现有的 Claude Code `hooks.json` 钩子 | 插件 |
 | [`hooks-codex`](hooks-codex/README.zh.md) | 在 agent 运行期间运行你现有的 Codex `hooks.json` 钩子 | 插件 |
 
 -----

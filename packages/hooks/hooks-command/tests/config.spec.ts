@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseClaudeCodeConfig, substituteCommand } from '@deepseek-ai/dsh-hooks-claude-code/src/config.ts'
+import { parseHookConfig, substituteCommand } from '@deepseek-ai/dsh-hooks-command/src/config.ts'
 
 describe('substituteCommand', () => {
   it('replaces CLAUDE_PLUGIN_ROOT and CLAUDE_PROJECT_DIR (all occurrences)', () => {
@@ -12,17 +12,17 @@ describe('substituteCommand', () => {
   })
 })
 
-describe('parseClaudeCodeConfig', () => {
+describe('parseHookConfig', () => {
   it('parses a bare event map and a settings-style { hooks: … } wrapper identically', () => {
     const groups = { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'x.sh' }] }] }
-    const bare = parseClaudeCodeConfig(groups)
-    const wrapped = parseClaudeCodeConfig({ hooks: groups })
+    const bare = parseHookConfig(groups)
+    const wrapped = parseHookConfig({ hooks: groups })
     expect(bare.config).toEqual(wrapped.config)
     expect(bare.config.PreToolUse).toEqual([{ matcher: 'Bash', hooks: [{ command: 'x.sh' }] }])
   })
 
   it('carries timeout → timeoutSec and substitutes the command', () => {
-    const { config } = parseClaudeCodeConfig(
+    const { config } = parseHookConfig(
       { Stop: [{ hooks: [{ type: 'command', command: '${CLAUDE_PLUGIN_ROOT}/s.sh', timeout: 30 }] }] },
       { pluginRoot: '/p' },
     )
@@ -30,7 +30,7 @@ describe('parseClaudeCodeConfig', () => {
   })
 
   it('skips non-command hooks (recorded) and keeps the command ones in the same group', () => {
-    const { config, skipped } = parseClaudeCodeConfig({
+    const { config, skipped } = parseHookConfig({
       PreToolUse: [{ hooks: [
         { type: 'prompt', prompt: 'hi' },
         { type: 'command', command: 'ok.sh' },
@@ -42,36 +42,36 @@ describe('parseClaudeCodeConfig', () => {
   })
 
   it('treats a hook with no `type` as a command (CC default)', () => {
-    const { config } = parseClaudeCodeConfig({ Stop: [{ hooks: [{ command: 'd.sh' }] }] })
+    const { config } = parseHookConfig({ Stop: [{ hooks: [{ command: 'd.sh' }] }] })
     expect(config.Stop).toEqual([{ hooks: [{ command: 'd.sh' }] }])
   })
 
   it('drops malformed entries without throwing: non-array groups, non-object group/hook, missing command, empty groups', () => {
-    expect(parseClaudeCodeConfig({ PreToolUse: 'nope' }).config).toEqual({})
-    expect(parseClaudeCodeConfig({ PreToolUse: [42, { hooks: 'no' }, { hooks: [7, { type: 'command' }] }] }).config).toEqual({})
+    expect(parseHookConfig({ PreToolUse: 'nope' }).config).toEqual({})
+    expect(parseHookConfig({ PreToolUse: [42, { hooks: 'no' }, { hooks: [7, { type: 'command' }] }] }).config).toEqual({})
     // a group whose only hook lacks a command string drops the whole (empty) group
-    expect(parseClaudeCodeConfig({ Stop: [{ hooks: [{ type: 'command', command: 5 }] }] }).config).toEqual({})
+    expect(parseHookConfig({ Stop: [{ hooks: [{ type: 'command', command: 5 }] }] }).config).toEqual({})
   })
 
   it('returns empty for a non-object / null / array top level', () => {
-    expect(parseClaudeCodeConfig(null).config).toEqual({})
-    expect(parseClaudeCodeConfig(42).config).toEqual({})
-    expect(parseClaudeCodeConfig([1, 2]).config).toEqual({})
+    expect(parseHookConfig(null).config).toEqual({})
+    expect(parseHookConfig(42).config).toEqual({})
+    expect(parseHookConfig([1, 2]).config).toEqual({})
   })
 
   it('omits the matcher key when the group has none (match-all)', () => {
-    const { config } = parseClaudeCodeConfig({ Stop: [{ hooks: [{ type: 'command', command: 's.sh' }] }] })
+    const { config } = parseHookConfig({ Stop: [{ hooks: [{ type: 'command', command: 's.sh' }] }] })
     expect('matcher' in config.Stop![0]!).toBe(false)
   })
 
   it('rejects an invalid regex matcher with its event name', () => {
-    expect(() => parseClaudeCodeConfig({
+    expect(() => parseHookConfig({
       PreToolUse: [{ matcher: '(', hooks: [{ type: 'command', command: 'x.sh' }] }],
     })).toThrow('invalid claude-code regex matcher "(" on event "PreToolUse"')
   })
 
   it('discards matcher fields on events without matcher subjects before validation', () => {
-    const { config } = parseClaudeCodeConfig({
+    const { config } = parseHookConfig({
       UserPromptSubmit: [{ matcher: '[', hooks: [{ type: 'command', command: 'prompt.sh' }] }],
       Stop: [{ matcher: '(', hooks: [{ type: 'command', command: 'stop.sh' }] }],
     })
@@ -83,7 +83,7 @@ describe('parseClaudeCodeConfig', () => {
   })
 
   it('ignores invalid matchers on unsupported events without dropping supported hooks', () => {
-    const { config } = parseClaudeCodeConfig({
+    const { config } = parseHookConfig({
       Setup: [{ matcher: '(', hooks: [{ type: 'command', command: 'ignored.sh' }] }],
       PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'kept.sh' }] }],
     })

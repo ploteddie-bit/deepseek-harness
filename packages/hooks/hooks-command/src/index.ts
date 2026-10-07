@@ -1,11 +1,11 @@
 /**
- * Bridge for unmodified Claude Code command hooks on harness interception
+ * Bridge for unmodified command hooks on harness interception
  * extension points. It supports SessionStart, prompt/tool pre/post, Stop, and subagent
- * start/stop. It owns Claude payloads, environment, substitution, and decision
+ * start/stop. It owns hook payloads, environment, substitution, and decision
  * mapping; shared execution and parsing live in `dsh-hook-protocol`.
  * `updatedInput` is logged and warned but not honored. Bespoke behavior should
  * use typed native plugins on the same extension points.
- * @module @deepseek-ai/dsh-hooks-claude-code
+ * @module @deepseek-ai/dsh-hooks-command
  */
 
 import { readFileSync } from 'node:fs'
@@ -17,7 +17,7 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import type { ContextFormed } from '@deepseek-ai/dsh-llm'
 declare module '@deepseek-ai/dsh-llm' {
   interface MessageSourceMap {
-    'hooks-claude-code': { kind: 'hooks-claude-code' } & ContextFormed
+    'hooks-command': { kind: 'hooks-command' } & ContextFormed
   }
 }
 
@@ -40,9 +40,9 @@ import {
 // Pulls in the declaration-merged subagent events and the identity pairing their
 // start/end edges.
 import type { SubagentRunId } from '@deepseek-ai/dsh-subagent'
-import { parseClaudeCodeConfig, type ClaudeCodeHookConfig } from './config.ts'
+import { parseHookConfig, type HookCommandConfig } from './config.ts'
 
-export const name = 'hooks-claude-code'
+export const name = 'hooks-command'
 // `shell` runs hooks and `sessionProjections` supplies turn numbers; the rest
 // are read opportunistically via ctx.get so a deployment can omit them.
 export const inject = ['shell', 'sessionProjections']
@@ -89,13 +89,13 @@ function nextHandlerId(point: string): string {
   return `claude-code:${point}:${++handlerCounter}`
 }
 
-/** The `{kind:'hooks-claude-code'}` producer source stamped on every context this bridge injects. */
-const CONTEXT_SOURCE: MessageSource = { kind: 'hooks-claude-code' }
+/** The `{kind:'hooks-command'}` producer source stamped on every context this bridge injects. */
+const CONTEXT_SOURCE: MessageSource = { kind: 'hooks-command' }
 
 /** The summary cap bounds a persisted event field — a positive integer or the slice misbehaves silently. */
 function assertPositiveInteger(name: string, value: number): void {
   if (!Number.isInteger(value) || value < 1) {
-    throw new Error(`hooks-claude-code: ${name} must be a positive integer`)
+    throw new Error(`hooks-command: ${name} must be a positive integer`)
   }
 }
 
@@ -105,19 +105,19 @@ export function apply(ctx: Context, config: Config): void {
   assertPositiveInteger('stderrSummaryMaxChars', stderrSummaryMaxChars)
   const defaultTimeoutMs = config.defaultTimeoutMs ?? DEFAULT_HOOK_TIMEOUT_MS
   // Parse once at load. A read or parse failure logs and registers nothing.
-  let parsed: ClaudeCodeHookConfig = {}
+  let parsed: HookCommandConfig = {}
   try {
     const raw: unknown = JSON.parse(readFileSync(config.configPath, 'utf8'))
-    const result = parseClaudeCodeConfig(raw, {
+    const result = parseHookConfig(raw, {
       ...config.pluginRoot !== undefined ? { pluginRoot: config.pluginRoot } : {},
       ...config.projectDir !== undefined ? { projectDir: config.projectDir } : {},
     })
     parsed = result.config
     for (const s of result.skipped) {
-      ctx.logger.warn(`hooks-claude-code: skipping unsupported "${s.type}" hook on ${s.event} (only command hooks run)`)
+      ctx.logger.warn(`hooks-command: skipping unsupported "${s.type}" hook on ${s.event} (only command hooks run)`)
     }
   } catch (error: unknown) {
-    ctx.logger.warn(`hooks-claude-code: could not load hook config "${config.configPath}": ${String(error)} — no hooks registered`)
+    ctx.logger.warn(`hooks-command: could not load hook config "${config.configPath}": ${String(error)} — no hooks registered`)
     return
   }
 
@@ -129,7 +129,7 @@ export function apply(ctx: Context, config: Config): void {
   // handle unregisters the agent. Every retained entry relies on that paired
   // end; a producer that can omit it must provide another release edge.
   const subagentChildren = new Map<SubagentRunId, Agent>()
-  ctx.effect(() => () => detached.drain(), 'hooks-claude-code: drain detached hook runs')
+  ctx.effect(() => () => detached.drain(), 'hooks-command: drain detached hook runs')
 
   /**
    * Run every command hook configured for `point` whose matcher selects
@@ -179,10 +179,10 @@ export function apply(ctx: Context, config: Config): void {
         }, () => performance.now())
         outputs.push(output)
         if (output.updatedInput !== undefined) {
-          ctx.logger.warn(`hooks-claude-code: ${point} hook requested updatedInput, which is not yet honored (ignored)`)
+          ctx.logger.warn(`hooks-command: ${point} hook requested updatedInput, which is not yet honored (ignored)`)
         }
         if (output.systemMessage !== undefined) {
-          ctx.logger.warn(`hooks-claude-code: ${point} hook emitted a systemMessage, which is not yet surfaced (ignored)`)
+          ctx.logger.warn(`hooks-command: ${point} hook emitted a systemMessage, which is not yet surfaced (ignored)`)
         }
         if (session && opts.turn !== undefined) {
           appendHookResult(session, { turn: opts.turn, point, handlerId, output, stderrSummaryMaxChars, durationMs })
@@ -214,7 +214,7 @@ export function apply(ctx: Context, config: Config): void {
         if (context) agent.inject(context)
       })
       .catch((error: unknown) => {
-        ctx.logger.warn(`hooks-claude-code: SessionStart hook failed: ${String(error)}`)
+        ctx.logger.warn(`hooks-command: SessionStart hook failed: ${String(error)}`)
       })
     detached.track(run)
     await run
@@ -292,7 +292,7 @@ export function apply(ctx: Context, config: Config): void {
         const context = contextFrom(merged)
         if (context && child) child.inject(context)
       })
-      .catch((error: unknown) => { ctx.logger.warn(`hooks-claude-code: SubagentStart hook failed: ${String(error)}`) }))
+      .catch((error: unknown) => { ctx.logger.warn(`hooks-command: SubagentStart hook failed: ${String(error)}`) }))
   })
   ctx.on('subagent/end', (info) => {
     const child = subagentChildren.get(info.runId) ?? ctx.get('agents')?.get(info.id)

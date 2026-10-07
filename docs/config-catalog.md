@@ -1348,13 +1348,41 @@ export interface HmrConfig extends ChokidarOptions {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-hmr -->
 
-<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-hooks-claude-code -->
-<a id="deepseek-aidsh-hooks-claude-code"></a>
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
+<a id="deepseek-aidsh-hooks-codex"></a>
 
-## `@deepseek-ai/dsh-hooks-claude-code`
+## `@deepseek-ai/dsh-hooks-codex`
 
 - `inject`: `shell` · `sessionProjections`
-- `source`: [`packages/hooks/hooks-claude-code/src/index.ts:51`](../packages/hooks/hooks-claude-code/src/index.ts)
+- `source`: [`packages/hooks/hooks-codex/src/index.ts:50`](../packages/hooks/hooks-codex/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: where the Codex hooks.json lives + the model name for payloads. */
+export interface Config {
+  /**
+   * Path to a Codex `hooks.json`. Process-level: read once at load, a relative
+   * path resolves against the process launch cwd.
+   * TODO(per-session-hook-config): per-session project-local discovery from each
+   * `session/new.cwd`.
+   */
+  configPath: string
+  /** The model name stamped on every payload (Codex includes `model` on each event). */
+  model?: string
+  /** Default per-hook timeout in ms when a hook sets none (Codex default: 600000). */
+  defaultTimeoutMs?: number
+  /** Character cap for the `hook/result` event's persisted stderr summary. */
+  stderrSummaryMaxChars?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-hooks-command -->
+<a id="deepseek-aidsh-hooks-command"></a>
+
+## `@deepseek-ai/dsh-hooks-command`
+
+- `inject`: `shell` · `sessionProjections`
+- `source`: [`packages/hooks/hooks-command/src/index.ts:51`](../packages/hooks/hooks-command/src/index.ts)
 
 ```ts config-catalog
 /** Plugin config: where the CC hook config lives + substitution roots. */
@@ -1385,35 +1413,7 @@ export interface Config {
   stderrSummaryMaxChars?: number
 }
 ```
-<!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-claude-code -->
-
-<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
-<a id="deepseek-aidsh-hooks-codex"></a>
-
-## `@deepseek-ai/dsh-hooks-codex`
-
-- `inject`: `shell` · `sessionProjections`
-- `source`: [`packages/hooks/hooks-codex/src/index.ts:50`](../packages/hooks/hooks-codex/src/index.ts)
-
-```ts config-catalog
-/** Plugin config: where the Codex hooks.json lives + the model name for payloads. */
-export interface Config {
-  /**
-   * Path to a Codex `hooks.json`. Process-level: read once at load, a relative
-   * path resolves against the process launch cwd.
-   * TODO(per-session-hook-config): per-session project-local discovery from each
-   * `session/new.cwd`.
-   */
-  configPath: string
-  /** The model name stamped on every payload (Codex includes `model` on each event). */
-  model?: string
-  /** Default per-hook timeout in ms when a hook sets none (Codex default: 600000). */
-  defaultTimeoutMs?: number
-  /** Character cap for the `hook/result` event's persisted stderr summary. */
-  stderrSummaryMaxChars?: number
-}
-```
-<!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-command -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-host-directory-picker-browse -->
 <a id="deepseek-aidsh-host-directory-picker-browse"></a>
@@ -1602,6 +1602,24 @@ export interface Config extends ProtocolConfig {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-api-key -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-pmu -->
+<a id="deepseek-aidsh-llm-deepseek-pmu"></a>
+
+## `@deepseek-ai/dsh-llm-deepseek-pmu`
+
+- `inject`: `llm`
+- `refs`: [`ProtocolConfig`](../packages/llm/llm-deepseek/src/index.ts) · `Volatile` (`@deepseek-ai/cordis`)
+- `source`: [`packages/llm/llm-deepseek-pmu/src/config.ts:18`](../packages/llm/llm-deepseek-pmu/src/config.ts)
+
+```ts config-catalog
+/** Messages configuration with a per-request API-key reference. */
+export interface Config extends ProtocolConfig {
+  /** Credential reference resolved per request; defaults to DEEPSEEK_PMU_API_KEY. */
+  apiKeyEnv: Volatile<string>
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-pmu -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-pi-ai -->
 <a id="deepseek-aidsh-llm-pi-ai"></a>
@@ -4375,6 +4393,7 @@ These load from a `cordis.yml` entry with no `config:` block; they declare no co
 | `@deepseek-ai/dsh-client-ui-open-in-app` | — | [`packages/client/ui-open-in-app/src/index.ts`](../packages/client/ui-open-in-app/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-permission-presets` | — | [`packages/client/ui-permission-presets/src/index.ts`](../packages/client/ui-permission-presets/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-plan` | — | [`packages/client/ui-plan/src/index.ts`](../packages/client/ui-plan/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-pre-send-scan` | — | [`packages/client/ui-pre-send-scan/src/index.ts`](../packages/client/ui-pre-send-scan/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-reference` | — | [`packages/client/ui-reference/src/index.ts`](../packages/client/ui-reference/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-renderer` | — | [`packages/client/ui-renderer/src/index.ts`](../packages/client/ui-renderer/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-schedule` | — | [`packages/client/ui-schedule/src/index.ts`](../packages/client/ui-schedule/src/index.ts) |

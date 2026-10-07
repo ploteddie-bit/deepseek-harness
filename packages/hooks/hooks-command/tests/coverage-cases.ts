@@ -15,7 +15,7 @@ import { LocalBashExecutor } from '@deepseek-ai/dsh-bash-local'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import { scopeTarget } from '@deepseek-ai/dsh-scope'
 import SubagentRuntime, { SubagentRunId } from '@deepseek-ai/dsh-subagent'
-import * as HooksClaude from '@deepseek-ai/dsh-hooks-claude-code'
+import * as HooksClaude from '@deepseek-ai/dsh-hooks-command'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 declare module '@deepseek-ai/dsh-llm' {
@@ -77,9 +77,9 @@ async function waitFor(predicate: () => boolean, timeout = 5000, interval = 10):
 
 export type CoverageGroup = 'config' | 'stop' | 'context' | 'edge-paths'
 
-/** Register independently schedulable slices of the hooks-claude-code coverage matrix. */
+/** Register independently schedulable slices of the hooks-command coverage matrix. */
 export function defineCoverageCases(group: CoverageGroup): void {
-  if (group === 'config') describe('hooks-claude-code coverage — config option arms + substitution + skip warning', () => {
+  if (group === 'config') describe('hooks-command coverage — config option arms + substitution + skip warning', () => {
     it('degrades transcript_path to the empty string even with persistence mounted', async () => {
       const d = dir()
       const cap = join(d, 'payload')
@@ -136,7 +136,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'config') describe('hooks-claude-code coverage — empty/no-op outcomes and no-agent paths', () => {
+  if (group === 'config') describe('hooks-command coverage — empty/no-op outcomes and no-agent paths', () => {
     it('a clean exit-0 hook with no output is a no-op (contextFrom empty → next())', async () => {
       const d = dir()
       const s = sh(d, 'noop.sh', '#!/usr/bin/env bash\nexit 0\n')
@@ -185,7 +185,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       for (const bad of [0, -5, 1.5, Number.NaN]) {
         const adapter = new MockAdapter([])
         await expect(harness(path, adapter, { stderrSummaryMaxChars: bad }))
-          .rejects.toThrow(/hooks-claude-code: stderrSummaryMaxChars must be a positive integer/)
+          .rejects.toThrow(/hooks-command: stderrSummaryMaxChars must be a positive integer/)
       }
     })
 
@@ -204,7 +204,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'stop') describe('hooks-claude-code coverage — Stop continuation + subagent inject/catch', () => {
+  if (group === 'stop') describe('hooks-command coverage — Stop continuation + subagent inject/catch', () => {
     it('a Stop hook that blocks (exit 2) forces the turn to continue (CC dialect)', async () => {
       const d = dir()
       const marker = join(d, 'fired')
@@ -273,7 +273,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'stop') describe('hooks-claude-code coverage — default reasons + sparse payloads', () => {
+  if (group === 'stop') describe('hooks-command coverage — default reasons + sparse payloads', () => {
     it('PreToolUse deny with EMPTY stderr uses the default reason', async () => {
       const d = dir()
       const s = sh(d, 'deny.sh', '#!/usr/bin/env bash\nexit 2\n') // exit 2, no stderr
@@ -317,7 +317,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'edge-paths') describe('hooks-claude-code coverage — more default/sparse arms', () => {
+  if (group === 'edge-paths') describe('hooks-command coverage — more default/sparse arms', () => {
     it('UserPromptSubmit deny with EMPTY stderr uses the default block reason', async () => {
       const d = dir()
       const s = sh(d, 'block.sh', '#!/usr/bin/env bash\nexit 2\n')
@@ -364,7 +364,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'edge-paths') describe('hooks-claude-code coverage — schema-bypass apply + unspawnable hook', () => {
+  if (group === 'edge-paths') describe('hooks-command coverage — schema-bypass apply + unspawnable hook', () => {
     it('a direct apply() (schema bypass) with only configPath runs', async () => {
       const d = dir()
       const marker = join(d, 'ran')
@@ -419,7 +419,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'context') describe('hooks-claude-code coverage — continue:false, context arm, no-cwd', () => {
+  if (group === 'context') describe('hooks-command coverage — continue:false, context arm, no-cwd', () => {
     it('a {"continue":false} hook is RECORDED as decision "stop" but does not halt the run (TODO(hook-continue-false))', async () => {
     // The extension points cannot yet honor `continue:false` as a hard halt. The log must still record the
     // stop decision while execution and the turn continue normally.
@@ -548,7 +548,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
       const contexts = events(agent).filter(event => event.type === 'user/message' && event.data.source.kind !== 'user')
       expect(contexts.map(event => event.type === 'user/message' && event.data.source)).toEqual([
         { kind: 'policy' },
-        { kind: 'hooks-claude-code' },
+        { kind: 'hooks-command' },
       ])
     })
 
@@ -590,7 +590,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
 
       const contexts = events(agent).filter(event => event.type === 'user/message' && event.data.source.kind !== 'user')
       expect(contexts.map(event => event.type === 'user/message' && event.data.source)).toEqual([
-        { kind: 'hooks-claude-code' },
+        { kind: 'hooks-command' },
         { kind: 'policy' },
       ])
     })
@@ -618,7 +618,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
 
   })
 
-  if (group === 'edge-paths') describe('hooks-claude-code coverage — executor reject + no-open-turn', () => {
+  if (group === 'edge-paths') describe('hooks-command coverage — executor reject + no-open-turn', () => {
     it('when the bash executor REJECTS a hook run, the hook/result omits exitCode (non-blocking)', async () => {
       const d = dir()
       const s = sh(d, 'h.sh', '#!/usr/bin/env bash\nexit 0\n')
@@ -639,7 +639,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
 
   })
 
-  if (group === 'edge-paths') describe('hooks-claude-code coverage — lifecycle error handling', () => {
+  if (group === 'edge-paths') describe('hooks-command coverage — lifecycle error handling', () => {
     it('a throwing SessionStart inject is contained (logged, agent still runs)', async () => {
       const d = dir()
       const s = sh(d, 'start.sh', '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"x"}}\'\n')
@@ -665,7 +665,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'stop') describe('hooks-claude-code coverage — hook runs in the session cwd, not the server cwd', () => {
+  if (group === 'stop') describe('hooks-command coverage — hook runs in the session cwd, not the server cwd', () => {
     it('runs an agent-scoped hook in the session workspace even when the executor default differs', async () => {
     // The server launch directory and session cwd deliberately differ. The marker proves the
     // bridge passes `session/new.cwd` instead of falling back to the executor default.
@@ -734,7 +734,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'config') describe('hooks-claude-code coverage — systemMessage is warned, not surfaced', () => {
+  if (group === 'config') describe('hooks-command coverage — systemMessage is warned, not surfaced', () => {
     it('a hook emitting a systemMessage is logged as not-yet-surfaced', async () => {
       const d = dir()
       const s = sh(d, 'sm.sh', '#!/usr/bin/env bash\necho \'{"systemMessage":"heads up"}\'\n')
@@ -751,7 +751,7 @@ export function defineCoverageCases(group: CoverageGroup): void {
     })
   })
 
-  if (group === 'edge-paths') describe('hooks-claude-code coverage — SessionStart timing is best-effort (no-wait)', () => {
+  if (group === 'edge-paths') describe('hooks-command coverage — SessionStart timing is best-effort (no-wait)', () => {
     it('does NOT crash or block when the prompt is sent immediately (context is best-effort, may miss the first request)', async () => {
     // Session-start injection is detached, so an immediate prompt need not observe it. Assert only
     // the guaranteed behavior—no crash and a completed turn—without pre-waiting away the race.
