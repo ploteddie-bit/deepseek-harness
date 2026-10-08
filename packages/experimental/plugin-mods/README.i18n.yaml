@@ -1,0 +1,85 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write packages/experimental/plugin-mods/README.md
+/:
+  en: 2330eeb4e52d6577
+  zh: bcd3e315c445acb6
+/deepseek-ai-dsh-experimental-plugin-mods:
+  en: d36edefdebd9c325
+  zh: e7c99fdb605ceae0
+/deepseek-ai-dsh-experimental-plugin-mods/summary:
+  en: 49abf7a972b80840
+  zh: 84b08b37c1a4d6c4
+/deepseek-ai-dsh-experimental-plugin-mods/table-of-contents:
+  en: d152484eb41ac6b4
+  zh: 09388d293f9be9cb
+/deepseek-ai-dsh-experimental-plugin-mods/use-this-package:
+  en: 5cc08a43829ab0ae
+  zh: 1648258eb889f985
+/deepseek-ai-dsh-experimental-plugin-mods/use-this-package/which-events-your-mod-receives:
+  en: 909e5c93c27ed388
+  zh: 2377524dbb845ff1
+/deepseek-ai-dsh-experimental-plugin-mods/use-this-package/the-band-above-the-prompt:
+  en: 2b04be6b58e61a74
+  zh: f4854198d8999d11
+/deepseek-ai-dsh-experimental-plugin-mods/use-this-package/which-members-your-mod-can-call:
+  en: 9ca1aff59b65305f
+  zh: c6043a8b7aadbdec
+/deepseek-ai-dsh-experimental-plugin-mods/use-this-package/test-a-mod:
+  en: a23c192dc1c6fcff
+  zh: 7558b004cb3ad8e2
+/deepseek-ai-dsh-experimental-plugin-mods/understand-the-implementation:
+  en: 42b15ac6321706aa
+  zh: cfcb757213648bd9
+/deepseek-ai-dsh-experimental-plugin-mods/understand-the-implementation/loading:
+  en: 96611410219c1ed4
+  zh: 263080048f02b8d4
+/deepseek-ai-dsh-experimental-plugin-mods/understand-the-implementation/the-chain:
+  en: 5330d8f5a6c9b992
+  zh: 8f6d167642a1c263
+/deepseek-ai-dsh-experimental-plugin-mods/understand-the-implementation/mapping-onto-the-harness:
+  en: 61f1b0202993eb58
+  zh: d599dc8e1fd963ab
+/deepseek-ai-dsh-experimental-plugin-mods/understand-the-implementation/source-map:
+  en: a141066b146cef7c
+  zh: fe91851f05c008c4
+/deepseek-ai-dsh-experimental-plugin-mods/further-exploration:
+  en: 8d58bdcc379901e2
+  zh: 6ce6e524a92526d2
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience:
+  en: 215e7ba838619b7b
+  zh: a311da3843709f90
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/prompt-context-and-submitted-prompts:
+  en: 2e9d6b50a26a5e10
+  zh: d884e62e639cad69
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/prompt-context-and-submitted-prompts/what-the-model-sees:
+  en: 6a1d174d923e84f2
+  zh: a27f777d11741880
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/prompt-context-and-submitted-prompts/what-the-model-sees/framing-of-a-prompt-a-mod-submits:
+  en: f521d5aba5ab7027
+  zh: 5aa721441103f9a7
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/prompt-context-and-submitted-prompts/token-effect:
+  en: 04a7869d92d45eb8
+  zh: 8ddbd20f844dba65
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/prompt-context-and-submitted-prompts/kv-cache-effect:
+  en: 75b19101cbd036ff
+  zh: 193106a75b280c73
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/tool-outcomes-a-mod-decides:
+  en: fe8166c6d3eb962a
+  zh: 5f8fe74778a78166
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/tool-outcomes-a-mod-decides/what-the-model-sees:
+  en: 5b4aa2a1ec36106b
+  zh: c28c286f2a04d716
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/tool-outcomes-a-mod-decides/token-effect:
+  en: cbf27f737c6254e6
+  zh: 333cbb22f97f8955
+/deepseek-ai-dsh-experimental-plugin-mods/model-experience/tool-outcomes-a-mod-decides/kv-cache-effect:
+  en: ca31263f47f654d9
+  zh: 17d55e6641705627
+/deepseek-ai-dsh-experimental-plugin-mods/known-limitations-and-deferred-work:
+  en: 66ba59bcaa5b754f
+  zh: 26c3788db0600121
+/deepseek-ai-dsh-experimental-plugin-mods/known-limitations-and-deferred-work/dev-note:
+  en: 4d1e26f4cc9c3c1c
+  zh: d80209b56c56b11c

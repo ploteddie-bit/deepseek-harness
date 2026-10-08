@@ -742,8 +742,8 @@ const SERVICE_ROLES: ServiceRole[] = [
     note: 'Owns the implicit-root roster, durable peer mailbox, shared task DAG, and continuable-child lifecycle; tool-agent-team contributes model controls.',
   },
   {
-    key: 'claudeCodeMods',
-    pkg: 'experimental-claude-code-mods',
+    key: 'pluginMods',
+    pkg: 'experimental-plugin-mods',
     title: 'Claude Code mods bridge',
     mode: 'core',
     note: 'Loads mods that defineMod plugins add, raises their hook chains from harness extension points, and draws the band above the prompt over its Remote.',

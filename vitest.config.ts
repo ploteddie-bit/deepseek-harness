@@ -166,8 +166,8 @@ const processBoundTests = [
 
 // Claude Code's test-kit module names, served by the mods bridge's test support so the example mods' tests import them unchanged.
 const claudeCodeTestingAliases = {
-  'claude-code/testing': fileURLToPath(new URL('./packages/experimental/claude-code-mods/tests/support/claude-code-testing.ts', import.meta.url)),
-  'claude-code': fileURLToPath(new URL('./packages/experimental/claude-code-mods/tests/support/claude-code.ts', import.meta.url)),
+  'claude-code/testing': fileURLToPath(new URL('./packages/experimental/plugin-mods/tests/support/claude-code-testing.ts', import.meta.url)),
+  'claude-code': fileURLToPath(new URL('./packages/experimental/plugin-mods/tests/support/claude-code.ts', import.meta.url)),
 }
 
 export default defineConfig({
@@ -325,7 +325,7 @@ export default defineConfig({
         'packages/experimental/client-ui-voice-input/src/client/index.ts',
         // The mods band entry imports the bridge's generated Remote contribution, which exists only in lib;
         // the Web snapshot exercises the built entry, while source tests cover mountModsBand.
-        'packages/experimental/client-ui-claude-code-mods/src/client/index.ts',
+        'packages/experimental/client-ui-plugin-mods/src/client/index.ts',
         // Slash/command/input round: per-file gaps deferred with the same
         // client-lane debt. TODO(gui): cover and remove with the lane above.
         'packages/client/ui-commands/src/index.ts',
