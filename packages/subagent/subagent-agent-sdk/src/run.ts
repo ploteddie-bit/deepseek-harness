@@ -3,7 +3,7 @@
  * real CLI process under the shared subprocess owner, map only strict SDK
  * success to completion, and dispose to whole-range quiescence.
  *
- * @module @deepseek-ai/dsh-subagent-claude-code/run
+ * @module @deepseek-ai/dsh-subagent-agent-sdk/run
  */
 
 import { randomUUID } from 'node:crypto'
@@ -101,7 +101,7 @@ class ClaudeCodeFailure extends Error {
     cause?: unknown,
   ) {
     super(
-      `subagent-claude-code: ${failureDiagnostic(facts)}`,
+      `subagent-agent-sdk: ${failureDiagnostic(facts)}`,
       cause === undefined ? undefined : { cause },
     )
     this.name = 'ClaudeCodeFailure'
@@ -183,17 +183,17 @@ function isAborted(signal: AbortSignal): boolean {
  */
 export function textTask(prompt: readonly ContentBlock[]): string {
   if (prompt.length === 0) {
-    throw new Error('subagent-claude-code: the one-shot task must contain only text blocks')
+    throw new Error('subagent-agent-sdk: the one-shot task must contain only text blocks')
   }
   const texts: string[] = []
   for (const block of prompt) {
     if (block.type !== 'text') {
-      throw new Error('subagent-claude-code: the one-shot task must contain only text blocks')
+      throw new Error('subagent-agent-sdk: the one-shot task must contain only text blocks')
     }
     texts.push(block.text)
   }
   if (texts.every(text => text.trim().length === 0)) {
-    throw new Error('subagent-claude-code: the one-shot task must not be empty')
+    throw new Error('subagent-agent-sdk: the one-shot task must not be empty')
   }
   return texts.join('')
 }
@@ -388,13 +388,13 @@ export async function startClaudeCodeRun(
 ): Promise<SubagentRun> {
   const prompt = textTask(request.prompt)
   if (request.signal.aborted) {
-    throw new Error('subagent-claude-code: request was aborted before SDK startup')
+    throw new Error('subagent-agent-sdk: request was aborted before SDK startup')
   }
 
   const controller = new AbortController()
   const requestCancel = (): void => {
     if (!controller.signal.aborted) {
-      controller.abort(new Error('subagent-claude-code: run cancelled locally'))
+      controller.abort(new Error('subagent-agent-sdk: run cancelled locally'))
     }
   }
   const onAbort = (): void => { requestCancel() }
@@ -449,11 +449,11 @@ export async function startClaudeCodeRun(
     })
     if (child === undefined || childProcessFailure === undefined) {
       throw new Error(
-        'subagent-claude-code: official SDK did not publish a controllable Claude Code process',
+        'subagent-agent-sdk: official SDK did not publish a controllable Claude Code process',
       )
     }
     if (isAborted(controller.signal)) {
-      throw new Error('subagent-claude-code: request was aborted before SDK startup')
+      throw new Error('subagent-agent-sdk: request was aborted before SDK startup')
     }
   } catch (error: unknown) {
     request.signal.removeEventListener('abort', onAbort)
@@ -485,7 +485,7 @@ export async function startClaudeCodeRun(
         throw aggregate
       }
       if (cancelledBeforeCleanup || isAborted(request.signal)) {
-        throw new Error('subagent-claude-code: request was aborted before SDK startup')
+        throw new Error('subagent-agent-sdk: request was aborted before SDK startup')
       }
       const failure = startupFailure()
       reportFailure(failure)
@@ -508,7 +508,7 @@ export async function startClaudeCodeRun(
       }
     }
     if (cancelledBeforeCleanup || isAborted(request.signal)) {
-      throw new Error('subagent-claude-code: request was aborted before SDK startup')
+      throw new Error('subagent-agent-sdk: request was aborted before SDK startup')
     }
     const failure = startupFailure()
     reportFailure(failure)

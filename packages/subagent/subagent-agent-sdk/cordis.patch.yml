@@ -2,5 +2,5 @@
 # presets separately decide whether one session receives its delegation tool.
 
 - insert:
-    - id: subagent-claude-code
-      name: '@deepseek-ai/dsh-subagent-claude-code'
+    - id: subagent-agent-sdk
+      name: '@deepseek-ai/dsh-subagent-agent-sdk'

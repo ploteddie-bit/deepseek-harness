@@ -124,12 +124,12 @@
                   toolName: subagent_codex
                   backgroundMode: one-shot
                   maxDepth: provider-managed
-              - id: tool-subagent-claude-code
+              - id: tool-subagent-agent-sdk
                 name: '@deepseek-ai/dsh-tool-subagent'
                 disabled: true
                 config:
-                  provider: claude-code
-                  toolName: subagent_claude_code
+                  provider: agent-sdk
+                  toolName: subagent_agent_sdk
                   backgroundMode: one-shot
                   maxDepth: provider-managed
               - id: workflow-ptc

@@ -1838,15 +1838,15 @@
     "ea9ae2bf5224204cbf222eccd26cd385ed84a3843e48c47452597d36a616ae65": 1,
     "f77e5cbd2d2d911087f7faecc4b0b5bffdfb44ca5d0bcf7823ba9777feca7799": 2
   },
-  "packages/subagent/subagent-claude-code/tests/real-deepseek.e2e.ts": {
+  "packages/subagent/subagent-agent-sdk/tests/real-deepseek.e2e.ts": {
     "dee4487a97778a2383f1b378d59b3dae098152273d956dc360f23c69680fe0ea": 1
   },
-  "packages/subagent/subagent-claude-code/tests/real-product.spec.ts": {
+  "packages/subagent/subagent-agent-sdk/tests/real-product.spec.ts": {
     "03847806b1cfd410cc85f1e90d671aac43e667c5c41e5792c729fd4ff655fb6b": 1,
     "656905a0db6cd229fa72610416ef7ba9d2d320c8c99352bd0d205dee4e13bd8d": 1,
     "adda026f7ad49b47496f381a0c04997300597d040b8a81045a848573485ed299": 1
   },
-  "packages/subagent/subagent-claude-code/tests/subagent-claude-code.spec.ts": {
+  "packages/subagent/subagent-agent-sdk/tests/subagent-agent-sdk.spec.ts": {
     "101af668daf0fb9a7df21757c781ed58f7cf6770a1f5021a5da4ce58080c1f5f": 1,
     "2cedee48f4fb8ce4bbd10567fdfbee69e8dd11dbc85af9b824de33c2b77abfbf": 1,
     "4e94c461ab08f535e20f71ebe8bb9a8c911a936c7068f24e259956c06d17c05d": 2,

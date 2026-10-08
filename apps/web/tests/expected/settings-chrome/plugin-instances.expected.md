@@ -22,7 +22,7 @@
       - text: 已停用 Model-facing subagent delegation tool over the ctx.subagents seam
       - code: tool-subagent-codex
   - listitem:
-    - button "tool-subagent, tool-subagent-claude-code, 已停用":
+    - button "tool-subagent, tool-subagent-agent-sdk, 已停用":
       - strong: tool-subagent
       - text: 已停用 Model-facing subagent delegation tool over the ctx.subagents seam
-      - code: tool-subagent-claude-code
+      - code: tool-subagent-agent-sdk

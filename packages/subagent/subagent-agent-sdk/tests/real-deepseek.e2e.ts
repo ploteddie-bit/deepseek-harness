@@ -130,7 +130,7 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)(
         id: 'deepseek-e2e-parent',
         session: { header: { cwd: workspace } },
       } as unknown as Agent
-      const run = await ctx.subagents.start('claude-code', {
+      const run = await ctx.subagents.start('agent-sdk', {
         prompt: [{
           type: 'text',
           text: `Reply with exactly ${nonce} and nothing else. Do not use tools.`,

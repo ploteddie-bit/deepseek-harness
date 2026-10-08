@@ -279,7 +279,7 @@ function startRequest(
   prompt: string,
   signal = new AbortController().signal,
 ) {
-  return harness.ctx.subagents.start('claude-code', {
+  return harness.ctx.subagents.start('agent-sdk', {
     prompt: [{ type: 'text', text: prompt }],
     parent: harness.parent,
     signal,

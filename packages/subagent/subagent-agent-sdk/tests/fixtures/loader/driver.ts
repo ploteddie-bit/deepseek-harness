@@ -14,7 +14,7 @@ if (configPath === undefined || bundlePatchPath === undefined) {
 
 let starts = 0
 const ctx = await bootProductionProfile({
-  binName: 'subagent-claude-code-loader-composition',
+  binName: 'subagent-agent-sdk-loader-composition',
   profile: 'headless',
   overlayPaths: [
     resolveConfigPath(bundlePatchPath, undefined),
@@ -30,13 +30,13 @@ const ctx = await bootProductionProfile({
 try {
   const providerNames = [
     'codex',
-    'claude-code',
+    'agent-sdk',
     'claude-primary',
     'claude-secondary',
   ] as const
   const toolNames = [
     'subagent_codex',
-    'subagent_claude_code',
+    'subagent_agent_sdk',
     'subagent_claude_primary',
     'subagent_claude_secondary',
   ] as const

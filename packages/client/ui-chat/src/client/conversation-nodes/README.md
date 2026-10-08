@@ -263,7 +263,7 @@ A subagent tool follows ordinary group boundaries: it does not create a group me
 
 | Case | Category and activity behavior |
 |---|---|
-| `subagent`, `subagent_codex`, `subagent_claude_code`, or another `subagent_*` name | Count one `subagents` call per distinct `callId`, unless an earlier name rule matches. Provider and model choices do not change the category. |
+| `subagent`, `subagent_codex`, `subagent_agent_sdk`, or another `subagent_*` name | Count one `subagents` call per distinct `callId`, unless an earlier name rule matches. Provider and model choices do not change the category. |
 | A configured name such as `subagent_inspect` | Classify as `search`: suffix `_inspect` is checked before prefix `subagent_`. The same precedence makes `terminal_inspect` a `search` call rather than `commands`. |
 | Subagent controls `send_message`, `list_agents`, and `list_subagent_models`; job controls `job_output` and `job_kill` | Classify as `tools`, not `subagents`. Their business purpose does not override the name table. |
 | A delegation tool renamed to a name outside the table, such as `research_agent` | Classify as `tools`, even if it invokes the same subagent provider. |

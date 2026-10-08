@@ -263,7 +263,7 @@ Subagent 工具遵循普通分组边界，不会仅因委派任务就单独成�
 
 | 情况 | 类别与活动规则 |
 |---|---|
-| `subagent`、`subagent_codex`、`subagent_claude_code` 或其他 `subagent_*` 名称 | 每个不同 `callId` 计一次 `subagents`，但先命中更靠前的名称规则时除外；provider 和 model 选择不改变类别。 |
+| `subagent`、`subagent_codex`、`subagent_agent_sdk` 或其他 `subagent_*` 名称 | 每个不同 `callId` 计一次 `subagents`，但先命中更靠前的名称规则时除外；provider 和 model 选择不改变类别。 |
 | 配置为 `subagent_inspect` 这样的名称 | 归 `search`：`_inspect` 后缀先于 `subagent_` 前缀匹配；同理，`terminal_inspect` 归 `search` 而不是 `commands`。 |
 | 子代理控制工具 `send_message`、`list_agents`、`list_subagent_models`，以及任务控制工具 `job_output`、`job_kill` | 归 `tools`，不归 `subagents`；业务用途不覆盖名称表。 |
 | 委派工具被改为表外名称，例如 `research_agent` | 即使调用相同的 subagent provider，也归 `tools`。 |

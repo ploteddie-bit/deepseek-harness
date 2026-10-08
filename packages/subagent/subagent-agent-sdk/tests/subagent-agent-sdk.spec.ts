@@ -394,8 +394,8 @@ describe('task admission and package contracts', () => {
       ? (parsed as Array<{ insert?: Array<{ id?: string; name?: string }> }>).flatMap(entry => entry.insert ?? [])
       : []
     expect(rows).toEqual([{
-      id: 'subagent-claude-code',
-      name: '@deepseek-ai/dsh-subagent-claude-code',
+      id: 'subagent-agent-sdk',
+      name: '@deepseek-ai/dsh-subagent-agent-sdk',
     }])
     expect(JSON.stringify(rows)).not.toContain('tool-subagent')
   })
@@ -418,8 +418,8 @@ describe('task admission and package contracts', () => {
     await ctx.plugin(SubagentRuntime)
     await ctx.plugin(LocalSubprocessRuntime)
     const fiber = await ctx.plugin(claudeCode, {})
-    expect(ctx.subagents.getProvider('claude-code')).toMatchObject({
-      name: 'claude-code',
+    expect(ctx.subagents.getProvider('agent-sdk')).toMatchObject({
+      name: 'agent-sdk',
       capabilities: {
         outputSchema: false,
         depthLimit: false,
@@ -428,7 +428,7 @@ describe('task admission and package contracts', () => {
       },
       inheritsParentContext: false,
     })
-    expect(ctx.subagents.list()).toEqual(['claude-code'])
+    expect(ctx.subagents.list()).toEqual(['agent-sdk'])
     await fiber.dispose()
     expect(ctx.subagents.list()).toEqual([])
 
@@ -562,7 +562,7 @@ describe('task admission and package contracts', () => {
   })
 
   it('accepts an optional non-empty model and the five fixed permission modes', () => {
-    expect(claudeCode.Config({}).providerName).toBe('claude-code')
+    expect(claudeCode.Config({}).providerName).toBe('agent-sdk')
     expect(claudeCode.Config({}).model).toBeUndefined()
     expect(claudeCode.Config({ providerName: 'claude-safe' }).providerName)
       .toBe('claude-safe')
@@ -594,8 +594,8 @@ describe('task admission and package contracts', () => {
       return queryFrom([success('native model answer')])
     })
     claudeCode.apply(ctx, { env: {}, disposeGraceMs: 3_000 })
-    expect(ctx.subagents.getProvider('claude-code')).toBeDefined()
-    const run = await ctx.subagents.start('claude-code', request())
+    expect(ctx.subagents.getProvider('agent-sdk')).toBeDefined()
+    const run = await ctx.subagents.start('agent-sdk', request())
     await expect(run.result).resolves.toEqual({
       output: [{ type: 'text', text: 'native model answer' }],
       stopReason: 'completed',
@@ -634,7 +634,7 @@ describe('task admission and package contracts', () => {
         session: { header: {} },
       } as unknown as Agent,
     })).rejects.toThrow(
-      'subagent-claude-code: no working directory for the child — delegate from a parent session that has one',
+      'subagent-agent-sdk: no working directory for the child — delegate from a parent session that has one',
     )
     expect(queryMock).not.toHaveBeenCalled()
 
@@ -650,7 +650,7 @@ describe('task admission and package contracts', () => {
       .rejects.toThrow(expectedFailureDiagnostic('query-start', 'unknown'))
     await expect(invalidCwd).rejects.not.toThrow('relative/SECRET_TOKEN')
     expect(warn).toHaveBeenCalledWith(
-      'subagent-claude-code "claude-diagnostic": child start failed: %o',
+      'subagent-agent-sdk "claude-diagnostic": child start failed: %o',
       expect.any(Error),
     )
     expect(errorCause(warn.mock.calls[0]?.[1] as unknown)?.message)
@@ -677,7 +677,7 @@ describe('task admission and package contracts', () => {
     await expect(missingPayload).rejects.not.toThrow('Native CLI binary')
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        'subagent-claude-code "claude-diagnostic": child run failed (error):',
+        'subagent-agent-sdk "claude-diagnostic": child run failed (error):',
       ),
       expect.any(Error),
     )
@@ -695,7 +695,7 @@ describe('task admission and package contracts', () => {
     })
     expect(warn).toHaveBeenCalledWith(
       expect.stringContaining(
-        'subagent-claude-code "claude-diagnostic": child run failed (error):',
+        'subagent-agent-sdk "claude-diagnostic": child run failed (error):',
       ),
       expect.any(Error),
     )
@@ -718,7 +718,7 @@ describe('task admission and package contracts', () => {
 
   it('keeps the Loader namespace shape', () => {
     expect('default' in claudeCode).toBe(false)
-    expect(claudeCode.name).toBe('subagent-claude-code')
+    expect(claudeCode.name).toBe('subagent-agent-sdk')
     expect(claudeCode.inject).toEqual(['subagents', 'subprocess'])
     const loader = Object.create(Loader.prototype) as Loader
     expect(loader.unwrapExports(claudeCode)).toBe(claudeCode)
@@ -1343,7 +1343,7 @@ describe('run publication, cancellation, and settlement', () => {
     await expect(noChild)
       .rejects.toThrow(expectedFailureDiagnostic('query-start', 'unknown'))
     await expect(noChild).rejects.toThrow(
-      `${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-claude-code: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
+      `${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-agent-sdk: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
     )
     await expect(noChild).rejects.toBeInstanceOf(AggregateError)
 
@@ -1388,7 +1388,7 @@ describe('run publication, cancellation, and settlement', () => {
     await expect(cancelledCleanupFailure)
       .rejects.toThrow(expectedFailureDiagnostic('query-start', 'unknown'))
     await expect(cancelledCleanupFailure).rejects.toThrow(
-      `${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-claude-code: ${expectedFailureDiagnostic('teardown', 'unknown', { exitCode: 0, signal: null })}`,
+      `${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-agent-sdk: ${expectedFailureDiagnostic('teardown', 'unknown', { exitCode: 0, signal: null })}`,
     )
     await expect(cancelledCleanupFailure)
       .rejects.not.toThrow('SECRET_TOKEN')
@@ -1497,14 +1497,14 @@ describe('run publication, cancellation, and settlement', () => {
       { ...unused.spec, spawn: () => cancelledFailedSpawnWithCloseFailure.handle },
     )
     await expect(cancelledWithCloseFailure).rejects.toMatchObject({
-      message: `subagent-claude-code: ${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-claude-code: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
+      message: `subagent-agent-sdk: ${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-agent-sdk: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
       errors: [
         expect.objectContaining({
-          message: `subagent-claude-code: ${expectedFailureDiagnostic('query-start', 'unknown')}`,
+          message: `subagent-agent-sdk: ${expectedFailureDiagnostic('query-start', 'unknown')}`,
           cause: spawnError,
         }),
         expect.objectContaining({
-          message: `subagent-claude-code: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
+          message: `subagent-agent-sdk: ${expectedFailureDiagnostic('teardown', 'unknown')}`,
           cause: cancelledFailedSpawnCloseError,
         }),
       ],
@@ -1527,7 +1527,7 @@ describe('run publication, cancellation, and settlement', () => {
       spawn: () => liveChildCleanupFailure.handle,
     })
     await expect(liveCleanupFailure).rejects.toMatchObject({
-      message: `subagent-claude-code: ${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-claude-code: ${expectedFailureDiagnostic('teardown', 'unknown', { exitCode: 0, signal: null })}`,
+      message: `subagent-agent-sdk: ${expectedFailureDiagnostic('query-start', 'unknown')}; subagent-agent-sdk: ${expectedFailureDiagnostic('teardown', 'unknown', { exitCode: 0, signal: null })}`,
       errors: [
         expect.objectContaining({ cause: constructionError }),
         expect.objectContaining({ cause: cleanupError }),

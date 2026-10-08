@@ -12655,7 +12655,7 @@ importers:
         specifier: workspace:*
         version: link:../tool-subagent
 
-  packages/subagent/subagent-claude-code:
+  packages/subagent/subagent-agent-sdk:
     dependencies:
       '@anthropic-ai/claude-agent-sdk':
         specifier: 0.3.263

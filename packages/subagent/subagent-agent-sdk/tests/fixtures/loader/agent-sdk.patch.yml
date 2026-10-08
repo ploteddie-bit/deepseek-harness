@@ -14,13 +14,13 @@
       name: '@deepseek-ai/dsh-subagent-codex'
 
     - id: subagent-claude-primary
-      name: '@deepseek-ai/dsh-subagent-claude-code'
+      name: '@deepseek-ai/dsh-subagent-agent-sdk'
       config:
         providerName: claude-primary
         model: claude-primary-model
 
     - id: subagent-claude-secondary
-      name: '@deepseek-ai/dsh-subagent-claude-code'
+      name: '@deepseek-ai/dsh-subagent-agent-sdk'
       config:
         providerName: claude-secondary
         model: claude-secondary-model
@@ -33,11 +33,11 @@
         backgroundMode: one-shot
         maxDepth: 'provider-managed'
 
-    - id: tool-subagent-claude-code
+    - id: tool-subagent-agent-sdk
       name: '@deepseek-ai/dsh-tool-subagent'
       config:
         provider: claude-code
-        toolName: subagent_claude_code
+        toolName: subagent_agent_sdk
         backgroundMode: one-shot
         maxDepth: 'provider-managed'
 

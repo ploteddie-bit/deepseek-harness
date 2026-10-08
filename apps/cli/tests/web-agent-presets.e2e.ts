@@ -42,7 +42,7 @@ const WEB_BUNDLE = join(REPO_ROOT, 'packages/bundle/web-app')
 const WEB_PATCHES = bundlePatchPaths(WEB_BUNDLE, (JSON.parse(readFileSync(join(WEB_BUNDLE, 'package.json'), 'utf8')) as { dsh: { bundle: { patch: string[] } } }).dsh.bundle)
 const webPatches = (label: string): PatchOptions[] => WEB_PATCHES.flatMap(file => loadOverlayPatches(label, file))
 const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
-const CLAUDE_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-claude-code')
+const CLAUDE_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-agent-sdk')
 /** The installation anchor whose dependency surface the runtime resolution mirrors. */
 const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 const MINIMAL_PROMPT = 'You are a helpful software engineer assistant.'
@@ -540,7 +540,7 @@ describe('the shipped Web composition', () => {
 
 describe('product Bundle and user-preset intersection', () => {
   const presetIds = ['products-none', 'products-codex', 'products-claude', 'products-both'] as const
-  type Product = 'codex' | 'claude-code'
+  type Product = 'codex' | 'agent-sdk'
   type PresetId = typeof presetIds[number]
 
   async function bootProducts(installed: readonly Product[]): Promise<Context> {
@@ -554,7 +554,7 @@ describe('product Bundle and user-preset intersection', () => {
         composition = enablePresetTool(composition, 'tool-subagent-codex')
       }
       if (id === 'products-claude' || id === 'products-both') {
-        composition = enablePresetTool(composition, 'tool-subagent-claude-code')
+        composition = enablePresetTool(composition, 'tool-subagent-agent-sdk')
       }
       definitions.push({ id: `preset-${id}`, name: '@deepseek-ai/dsh-agent-preset', config: { id, plugins: load(composition, { schema: entryListSchema }) } })
     }
@@ -564,7 +564,7 @@ describe('product Bundle and user-preset intersection', () => {
     const packageName = (product: Product): string => (
       product === 'codex'
         ? '@deepseek-ai/dsh-subagent-codex'
-        : '@deepseek-ai/dsh-subagent-claude-code'
+        : '@deepseek-ai/dsh-subagent-agent-sdk'
     )
     return await bootWeb(root, [{ insert: definitions }], installed.map(packageDir), [
       '@deepseek-ai/dsh-base',
@@ -577,14 +577,14 @@ describe('product Bundle and user-preset intersection', () => {
     const enabledByPreset: Record<PresetId, Product[]> = {
       'products-none': [],
       'products-codex': ['codex'],
-      'products-claude': ['claude-code'],
-      'products-both': ['codex', 'claude-code'],
+      'products-claude': ['agent-sdk'],
+      'products-both': ['codex', 'agent-sdk'],
     }
     const scenarios: Array<{ installed: Product[]; presets: readonly PresetId[] }> = [
       { installed: [], presets: ['products-both'] },
       { installed: ['codex'], presets: ['products-both'] },
-      { installed: ['claude-code'], presets: ['products-both'] },
-      { installed: ['codex', 'claude-code'], presets: presetIds },
+      { installed: ['agent-sdk'], presets: ['products-both'] },
+      { installed: ['codex', 'agent-sdk'], presets: presetIds },
     ]
 
     for (const { installed, presets } of scenarios) {
@@ -592,7 +592,7 @@ describe('product Bundle and user-preset intersection', () => {
       const spawn = vi.spyOn(productCtx.subprocess, 'spawn')
       try {
         expect(productCtx.subagents.list()
-          .filter(name => name === 'codex' || name === 'claude-code')
+          .filter(name => name === 'codex' || name === 'agent-sdk')
           .sort())
           .toEqual([...installed].sort())
         for (const id of presets) {
@@ -603,10 +603,10 @@ describe('product Bundle and user-preset intersection', () => {
           try {
             const productTools = enabledByPreset[id]
               .filter(product => installed.includes(product))
-              .map(product => product === 'codex' ? 'subagent_codex' : 'subagent_claude_code')
+              .map(product => product === 'codex' ? 'subagent_codex' : 'subagent_agent_sdk')
               .sort()
             const tools = toolNames(productCtx, handle.agent)
-            expect(tools.filter(name => name === 'subagent_codex' || name === 'subagent_claude_code'))
+            expect(tools.filter(name => name === 'subagent_codex' || name === 'subagent_agent_sdk'))
               .toEqual(productTools)
             expect(tools).toEqual(expect.arrayContaining(['job_kill', 'job_list', 'job_output']))
             for (const productTool of productTools) {

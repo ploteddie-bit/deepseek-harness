@@ -41,7 +41,7 @@ describe('product-provider public Loader composition', () => {
 
     expect(stderr).toBe('')
     expect(JSON.parse(stdout)).toEqual({
-      registeredProviders: ['claude-code', 'claude-primary', 'claude-secondary', 'codex'],
+      registeredProviders: ['agent-sdk', 'claude-primary', 'claude-secondary', 'codex'],
       providers: [
         {
           name: 'codex',
@@ -55,7 +55,7 @@ describe('product-provider public Loader composition', () => {
           inheritsParentContext: false,
         },
         {
-          name: 'claude-code',
+          name: 'agent-sdk',
           capabilities: {
             agentOptions: false,
             outputSchema: false,
@@ -95,7 +95,7 @@ describe('product-provider public Loader composition', () => {
           required: ['description', 'prompt'],
         },
         {
-          name: 'subagent_claude_code',
+          name: 'subagent_agent_sdk',
           parameterNames: ['description', 'prompt', 'run_in_background'],
           required: ['description', 'prompt'],
         },

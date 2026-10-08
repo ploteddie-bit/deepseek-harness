@@ -3,7 +3,7 @@
  * invokes the official Agent SDK in the delegating Session's workspace and
  * places the SDK-spawned real CLI under the shared subprocess owner.
  *
- * @module @deepseek-ai/dsh-subagent-claude-code
+ * @module @deepseek-ai/dsh-subagent-agent-sdk
  */
 
 import type { Context } from '@deepseek-ai/cordis'
@@ -27,10 +27,10 @@ import {
   type ClaudeCodeRunSpec,
 } from './run.ts'
 
-export const name = 'subagent-claude-code'
+export const name = 'subagent-agent-sdk'
 export const inject = ['subagents', 'subprocess']
 
-const DEFAULT_PROVIDER_NAME = 'claude-code'
+const DEFAULT_PROVIDER_NAME = 'agent-sdk'
 
 /* jscpd:ignore-start -- sibling product providers intentionally expose
  * overlapping deployment-owned fields without adding a shared config owner. */
@@ -84,25 +84,25 @@ class ClaudeCodeProvider implements SubagentProvider {
     const parentCwd = request.parent.session.header.cwd
     if (parentCwd === undefined) {
       throw new Error(
-        'subagent-claude-code: no working directory for the child — delegate from a parent session that has one',
+        'subagent-agent-sdk: no working directory for the child — delegate from a parent session that has one',
       )
     }
     let cwd: string
     try {
       cwd = resolveChildCwd(
-        'subagent-claude-code',
+        'subagent-agent-sdk',
         undefined,
         parentCwd,
       )
     } catch (error: unknown) {
       if (request.signal.aborted) {
         throw new Error(
-          'subagent-claude-code: request was aborted before SDK startup',
+          'subagent-agent-sdk: request was aborted before SDK startup',
         )
       }
       const failure = claudeCodeStartupFailure(error)
       this.ctx.logger.warn(
-        `subagent-claude-code "${this.name}": child start failed: %o`,
+        `subagent-agent-sdk "${this.name}": child start failed: %o`,
         failure,
       )
       throw failure
@@ -116,7 +116,7 @@ class ClaudeCodeProvider implements SubagentProvider {
       spawn: spawnSpec => this.ctx.subprocess.spawn(spawnSpec),
       onError: (error, stopReason) => {
         this.ctx.logger.warn(
-          `subagent-claude-code "${this.name}": child run failed (${stopReason}): %o`,
+          `subagent-agent-sdk "${this.name}": child run failed (${stopReason}): %o`,
           error,
         )
       },
@@ -139,13 +139,13 @@ export function apply(ctx: Context, config: Config): void {
     disposeGraceMs: config.disposeGraceMs as number,
   }
   assertPositiveFinite(
-    'subagent-claude-code',
+    'subagent-agent-sdk',
     'disposeGraceMs',
     resolved.disposeGraceMs,
   )
   if (resolved.disposeGraceMs > MAX_TIMER_DELAY_MS) {
     throw new Error(
-      `subagent-claude-code: disposeGraceMs must be no greater than ${MAX_TIMER_DELAY_MS}`,
+      `subagent-agent-sdk: disposeGraceMs must be no greater than ${MAX_TIMER_DELAY_MS}`,
     )
   }
   ctx.subagents.registerProvider(new ClaudeCodeProvider(
