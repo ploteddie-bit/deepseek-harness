@@ -24,9 +24,9 @@ The hooks group lets agent runs reuse shell hooks written for Claude Code or Cod
 
 | Package | Role | Shape |
 |---|---|---|
-| [`hook-protocol`](hook-protocol/README.md) | Shared hook engine both bridges use; never configured directly | library |
+| [`hook-protocol`](hook-protocol/) | Shared hook engine both bridges use; never configured directly | library |
 | [`hooks-command`](hooks-command/README.md) | Run your existing Claude Code `hooks.json` hooks during agent runs | plugin |
-| [`hooks-codex`](hooks-codex/README.md) | Run your existing Codex `hooks.json` hooks during agent runs | plugin |
+| [`hooks-codex`](hooks-codex/) | Run your existing Codex `hooks.json` hooks during agent runs | plugin |
 
 -----
 

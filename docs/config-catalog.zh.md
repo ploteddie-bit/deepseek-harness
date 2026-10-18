@@ -951,33 +951,6 @@ export interface StagehandModelConfig {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-browser-use-stagehand-native -->
 
-<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-claude-code-mods -->
-<a id="deepseek-aidsh-experimental-claude-code-mods"></a>
-
-## `@deepseek-ai/dsh-experimental-claude-code-mods`
-
-- `inject`: `workingDirectory`
-- `source`: [`packages/experimental/claude-code-mods/src/index.ts:53`](../packages/experimental/claude-code-mods/src/index.ts)
-
-```ts config-catalog
-/** Plugin config: the limits mod hooks run under. */
-export interface Config {
-  /** A hook's own running-time limit in milliseconds (Claude Code: 10 seconds). */
-  hookTimeoutMs?: number
-  /** A `.catch` handler's running-time limit in milliseconds (Claude Code: 1 second). */
-  catchTimeoutMs?: number
-  /** Default `$.process.run` and `$.http.fetch` timeout in milliseconds (Claude Code: 30 seconds). */
-  processTimeoutMs?: number
-  /** Claude Code tool name → harness tool name entries added to the built-in alias table. */
-  toolAliases?: Record<string, string>
-  /** Columns the band above the prompt reports to `ui.render` as `bodyColumns` and `viewport.columns`. */
-  bandColumns?: number
-  /** Rows the band reports as `maxRows`. */
-  bandRows?: number
-}
-```
-<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-claude-code-mods -->
-
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-client-ui-cot-translation -->
 <a id="deepseek-aidsh-experimental-client-ui-cot-translation"></a>
 
@@ -1113,6 +1086,33 @@ export interface InspectorOptions {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-inspector -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-plugin-mods -->
+<a id="deepseek-aidsh-experimental-plugin-mods"></a>
+
+## `@deepseek-ai/dsh-experimental-plugin-mods`
+
+- `inject`: `workingDirectory`
+- `source`: [`packages/experimental/plugin-mods/src/index.ts:53`](../packages/experimental/plugin-mods/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: the limits mod hooks run under. */
+export interface Config {
+  /** A hook's own running-time limit in milliseconds (Claude Code: 10 seconds). */
+  hookTimeoutMs?: number
+  /** A `.catch` handler's running-time limit in milliseconds (Claude Code: 1 second). */
+  catchTimeoutMs?: number
+  /** Default `$.process.run` and `$.http.fetch` timeout in milliseconds (Claude Code: 30 seconds). */
+  processTimeoutMs?: number
+  /** Claude Code tool name → harness tool name entries added to the built-in alias table. */
+  toolAliases?: Record<string, string>
+  /** Columns the band above the prompt reports to `ui.render` as `bodyColumns` and `viewport.columns`. */
+  bandColumns?: number
+  /** Rows the band reports as `maxRows`. */
+  bandRows?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-experimental-plugin-mods -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-experimental-ptc-runtime-python -->
 <a id="deepseek-aidsh-experimental-ptc-runtime-python"></a>
@@ -1542,6 +1542,45 @@ export interface Config {
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-codex -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-hooks-command -->
+<a id="deepseek-aidsh-hooks-command"></a>
+
+## `@deepseek-ai/dsh-hooks-command`
+
+- `inject`: `shell` · `sessionProjections` · `workingDirectory`
+- `source`: [`packages/hooks/hooks-command/src/index.ts:51`](../packages/hooks/hooks-command/src/index.ts)
+
+```ts config-catalog
+/** Plugin config: where the CC hook config lives + substitution roots. */
+export interface Config {
+  /**
+   * Path to a `hooks.json` or a settings file whose `hooks` key holds the config.
+   * Process-level: read once at load, a relative path resolves against the process
+   * launch cwd, so one config applies to the whole process.
+   * TODO(per-session-hook-config): per-session discovery of a project-local
+   * `hooks.json` from each `session/new.cwd`.
+   */
+  configPath: string
+  /**
+   * Replaces `${CLAUDE_PLUGIN_ROOT}` in command strings (the plugin's root dir).
+   */
+  pluginRoot?: string
+  /**
+   * Replaces `${CLAUDE_PROJECT_DIR}` in command strings AND is exported as the
+   * `CLAUDE_PROJECT_DIR` env var for hook processes. When omitted, the env var
+   * defaults per-run to the agent's current directory (the
+   * same dir the hook runs in) — Claude Code always exports this var, and common
+   * unmodified hooks reference `$CLAUDE_PROJECT_DIR` for project-relative paths.
+   */
+  projectDir?: string
+  /** Default per-hook timeout in ms when a hook sets none (CC default: 600000). */
+  defaultTimeoutMs?: number
+  /** Character cap for the `hook/result` event's persisted stderr summary. */
+  stderrSummaryMaxChars?: number
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-hooks-command -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-host-directory-picker-browse -->
 <a id="deepseek-aidsh-host-directory-picker-browse"></a>
 
@@ -1771,6 +1810,24 @@ export interface Config extends ProtocolConfig {
 }
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-api-key -->
+
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-pmu -->
+<a id="deepseek-aidsh-llm-deepseek-pmu"></a>
+
+## `@deepseek-ai/dsh-llm-deepseek-pmu`
+
+- `inject`: `llm`
+- `refs`: [`ProtocolConfig`](../packages/llm/llm-deepseek/src/index.ts) · `Volatile` (`@deepseek-ai/cordis`)
+- `source`: [`packages/llm/llm-deepseek-pmu/src/config.ts:18`](../packages/llm/llm-deepseek-pmu/src/config.ts)
+
+```ts config-catalog
+/** Messages configuration with a per-request API-key reference. */
+export interface Config extends ProtocolConfig {
+  /** Credential reference resolved per request; defaults to DEEPSEEK_PMU_API_KEY. */
+  apiKeyEnv: Volatile<string>
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-llm-deepseek-pmu -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-llm-pi-ai -->
 <a id="deepseek-aidsh-llm-pi-ai"></a>
@@ -3386,13 +3443,13 @@ export type PermissionPolicy = 'allow' | 'reject'
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-subagent-acp -->
 
-<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-subagent-claude-code -->
-<a id="deepseek-aidsh-subagent-claude-code"></a>
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-subagent-agent-sdk -->
+<a id="deepseek-aidsh-subagent-agent-sdk"></a>
 
-## `@deepseek-ai/dsh-subagent-claude-code`
+## `@deepseek-ai/dsh-subagent-agent-sdk`
 
 - `inject`: `subagents` · `subprocess`
-- `source`: [`packages/subagent/subagent-claude-code/src/index.ts:38`](../packages/subagent/subagent-claude-code/src/index.ts)
+- `source`: [`packages/subagent/subagent-agent-sdk/src/index.ts:38`](../packages/subagent/subagent-agent-sdk/src/index.ts)
 
 ```ts config-catalog
 /** Deployment-owned model, permission, environment, and process-release settings. */
@@ -3420,7 +3477,7 @@ export interface Config {
 /** Profile-selectable non-interactive Claude Code permission mode. */
 export type ClaudeCodePermissionMode = typeof CLAUDE_CODE_PERMISSION_MODES[number]
 ```
-<!-- END GENERATED config-catalog:@deepseek-ai/dsh-subagent-claude-code -->
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-subagent-agent-sdk -->
 
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-subagent-codex -->
 <a id="deepseek-aidsh-subagent-codex"></a>
@@ -4625,6 +4682,7 @@ export interface Config {
 | `@deepseek-ai/dsh-client-ui-permission-presets` | — | [`packages/client/ui-permission-presets/src/index.ts`](../packages/client/ui-permission-presets/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-plan` | — | [`packages/client/ui-plan/src/index.ts`](../packages/client/ui-plan/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-plugin-market` | — | [`packages/client/ui-plugin-market/src/index.ts`](../packages/client/ui-plugin-market/src/index.ts) |
+| `@deepseek-ai/dsh-client-ui-pre-send-scan` | — | [`packages/client/ui-pre-send-scan/src/index.ts`](../packages/client/ui-pre-send-scan/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-reference` | — | [`packages/client/ui-reference/src/index.ts`](../packages/client/ui-reference/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-renderer` | — | [`packages/client/ui-renderer/src/index.ts`](../packages/client/ui-renderer/src/index.ts) |
 | `@deepseek-ai/dsh-client-ui-schedule` | — | [`packages/client/ui-schedule/src/index.ts`](../packages/client/ui-schedule/src/index.ts) |
@@ -4663,7 +4721,7 @@ export interface Config {
 | `@deepseek-ai/dsh-deepseek-llm-api-extensions` | — | [`packages/llm/deepseek-llm-api-extensions/src/index.ts`](../packages/llm/deepseek-llm-api-extensions/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-auto-review` | `approval` · `llm` · `permissionPresets` · `sessions` · `tools` · `workingDirectory` | [`packages/experimental/auto-review/src/index.ts`](../packages/experimental/auto-review/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-client-ui-agent-team` | — | [`packages/experimental/client-ui-agent-team/src/index.ts`](../packages/experimental/client-ui-agent-team/src/index.ts) |
-| `@deepseek-ai/dsh-experimental-client-ui-claude-code-mods` | — | [`packages/experimental/client-ui-claude-code-mods/src/index.ts`](../packages/experimental/client-ui-claude-code-mods/src/index.ts) |
+| `@deepseek-ai/dsh-experimental-client-ui-plugin-mods` | — | [`packages/experimental/client-ui-plugin-mods/src/index.ts`](../packages/experimental/client-ui-plugin-mods/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-client-ui-voice-input` | — | [`packages/experimental/client-ui-voice-input/src/index.ts`](../packages/experimental/client-ui-voice-input/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-computer-use-cua-driver-native` | `computerUse` · `tools` · `systemPrompt` | [`packages/experimental/computer-use-cua-driver-native/src/index.ts`](../packages/experimental/computer-use-cua-driver-native/src/index.ts) |
 | `@deepseek-ai/dsh-experimental-session-inspector` | — | [`packages/experimental/session-inspector/src/index.ts`](../packages/experimental/session-inspector/src/index.ts) |

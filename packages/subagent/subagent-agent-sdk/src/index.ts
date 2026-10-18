@@ -11,8 +11,8 @@ import z from '@deepseek-ai/schemastery'
 import { MAX_TIMER_DELAY_MS } from '@deepseek-ai/dsh-timeout'
 import {
   assertPositiveFinite,
+  assertUsableCwd,
   NO_START_CAPABILITIES,
-  resolveChildCwd,
   type ResolvedSubagentStartRequest,
   type SubagentCapabilities,
   type SubagentProvider,
@@ -89,9 +89,9 @@ class ClaudeCodeProvider implements SubagentProvider {
     }
     let cwd: string
     try {
-      cwd = resolveChildCwd(
+      cwd = assertUsableCwd(
         'subagent-agent-sdk',
-        undefined,
+        'parent session cwd',
         parentCwd,
       )
     } catch (error: unknown) {

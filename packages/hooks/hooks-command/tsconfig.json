@@ -18,7 +18,7 @@
       "path": "../../../vendor/schemastery"
     },
     {
-      "path": "../hook-protocol"
+      "path": "../../experimental/hook-protocol"
     },
     {
       "path": "../../core/agent"
@@ -28,6 +28,9 @@
     },
     {
       "path": "../../core/session"
+    },
+    {
+      "path": "../../subagent/subagent"
     },
     {
       "path": "../../llm/llm"
