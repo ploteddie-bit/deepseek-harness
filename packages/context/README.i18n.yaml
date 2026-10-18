@@ -3,20 +3,20 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/context/README.md
 /:
-  en: f080d3d805b5c2d2
-  zh: c59f6324c66ddcf9
+  en: f3274fb5320c50a7
+  zh: 39a455b294e8af12
 /context-request-context-plugins:
   en: 05a169f23a64b7e4
   zh: cf57e471b7f13509
 /context-request-context-plugins/summary:
-  en: c301d0f01494ac06
-  zh: 00e51efcde0d1267
+  en: 9a63f89f7197d208
+  zh: e2b175631d28f1e8
 /context-request-context-plugins/table-of-contents:
   en: 1eb35b015a6c423f
   zh: a8a3dceee2c9e943
 /context-request-context-plugins/packages:
-  en: 75cb14080377ba4d
-  zh: 8ecc23de50ae9795
+  en: d512606e7b20bbd0
+  zh: 349497ad21414200
 /context-request-context-plugins/related-documentation:
   en: 1d8d028a1ca69991
   zh: 32f261bb380e0812

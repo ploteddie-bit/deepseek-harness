@@ -1,0 +1,31 @@
+# Bilingual-pair consistency record for 2026-10-18-code-index-service.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write .agents/notes/implemented/feature/2026-10-18-code-index-service.md
+/agent-note-workspace-code-index-service:
+  en: a1a21de49e417f6b
+  zh: 7a656047588ab00d
+/agent-note-workspace-code-index-service/problem:
+  en: ab7ba864b509565f
+  zh: b60074b4bfd27d1b
+/agent-note-workspace-code-index-service/decision:
+  en: b7427f56d63000a2
+  zh: 29666e22f740a85e
+/agent-note-workspace-code-index-service/decision/service-surface-and-lifecycle:
+  en: 55796c7d38f4b847
+  zh: a43d58aaee980e98
+/agent-note-workspace-code-index-service/decision/index-and-ranking:
+  en: a5ca65f635e49e62
+  zh: 3463beb2ebbfd3b5
+/agent-note-workspace-code-index-service/decision/tool-registration:
+  en: b6b6049f145e5f6c
+  zh: 66d514a3cf77b91e
+/agent-note-workspace-code-index-service/decision/measured-budgets:
+  en: 3760c29babab9d09
+  zh: 006e9875f180b07a
+/agent-note-workspace-code-index-service/alternatives-considered:
+  en: ce087e4e912e8976
+  zh: f94d83451c11a310
+/agent-note-workspace-code-index-service/consequences:
+  en: 17095e74136f6391
+  zh: 807d4e4509fea57d

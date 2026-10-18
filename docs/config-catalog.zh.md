@@ -685,6 +685,31 @@ export type ThemePreference = typeof THEME_PREFERENCES[number]
 ```
 <!-- END GENERATED config-catalog:@deepseek-ai/dsh-client-ui-theme -->
 
+<!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-code-index -->
+<a id="deepseek-aidsh-code-index"></a>
+
+## `@deepseek-ai/dsh-code-index`
+
+- `source`: [`packages/context/code-index/src/index.ts:47`](../packages/context/code-index/src/index.ts)
+
+```ts config-catalog
+/** Deployment-facing code-index configuration; every field has a default. */
+export interface Config {
+  /** Maximum number of source files one index run collects. Defaults to 20000. */
+  maxFiles?: number
+  /** Maximum UTF-8 bytes read from one source file; larger files are skipped. Defaults to 1000000. */
+  maxFileBytes?: number
+  /**
+   * Directory names skipped while walking the workspace. Defaults to
+   * `['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']`.
+   */
+  exclude?: string[]
+  /** SQLite database path. Defaults to `:memory:`, an ephemeral index rebuilt per process. */
+  dbPath?: string
+}
+```
+<!-- END GENERATED config-catalog:@deepseek-ai/dsh-code-index -->
+
 <!-- BEGIN GENERATED config-catalog:@deepseek-ai/dsh-compaction-basic -->
 <a id="deepseek-aidsh-compaction-basic"></a>
 

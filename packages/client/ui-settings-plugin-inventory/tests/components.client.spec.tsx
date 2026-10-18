@@ -52,16 +52,19 @@ function localizedProps(list: PluginInventorySettingsTabInjected['list']) {
   return { locale, pageProps }
 }
 
+/** Brand one fixture entry id without repeating the assertion at every row. */
+const fixtureEntryId = (value: string): PluginEntryId => value as PluginEntryId
+
 /** A deployment with a roster: one failed global row, two preset-provided rows. */
 const SNAPSHOT = {
   entries: [
-    { entryId: 'telemetry', moduleName: '@fixture/telemetry', enabled: true, fiberPhase: 'failed' },
-    { entryId: 'timer', moduleName: 'cordis:timer', enabled: true, fiberPhase: 'active' },
-    { entryId: '8a1b2c3d', moduleName: '@deepseek-ai/cordis-plugin-hmr', enabled: true, fiberPhase: 'active' },
-    { entryId: 'unobserved', moduleName: '@fixture/unobserved-name', enabled: true, fiberPhase: null },
-    { entryId: 'bash-host', moduleName: '@deepseek-ai/dsh-tool-bash', enabled: false, fiberPhase: null },
-    { entryId: 'fs-host', moduleName: '@deepseek-ai/dsh-tool-fs', enabled: false, fiberPhase: null },
-    { entryId: 'dormant', moduleName: '@fixture/dormant', enabled: false, fiberPhase: null },
+    { entryId: fixtureEntryId('telemetry'), moduleName: '@fixture/telemetry', enabled: true, fiberPhase: 'failed' },
+    { entryId: fixtureEntryId('timer'), moduleName: 'cordis:timer', enabled: true, fiberPhase: 'active' },
+    { entryId: fixtureEntryId('8a1b2c3d'), moduleName: '@deepseek-ai/cordis-plugin-hmr', enabled: true, fiberPhase: 'active' },
+    { entryId: fixtureEntryId('unobserved'), moduleName: '@fixture/unobserved-name', enabled: true, fiberPhase: null },
+    { entryId: fixtureEntryId('bash-host'), moduleName: '@deepseek-ai/dsh-tool-bash', enabled: false, fiberPhase: null },
+    { entryId: fixtureEntryId('fs-host'), moduleName: '@deepseek-ai/dsh-tool-fs', enabled: false, fiberPhase: null },
+    { entryId: fixtureEntryId('dormant'), moduleName: '@fixture/dormant', enabled: false, fiberPhase: null },
   ],
   agentPresets: [
     {
@@ -69,17 +72,17 @@ const SNAPSHOT = {
       name: '标准模式',
       isDefault: true,
       rows: [
-        { entryId: 'bash', moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: 'active' },
-        { entryId: 'fs', moduleName: '@deepseek-ai/dsh-tool-fs', enabled: true, fiberPhase: null },
+        { entryId: fixtureEntryId('bash'), moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: 'active' },
+        { entryId: fixtureEntryId('fs'), moduleName: '@deepseek-ai/dsh-tool-fs', enabled: true, fiberPhase: null },
         {
-          entryId: 'pwsh',
+          entryId: fixtureEntryId('pwsh'),
           moduleName: '@fixture/pwsh',
           enabled: 'conditional',
           condition: 'process.platform === \'win32\'',
           fiberPhase: null,
         },
-        { entryId: 'externalCli', moduleName: '@fixture/externalCli', enabled: false, fiberPhase: null },
-        { entryId: 'crashy', moduleName: '@fixture/crashy', enabled: true, fiberPhase: 'failed' },
+        { entryId: fixtureEntryId('externalCli'), moduleName: '@fixture/externalCli', enabled: false, fiberPhase: null },
+        { entryId: fixtureEntryId('crashy'), moduleName: '@fixture/crashy', enabled: true, fiberPhase: 'failed' },
         { entryId: null, moduleName: '@fixture/anonymous', enabled: true, fiberPhase: null },
       ],
     },
@@ -87,9 +90,9 @@ const SNAPSHOT = {
       id: 'ptc',
       isDefault: false,
       rows: [
-        { entryId: 'bash', moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: null },
-        { entryId: 'bash-fork', moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: null },
-        { entryId: 'fs', moduleName: '@deepseek-ai/dsh-tool-fs', enabled: 'conditional', fiberPhase: null },
+        { entryId: fixtureEntryId('bash'), moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: null },
+        { entryId: fixtureEntryId('bash-fork'), moduleName: '@deepseek-ai/dsh-tool-bash', enabled: true, fiberPhase: null },
+        { entryId: fixtureEntryId('fs'), moduleName: '@deepseek-ai/dsh-tool-fs', enabled: 'conditional', fiberPhase: null },
       ],
     },
     { id: 'shattered', name: '坏预设', isDefault: false, broken: 'the composition file is missing', rows: [] },
