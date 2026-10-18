@@ -30,13 +30,13 @@
       "path": "../../core/session"
     },
     {
-      "path": "../../subagent/subagent"
-    },
-    {
       "path": "../../llm/llm"
     },
     {
       "path": "../../shell/shell"
+    },
+    {
+      "path": "../../session/working-directory"
     }
   ]
 }

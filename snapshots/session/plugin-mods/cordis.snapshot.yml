@@ -30,14 +30,16 @@
       - 'passthrough-runner: profile rejected'
 
 - insert:
-    - id: plugin-mods
-      name: '@deepseek-ai/dsh-experimental-plugin-mods'
-    - id: plugin-mod-snapshot-guard
+    - id: claude-code-mods
+      name: '@deepseek-ai/dsh-experimental-claude-code-mods'
+    - id: workspace-changes
+      name: '@deepseek-ai/dsh-workspace-changes'
+    - id: claude-code-mod-snapshot-guard
       name: './demo-mod.ts'
-    - id: plugin-mod-replay-theater
-      name: '@deepseek-ai/dsh-experimental-plugin-mods/examples/replay-theater/index.ts'
-    - id: plugin-mod-token-weather
-      name: '@deepseek-ai/dsh-experimental-plugin-mods/examples/token-weather/index.ts'
+    - id: claude-code-mod-replay-theater
+      name: '@deepseek-ai/dsh-experimental-claude-code-mods/examples/replay-theater/index.ts'
+    - id: claude-code-mod-token-weather
+      name: '@deepseek-ai/dsh-experimental-claude-code-mods/examples/token-weather/index.ts'
     - id: llm-replay
       name: '@deepseek-ai/dsh-llm-replay'
       config:
