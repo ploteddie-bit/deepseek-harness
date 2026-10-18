@@ -115,14 +115,7 @@
                       - schedule_create
                       - schedule_delete
                       - schedule_list
-                      - schedule_update              - id: tool-subagent-agent-sdk
-                name: '@deepseek-ai/dsh-tool-subagent'
-                disabled: true
-                config:
-                  provider: agent-sdk
-                  toolName: subagent_agent_sdk
-                  backgroundMode: one-shot
-                  maxDepth: provider-managed
+                      - schedule_update
               - id: workflow-ptc
                 name: '@deepseek-ai/dsh-workflow-ptc'
                 disabled: true
