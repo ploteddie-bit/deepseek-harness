@@ -334,13 +334,10 @@ type ApiWithCompat = { [K in KnownApi]: NonNullable<Model<K>['compat']> extends 
  * `azure-openai-responses` and `openai-externalCli-responses` the fields their own
  * models declare.
  */
-const COMPAT_GATES: Readonly<Record<ApiWithCompat, Readonly<Record<string, CompatDisposition>>>> = {
+const COMPAT_GATES: Readonly<Partial<Record<ApiWithCompat, Readonly<Record<string, CompatDisposition>>>>> = {
   'mistral-conversations': MISTRAL_COMPAT_GATE,
   'openai-completions': COMPLETIONS_COMPAT_GATE,
   'openai-responses': RESPONSES_COMPAT_GATE,
-  'azure-openai-responses': RESPONSES_COMPAT_GATE,
-  'openai-externalCli-responses': RESPONSES_COMPAT_GATE,
-  'anthropic-messages': ANTHROPIC_COMPAT_GATE,
   'bedrock-converse-stream': BEDROCK_COMPAT_GATE,
 }
 

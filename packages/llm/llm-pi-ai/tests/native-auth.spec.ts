@@ -60,14 +60,14 @@ describe('provider metadata', () => {
   })
 
   it('uses fixed catalog endpoints and keeps dynamic or model-specific endpoints distinct', () => {
-    expect(PROVIDER_DATA.openai.defaultBaseURL).toBe('https://api.openai.com/v1')
-    expect(PROVIDER_DATA.radius.defaultBaseURL).toBe('https://radius.pi.dev/v1')
-    expect(PROVIDER_DATA.azure.defaultBaseURL).toBeUndefined()
-    expect(PROVIDER_DATA.azure.baseURLEnv).toEqual(['AZURE_OPENAI_BASE_URL', 'AZURE_OPENAI_RESOURCE_NAME'])
-    expect(PROVIDER_DATA['cloudflare-ai-gateway'].defaultBaseURL).toBeUndefined()
-    expect(PROVIDER_DATA['cloudflare-ai-gateway'].baseURLEnv).toEqual(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_GATEWAY_ID'])
-    expect(PROVIDER_DATA['amazon-bedrock'].defaultBaseURL).toBeUndefined()
-    expect(PROVIDER_DATA.opencode.defaultBaseURL).toBeUndefined()
+    expect(PROVIDER_DATA.openai!.defaultBaseURL).toBe('https://api.openai.com/v1')
+    expect(PROVIDER_DATA.radius!.defaultBaseURL).toBe('https://radius.pi.dev/v1')
+    expect(PROVIDER_DATA.azure!.defaultBaseURL).toBeUndefined()
+    expect(PROVIDER_DATA.azure!.baseURLEnv).toEqual(['AZURE_OPENAI_BASE_URL', 'AZURE_OPENAI_RESOURCE_NAME'])
+    expect(PROVIDER_DATA['cloudflare-ai-gateway']!.defaultBaseURL).toBeUndefined()
+    expect(PROVIDER_DATA['cloudflare-ai-gateway']!.baseURLEnv).toEqual(['CLOUDFLARE_ACCOUNT_ID', 'CLOUDFLARE_GATEWAY_ID'])
+    expect(PROVIDER_DATA['amazon-bedrock']!.defaultBaseURL).toBeUndefined()
+    expect(PROVIDER_DATA.opencode!.defaultBaseURL).toBeUndefined()
   })
 
   it('does not execute authentication when returning metadata at runtime', () => {
