@@ -14,7 +14,7 @@ English | [中文](2026-10-11-process-specific-prompt-values-in-runtime-context.
 | A different `--port`, or alternating A/B checkouts | Web URL, checkout path |
 | npm and Desktop installations sharing one `DSH_HOME` | Checkout path |
 
-On resume the loop renders the prompt again. On a route without `systemPromptUpdate: 'in-history'`, such as a hand-declared pi-ai `anthropic-messages` route, the changed prompt rewrites the surface head node. Claude binds historical thinking-block signatures to the conversation prefix, system prompt included, so the upstream answers 400 (`Invalid signature … bound to a different conversation`) and the Session cannot continue until the environment is restored. In-history routes do not fail, but every change appends a complete prompt.
+On resume the loop renders the prompt again. On a route without `systemPromptUpdate: 'in-history'`, such as a hand-declared pi-ai `anthropic-messages` route, the changed prompt rewrites the surface head node. the legacy provider binds historical thinking-block signatures to the conversation prefix, system prompt included, so the upstream answers 400 (`Invalid signature … bound to a different conversation`) and the Session cannot continue until the environment is restored. In-history routes do not fail, but every change appends a complete prompt.
 
 ## Decision
 
@@ -64,7 +64,7 @@ The projection computes only on each committed `system/message`, adding no synch
 
 ## Alternatives considered
 
-**Move both values to runtime context without keeping earlier paragraphs.** The upgrade itself changes the prompt text, so every existing Claude Session rewrites its head and fails with 400 on its first turn after the upgrade.
+**Move both values to runtime context without keeping earlier paragraphs.** The upgrade itself changes the prompt text, so every existing the legacy provider Session rewrites its head and fails with 400 on its first turn after the upgrade.
 
 **Offer `supportsMidConvoSystemMessages` on hand-declared Anthropic routes.** The upstream accepts mid-conversation system messages in a live probe, but the pi-ai catalog already supplies that capability for named Anthropic routes and hand-declared routes withhold catalog fields by convention; in-history routes would still append a complete prompt on every value change.
 

@@ -46,7 +46,7 @@ interface TerminalResultView { card: 'terminal'; title?: string; output?: string
 
 ### Producer mapping
 
-- `dsh-tool-fs` read → `generic` (`kind:'read'`, a follow-along `location`); write → `diff` (`oldText:null`); edit → `diff` (`oldText:old_string || null`, `newText:new_string ?? ''`). This mirrors `claude-agent-acp`'s `toolInfoFromToolUse` Read/Write/Edit arms field-for-field.
+- `dsh-tool-fs` read → `generic` (`kind:'read'`, a follow-along `location`); write → `diff` (`oldText:null`); edit → `diff` (`oldText:old_string || null`, `newText:new_string ?? ''`). This mirrors `the external ACP agent`'s `toolInfoFromToolUse` Read/Write/Edit arms field-for-field.
 - `dsh-tool-bash` foreground → `terminal` call + `terminal` result; `run_in_background` → `generic`. The generic `job_*` controls own their own generic cards.
 - `dsh-tool-todo` → `generic`.
 

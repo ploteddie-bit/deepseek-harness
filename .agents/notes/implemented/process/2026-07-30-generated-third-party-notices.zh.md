@@ -16,7 +16,7 @@ Status: implemented
 
 **新鲜度由测试 lane 保证。** 已提交的字节由 [`scripts/gen-third-party-notices.spec.ts`](../../../../scripts/gen-third-party-notices.spec.ts) 断言，而测试 lane 本就会跑这个文件，其中包括 PR 必过的 `node 24 / coverage` lane——这项校验不增加门禁进程、不占调度位、也不新增 CI 步骤。改动生成器任一输入——任何 manifest、工作区声明、根锁文件或共享运行时锁文件、`vendor/README.md`、某个 `pyproject.toml`、生成器自身，或持有构建期 pin 的脚本——的贡献者运行 `pnpm run gen-third-party-notices`；需要单独校验时，`pnpm run verify-third-party-notices` 仍然可用。没有 Git 钩子重新生成该文件：浏览器输入使每个包源码文件都成为生成器输入，钩子会让几乎每个提交都运行约 16 秒的生成器，而改变输出的提交很少。
 
-文件默认只披露**直接**依赖；完整的 npm 与 Python SDK 闭包保留在各自锁文件中。两组独立分发的载荷会明确列出：`@anthropic-ai/claude-agent-sdk` 声明的官方 Claude 可执行包，以及共享运行时锁文件 `pythonPackages` 中的每个分发包。内置条目包含归一化名称、精确版本和已记录的许可证元数据；元数据缺失、归一化后名称重复或版本冲突都会使生成失败。共享 wheel 集合独立于 `python/` 下的 manifest，仅扫描后者会遗漏已打包的 Office 库。内置分发包同样通过运行时许可证检查，其中包括 Pillow 与 typing-extensions 声明的宽松许可证标识 `MIT-CMU` 和 `PSF-2.0`。
+文件默认只披露**直接**依赖；完整的 npm 与 Python SDK 闭包保留在各自锁文件中。两组独立分发的载荷会明确列出：`@anthropic-ai/claude-agent-sdk` 声明的官方 the legacy provider 可执行包，以及共享运行时锁文件 `pythonPackages` 中的每个分发包。内置条目包含归一化名称、精确版本和已记录的许可证元数据；元数据缺失、归一化后名称重复或版本冲突都会使生成失败。共享 wheel 集合独立于 `python/` 下的 manifest，仅扫描后者会遗漏已打包的 Office 库。内置分发包同样通过运行时许可证检查，其中包括 Pillow 与 typing-extensions 声明的宽松许可证标识 `MIT-CMU` 和 `PSF-2.0`。
 
 **分层依据是分发内容，而非 manifest 字段名。** 安装的运行时库由 `DEV_ONLY_AREAS` 之外的 `dependencies` 或 `optionalDependencies` 识别；排除区域为根 manifest、`packages/test-support/`、`packages/test-support/client-runtime/`、`website/`、`native/`。发布所用的 tsdown 与 Vite 配置解析到的浏览器输入也属于运行时，即使它们位于 `devDependencies`；[浏览器第三方构建输入](2026-08-26-published-dependency-faces.zh.md)拥有这项分类。测试支撑依赖不会仅因字段写成 `dependencies` 就被交付，而生成器显式披露 `tsx`，因为源码启动通过其 ESM 钩子执行。
 
@@ -30,7 +30,7 @@ manifest 集合由根 `pnpm-workspace.yaml` 声明的 `packages:` 成员派生�
 
 断言新鲜度的同一个 spec 也用 fixture（测试前置数据）manifest 钉住分层规则，覆盖促成该规则的两个场景：测试支撑包的 `dependencies` 条目，以及没有任何应用挂载的插件包。它还把各解析器钉在那些原本会让某个包无声消失的形态上：不再覆盖全部收编目录的 `vendor/README.md` 表、含 extras 的依赖数组（`"httpx[http2]"`）、完全不带版本的依赖、作者自取名字的 `[dependency-groups]` 表，以及任何硬编码列表都不含的工作区成员区域。这些都是静默漏报路径——正是披露文件最担不起的失败方式。
 
-Claude 分发测试证明：只有精确匹配的直接 SDK 身份会绕过通常的非宽松运行时拒绝；该绕过不会改变许可证分类；载荷集合来自 SDK manifest，而非版本或平台允许列表。SDK 身份错误、载荷缺失或存在无关的可选包身份时，测试都会失败。
+the legacy provider 分发测试证明：只有精确匹配的直接 SDK 身份会绕过通常的非宽松运行时拒绝；该绕过不会改变许可证分类；载荷集合来自 SDK manifest，而非版本或平台允许列表。SDK 身份错误、载荷缺失或存在无关的可选包身份时，测试都会失败。
 
 ## 考虑过的替代方案
 
@@ -44,7 +44,7 @@ Claude 分发测试证明：只有精确匹配的直接 SDK 身份会绕过通�
 
 **只按已交付装配的可达性分层**（`apps/*` 加 `python/sdk-runtime`）。这样得到的运行时层更紧凑，但会把 MCP 客户端与 OpenTelemetry 导出器判为仅开发用途——而运行已安装仓库的用户完全可以挂载它们。这会低估披露，对法务通告来说错在了更危险的一侧。
 
-**将 Claude SDK 条款视为宽松条款，或新增可复用的非宽松允许列表。** 两种方案都会误述上游声明，并让无关运行时依赖继承从未授予它的授权。这项窄例外只匹配官方直接 SDK 身份；其可选载荷身份仅作为该 SDK 声明的数据被接受，并继续明确归类为非宽松。
+**将 the legacy provider SDK 条款视为宽松条款，或新增可复用的非宽松允许列表。** 两种方案都会误述上游声明，并让无关运行时依赖继承从未授予它的授权。这项窄例外只匹配官方直接 SDK 身份；其可选载荷身份仅作为该 SDK 声明的数据被接受，并继续明确归类为非宽松。
 
 **把披露文件做成双语对。** 其他根文档都是成对的，但这份文件是上游包名、SPDX 标识与网址构成的表格，可翻译的只有寥寥几段章节导语。`scripts/translation-pairing.ts` 的发现范围限定在 `README*`、`.agents/notes/**`、`docs/**` 与 `python/**`，根目录下的非 README 文件在构造上就不属于双语语料；双语入口由 README 对承担。
 
@@ -56,4 +56,4 @@ Claude 分发测试证明：只有精确匹配的直接 SDK 身份会绕过通�
 
 分层规则是编码在一个常量里的策略。若新增了不参与交付的工作区区域——第二层测试基础设施、另一个站点——就要同步扩展 `DEV_ONLY_AREAS`，否则其依赖会被当作运行时依赖披露出去。
 
-Claude 身份例外刻意比其启用的载荷披露范围更窄。升级 SDK 无需新的所有者授权，但如果已安装的 SDK 未公开自身版本、CLI 版本和至少一个官方平台载荷，或当前宿主载荷与 SDK 声明不符，重新生成就会失败。维护者仍须评审发生变化的条款与兼容性；生成器会阻止授权悄然扩大到其他包。
+the legacy provider 身份例外刻意比其启用的载荷披露范围更窄。升级 SDK 无需新的所有者授权，但如果已安装的 SDK 未公开自身版本、CLI 版本和至少一个官方平台载荷，或当前宿主载荷与 SDK 声明不符，重新生成就会失败。维护者仍须评审发生变化的条款与兼容性；生成器会阻止授权悄然扩大到其他包。

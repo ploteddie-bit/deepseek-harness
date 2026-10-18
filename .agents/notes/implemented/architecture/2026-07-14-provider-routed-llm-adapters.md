@@ -62,7 +62,7 @@ Current seed/load validation rejects request headers and assistant messages that
 
 **Keep model names as registry keys and add wildcard adapters.** A wildcard introduces fallback ordering between exact registrations and catch-all plugins, makes duplicate ownership dependent on listener order, and still cannot distinguish the same model id at two providers without another convention.
 
-**Encode provider and model into one string.** Values such as OpenRouter's `openai/gpt-*` already contain provider-like prefixes and slashes. A delimiter convention would leak routing syntax into every model selector and require escaping rules; two explicit fields are unambiguous and independently loggable.
+**Encode provider and model into one string.** Values such as OpenRouter's `external-provider/model-*` already contain provider-like prefixes and slashes. A delimiter convention would leak routing syntax into every model selector and require escaping rules; two explicit fields are unambiguous and independently loggable.
 
 **Add `backend + provider + model`.** A backend key would allow `dsh-llm-deepseek` and pi-ai's DeepSeek implementation to coexist and switch per request. The accepted deployment rule is instead one adapter owner per provider: implementations of the same upstream are alternatives selected by plugin composition. A third routing dimension would burden every request and configuration for a capability with no current consumer.
 

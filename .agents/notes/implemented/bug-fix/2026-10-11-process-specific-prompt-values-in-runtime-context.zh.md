@@ -14,7 +14,7 @@ Status: implemented
 | 换 `--port`、A/B 两个 checkout 交替运行 | Web URL、checkout 路径 |
 | npm 安装与 Desktop 安装共用同一个 `DSH_HOME` | checkout 路径 |
 
-会话恢复时 loop 重新渲染 prompt。对不声明 `systemPromptUpdate: 'in-history'` 的路由（例如手写的 pi-ai `anthropic-messages` 路由），变化的 prompt 会改写 surface 头节点。Claude 的历史 thinking 块签名绑定包括 system prompt 在内的对话前缀，前缀一变上游返回 400（`Invalid signature … bound to a different conversation`），会话在环境恢复原样之前无法继续。声明 in-history 的路由不报错，但每次变化都追加一份完整 prompt。
+会话恢复时 loop 重新渲染 prompt。对不声明 `systemPromptUpdate: 'in-history'` 的路由（例如手写的 pi-ai `anthropic-messages` 路由），变化的 prompt 会改写 surface 头节点。the legacy provider 的历史 thinking 块签名绑定包括 system prompt 在内的对话前缀，前缀一变上游返回 400（`Invalid signature … bound to a different conversation`），会话在环境恢复原样之前无法继续。声明 in-history 的路由不报错，但每次变化都追加一份完整 prompt。
 
 ## 决定
 
@@ -64,7 +64,7 @@ Status: implemented
 
 ## 备选方案
 
-**只把两项值移到运行时上下文，不保留旧段落。** 升级本身会改变 prompt 文本，所有既有 Claude 会话在升级后第一轮改写头节点并报 400。
+**只把两项值移到运行时上下文，不保留旧段落。** 升级本身会改变 prompt 文本，所有既有 the legacy provider 会话在升级后第一轮改写头节点并报 400。
 
 **为手写 Anthropic 路由开放 `supportsMidConvoSystemMessages`。** 上游实测接受对话中途的 system 消息，但 pi-ai 目录已为具名 Anthropic 路由提供该能力，手写路由按既有约定不开放目录字段；而且 in-history 路由每次值变化仍追加一份完整 prompt。
 

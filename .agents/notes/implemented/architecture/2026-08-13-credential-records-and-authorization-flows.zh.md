@@ -8,7 +8,7 @@ Status: implemented
 
 harness 的凭据平面只能表达一种机密：藏在某个环境变量名之后的值。`CredentialRef` 是一个 POSIX 标识符，解析时按进程环境、受管文件、`.env` 回退分层，每个消费方按操作读取。这恰好覆盖 API key，此外什么都不覆盖。
 
-有些凭据不是"可以让部署方去存"的值。它们是被**取得**的——与人对话：对方打开页面、批准账号、把码粘回来——产出的是一份带 refresh 半边、会在用户背后轮换的 token 文档。pi-ai 直接建模了这一点（`Credential = ApiKeyCredential | OAuthCredential`、由应用拥有的 `CredentialStore`、`Models.login()`），而 harness 无处安放其中任何一项。`PiAiAdapter` 用不带参数的 `createModels()` 构造集合，于是那个 store 就是 pi-ai 的内存默认实现：每次启动为空，每次配置变更被丢弃。只以 OAuth 认证的 `openai-codex` 因此每个请求都以 `Provider is not configured` 失败——[被目录withheld](../../archived/bug-fix/2026-08-13-oauth-only-providers-withheld.md) 作为发布前修复，它移除了错误的供给，但没有补上能力。
+有些凭据不是"可以让部署方去存"的值。它们是被**取得**的——与人对话：对方打开页面、批准账号、把码粘回来——产出的是一份带 refresh 半边、会在用户背后轮换的 token 文档。pi-ai 直接建模了这一点（`Credential = ApiKeyCredential | OAuthCredential`、由应用拥有的 `CredentialStore`、`Models.login()`），而 harness 无处安放其中任何一项。`PiAiAdapter` 用不带参数的 `createModels()` 构造集合，于是那个 store 就是 pi-ai 的内存默认实现：每次启动为空，每次配置变更被丢弃。只以 OAuth 认证的 `the external OAuth provider` 因此每个请求都以 `Provider is not configured` 失败——[被目录withheld](../../archived/bug-fix/2026-08-13-oauth-only-providers-withheld.md) 作为发布前修复，它移除了错误的供给，但没有补上能力。
 
 同一处缺失还带来另外两个缺口。提供方自带的凭据发现是对着裸进程环境跑的，因此凭据 seam 保管的密钥对它不可见，本地凭据文件更是从未被查找过。而登录没有任何界面可以发起，因为 harness 里没有任何东西能代替插件向人发问。
 
@@ -18,7 +18,7 @@ harness 的凭据平面只能表达一种机密：藏在某个环境变量名之
 
 **`dsh-credentials` 长出第二个键空间。** `CredentialRef` 回答*这个环境变量名背后是什么*；`CredentialKey` 回答*这个插件为这个 id 持有什么凭据*。记录联合体是 `{ kind: 'api-key', key?, env? } | { kind: 'grant', payload }`——api-key 那半是结构化的，因为 seam 能描述它；grant 那半是不透明的，因为拥有 token 格式的库应当继续拥有它。对 payload 的唯一约束是它能原样通过一次 JSON 往返，读写两个方向都会校验。
 
-键的形式是 `<scope>/<id>`，其中 scope 是**拥有该记录的插件的注册名**，不是提供方名。用户知道的是 `openai-codex`；究竟哪个 adapter 家族为记录里的字节负责，恰恰是裸提供方名会丢掉的信息。服务同一个提供方名的两个插件会互相读到对方的 payload，已卸载插件留下的记录也无法与仍在使用的区分开。`/` 同时让两种文法互斥，两个键空间因此不可能相撞。这以"同一个 provider 路由只由一个 adapter 注册"为前提，而 LLM 注册表本就强制了这一点。
+键的形式是 `<scope>/<id>`，其中 scope 是**拥有该记录的插件的注册名**，不是提供方名。用户知道的是 `the external OAuth provider`；究竟哪个 adapter 家族为记录里的字节负责，恰恰是裸提供方名会丢掉的信息。服务同一个提供方名的两个插件会互相读到对方的 payload，已卸载插件留下的记录也无法与仍在使用的区分开。`/` 同时让两种文法互斥，两个键空间因此不可能相撞。这以"同一个 provider 路由只由一个 adapter 注册"为前提，而 LLM 注册表本就强制了这一点。
 
 记录不分层。授权 grant 没有任何"环境"可供读取，因此记录是否存在就是全部事实，管辖引用的空值规则在此不适用：一条既无 key 也无 env 的 `api-key` 记录，陈述的是其拥有者确认了环境认证可用，这属于已配置。
 
@@ -29,7 +29,7 @@ harness 的凭据平面只能表达一种机密：藏在某个环境变量名之
 - **写入由 flow 拥有。** `run()` 返回即表示记录已通过 `ctx.credentials` 提交；seam 核实的是本次尝试期间观察到的提交——只看记录存在与否，会让重新授权把陈旧记录冒充成新鲜的——并拒绝返回时没提交记录的 flow。正是这一点让 `Models.login()`——它把持久化当作登录的一部分，经由 store 适配器完成——保持为唯一写入方，而不是把凭据复制出来再写第二遍。
 - **交互随请求传入，而非注册表。** 发起授权的一方才是能与人对话的一方，因此提示恰好抵达发问的那个页面，无头调用方传入一个直接拒绝的交互实现，也不存在"环境提供方缺席"或"该归两个已打开标签页中哪一个"的问题。
 
-**三处翻译全都留在 `llm-pi-ai`。** `credentialStoreFrom` 把 pi-ai 的 `CredentialStore` 映射到记录；`authContextFrom` 先查凭据 seam 再查启动环境来回答 pi-ai 的环境提问，文件存在性则按宿主进程的文件系统判断；`registerPiAiFlows` 把 pi-ai 的 `AuthEvent`/`AuthPrompt` 重述为中立词汇并运行 `Models.login()`。每个集合都用前两者构造，正是这一点让已登录的提供方在配置变更导致集合重建之后仍然处于登录状态。有了行得通的姿态之后，目录不再扣留仅 OAuth 的路由，`openai-codex` 重新被提供。
+**三处翻译全都留在 `llm-pi-ai`。** `credentialStoreFrom` 把 pi-ai 的 `CredentialStore` 映射到记录；`authContextFrom` 先查凭据 seam 再查启动环境来回答 pi-ai 的环境提问，文件存在性则按宿主进程的文件系统判断；`registerPiAiFlows` 把 pi-ai 的 `AuthEvent`/`AuthPrompt` 重述为中立词汇并运行 `Models.login()`。每个集合都用前两者构造，正是这一点让已登录的提供方在配置变更导致集合重建之后仍然处于登录状态。有了行得通的姿态之后，目录不再扣留仅 OAuth 的路由，`the external OAuth provider` 重新被提供。
 
 凭据平面仍是可选的，正如它在引用解析上一贯如此。没有凭据服务时读取回答"未存储"，因为这样的组合确实不持有任何凭据；写入则指名拒绝，因为一次 grant 凭空蒸发的登录会先报告成功、再让每个请求失败。flow 注册通过 `ctx.inject` 限定在授权 seam 之下，因此 headless 或 ACP 组合挂载后没有登录能力，其余一切不变。
 
@@ -53,7 +53,7 @@ seam 的边缘与写入路径同一纪律。prompt 被拒是结果而非故障�
 
 `.credentials.yaml` 增加了版本与两个分区。启动时会把能精确识别的发布前扁平布局原地升级——全字符串的扁平 mapping 在写锁下逐字下沉到 `refs:` 之下——因为早期内测构建经模型页面存下的密钥必须在布局变更后继续可用，不能要求手工编辑，也不能让模型请求失败。识别器无法证明自己理解的扁平形态仍被指名拒绝，迁移办法写在报错信息里；解析器本身始终只读一种布局，迁移步骤将随发布前立场在首个正式版本时移除。仓库中所有写扁平文档的 fixture 都已改写；llm 各套件的 fixture 被记录改动本身漏掉了，在此补上。
 
-`openai-codex` 回到提供方选择器与 Models 页目录。全部 38 个已安装提供方都提供登录入口：31 个经 pi-ai 自己的提示收取密钥，6 个在此之外还提供订阅登录，the external CLI 只提供订阅登录。
+`the external OAuth provider` 回到提供方选择器与 Models 页目录。全部 38 个已安装提供方都提供登录入口：31 个经 pi-ai 自己的提示收取密钥，6 个在此之外还提供订阅登录，the external CLI 只提供订阅登录。
 
 尚未包含的是界面：把 notice 与 prompt 送到浏览器的 wire 契约，以及 Models 页上发起登录的控件。在那之前，flow 只能在进程内触达，部署方仍然通过在设置表单里输入密钥来配置。
 
@@ -65,4 +65,4 @@ seam 自己的套件钉住它拥有的生命周期：单飞的拒绝与释放、
 
 `llm-pi-ai` 针对一份真实的 `$DSH_HOME` 文档覆盖三处翻译——逐字段的 api-key 凭据、连 refresh 半边一起原样保存的 OAuth 凭据、按 scope 跳过的他插件记录，以及没有凭据服务时的写入拒绝——外加每一个 `AuthEvent` 与 `AuthPrompt` 成员的重述；`Models.login()` 在集合边界处被 mock，因为真实登录会打开浏览器。两个真实组合测试分别在挂载与不挂载授权 seam 的情况下启动插件。
 
-`models-settings` 与 `onboarding-usable-provider` 两条 web e2e golden 恰好收回了被扣留时失去的那一行 `openai-codex` 选项——这是本决策记录的唯一装配后应用差异，因为 Models 页还没有可录制的登录控件。
+`models-settings` 与 `onboarding-usable-provider` 两条 web e2e golden 恰好收回了被扣留时失去的那一行 `the external OAuth provider` 选项——这是本决策记录的唯一装配后应用差异，因为 Models 页还没有可录制的登录控件。

@@ -6,7 +6,7 @@ English | [中文](2026-07-06-approval-seam.zh.md)
 
 ## Problem
 
-Two callers need one closed decision — "may this specific action proceed?": `tools/pre-execute`'s `ask` decision (including the Claude-Code hook bridge's `permissionDecision: ask`) and the [sandbox reference](../../../../packages/shell/tool-bash/README.md)'s post-denial one-shot escalation retry. A shared seam keeps them from inventing separate outcome vocabularies, channel routing, cancellation, and audit trails, while guaranteeing that a deployment with no answerer can never grant an unanswerable request. The answerer may be an interactive host or an automated controller.
+Two callers need one closed decision — "may this specific action proceed?": `tools/pre-execute`'s `ask` decision (including the the legacy provider-Code hook bridge's `permissionDecision: ask`) and the [sandbox reference](../../../../packages/shell/tool-bash/README.md)'s post-denial one-shot escalation retry. A shared seam keeps them from inventing separate outcome vocabularies, channel routing, cancellation, and audit trails, while guaranteeing that a deployment with no answerer can never grant an unanswerable request. The answerer may be an interactive host or an automated controller.
 
 The routing problem is ownership: a permission request must reach the channel that owns the asking agent, fail closed for agents nobody owns, and stay out of deployments that compose no answerer.
 

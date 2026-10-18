@@ -6,7 +6,7 @@ Status: implemented
 
 ## 问题
 
-两个调用方需要同一个封闭决策——「这个具体操作可以继续吗？」：`tools/pre-execute` 的 `ask` 决策（包括 Claude-Code 钩子桥的 `permissionDecision: ask`）以及[沙箱 参考](../../../../packages/shell/tool-bash/README.zh.md) 中拒绝后的一次性升级重试。一个共享的 seam 使它们无需各自发明独立的结果词汇、通道路由、取消机制和审计轨迹，同时保证没有应答者的部署永远不会批准一个无法应答的请求。应答者可以是交互式宿主，也可以是自动化控制器。
+两个调用方需要同一个封闭决策——「这个具体操作可以继续吗？」：`tools/pre-execute` 的 `ask` 决策（包括 the legacy provider-Code 钩子桥的 `permissionDecision: ask`）以及[沙箱 参考](../../../../packages/shell/tool-bash/README.zh.md) 中拒绝后的一次性升级重试。一个共享的 seam 使它们无需各自发明独立的结果词汇、通道路由、取消机制和审计轨迹，同时保证没有应答者的部署永远不会批准一个无法应答的请求。应答者可以是交互式宿主，也可以是自动化控制器。
 
 路由问题的核心是归属：权限请求必须到达拥有发起请求的 agent（智能体）的通道，对无人拥有的 agent 失败关闭，并且不侵入没有组合应答者的部署。
 
