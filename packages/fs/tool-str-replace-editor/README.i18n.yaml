@@ -3,14 +3,14 @@
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write packages/fs/tool-str-replace-editor/README.md
 /:
-  en: 1d308889b00602e0
-  zh: 8858e4768891e79d
+  en: 02630bcaa4668f4f
+  zh: 6da9a03ed0bf3fd4
 /deepseek-ai-dsh-tool-str-replace-editor:
   en: ec475ff43043b97b
   zh: 8b517c5c11bd650f
 /deepseek-ai-dsh-tool-str-replace-editor/summary:
-  en: f7423308d3241a02
-  zh: 84255466399391f2
+  en: a1ff3d0523375316
+  zh: 658957a693d3ec6f
 /deepseek-ai-dsh-tool-str-replace-editor/table-of-contents:
   en: d152484eb41ac6b4
   zh: 09388d293f9be9cb

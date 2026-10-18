@@ -114,17 +114,17 @@
   en: 871a46b7f22deed4
   zh: 871a46b7f22deed4
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/change:
-  en: f82cf18dec98da2f
-  zh: f82cf18dec98da2f
+  en: 193dde15850205e2
+  zh: 193dde15850205e2
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/legacy-hooks:
-  en: 5078780cad778727
-  zh: 5078780cad778727
+  en: 0fa80d89b66cb4ec
+  zh: 0fa80d89b66cb4ec
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/clear:
-  en: cf346da1c71650c9
-  zh: cf346da1c71650c9
+  en: dd91a083d73bfdd9
+  zh: dd91a083d73bfdd9
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/external-cli:
-  en: c7537bafe02ae9e3
-  zh: c7537bafe02ae9e3
+  en: 26296f04b8530a2c
+  zh: 26296f04b8530a2c
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/command-done:
   en: f3b07f41730ba043
   zh: f3b07f41730ba043
@@ -852,8 +852,8 @@
   en: ff21e17ac1c3a110
   zh: f9c05a92fd47e1f4
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/packages-hooks-hook-protocol-src-types-ts-hookdialect:
-  en: f7d0e7efbac812de
-  zh: ea5f9f1fdd57ea7d
+  en: 00895fdba3d5684a
+  zh: c93f0438f56c3bd0
 /session-v0-persistence-format/complete-schemas/resolved-persistence-types/packages-interaction-user-approval-src-index-ts-approvalpolicy:
   en: 2044a1198ef4f2b2
   zh: ad773b08c022587f

@@ -6,26 +6,26 @@
   en: feb20636c72ade23
   zh: fd2e9f192a3fa527
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/problem:
-  en: 04481e9087fdfca0
-  zh: 33071e25054460c5
+  en: 297c00dc7a1778aa
+  zh: fb7e5528e273a086
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision:
   en: a4635e16af21d478
   zh: 6cd59ad7e2bb9885
-/agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/legacy-hooks:
-  en: dbbd5e37924de6f7
-  zh: 33c327f0737894c4
-/agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/external-cli:
-  en: 75114f6529699ebd
-  zh: 19dab70be62fb3d7
+/agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/the-legacy-hook-protocol:
+  en: 397008f914858ac0
+  zh: bccb361f5081cd0f
+/agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/the-external-cli:
+  en: e40ae3bedd6c3897
+  zh: 94ed789d3a6de518
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/failure-diagnostic:
-  en: 5439f8ab6ad61d42
-  zh: 4b3f9bee3794b2f2
+  en: 482121f7c9126051
+  zh: 92b04937840d16b0
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/decision/ownership-and-lifecycle:
-  en: 987eec9a67ba131d
-  zh: 735399cd3ac78a45
+  en: ac04ed6e59fad3d7
+  zh: 2b4eb39d906fdb4a
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/verification:
-  en: 16a02354fe427b8e
-  zh: 948225be10331c8d
+  en: 9a5b2fd69115c260
+  zh: 1ae1d8196becf222
 /agent-note-product-subagents-use-profile-selected-non-interactive-permissions/alternatives-considered:
   en: 7b6bbb52fd5e4cbc
   zh: c8e7ab515cd6c0db

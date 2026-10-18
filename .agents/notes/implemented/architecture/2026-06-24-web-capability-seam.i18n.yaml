@@ -24,8 +24,8 @@
   en: ec3703b7e7c6b23d
   zh: 325755e6e90092da
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/fetch-request-and-result-schema:
-  en: f734fdc57a6546c9
-  zh: 027c28cbc584a8c2
+  en: 6d2027a290fa6b1b
+  zh: 26d58eece1dde1ff
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/tool-consumer-behavior:
   en: 62127883453dd79c
   zh: 01503a8177a0ddab
@@ -53,9 +53,9 @@
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/treat-firecrawl-exa-tavily-parallel-extraction-as-fetch:
   en: fc22e6a8bfaeaa20
   zh: 64032ea6ab61b836
-/agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/mirror-legacy-hooks-s-url-prompt-webfetch-shape:
-  en: 56a080de39e96056
-  zh: ae4d070aa7657503
+/agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/mirror-the-legacy-hook-protocol-s-url-prompt-webfetch-shape:
+  en: a0ba018501300dd3
+  zh: b33212408f3e1f7b
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/validate-dns-and-then-call-an-ordinary-fetch:
   en: aa6c1e7e6374a875
   zh: 045c8af6cd44c3e1

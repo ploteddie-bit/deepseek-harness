@@ -2,27 +2,27 @@
 # section, a hash of its English and Chinese blocks outside code blocks and generated regions.
 # After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write docs/subsystems/plugin-mods.md
-/legacy-hooks-mods-compatibility:
-  en: e347b1990d219f52
-  zh: 194838a94dba34e2
-/legacy-hooks-mods-compatibility/packaging-and-loading:
-  en: 5334c1b55ae51b9d
-  zh: 74adfc3544907295
-/legacy-hooks-mods-compatibility/events:
-  en: cea776ec0063c311
-  zh: 6b8c8b32f2f7ede9
-/legacy-hooks-mods-compatibility/the-chain:
-  en: 111c186536345342
-  zh: 8ddc81c78c05a840
-/legacy-hooks-mods-compatibility/members:
-  en: 11c3d07e9deea30a
-  zh: 3a47a1114869d845
-/legacy-hooks-mods-compatibility/drawing:
-  en: 1bd1a60970fcf426
-  zh: 8f6a8e069f742fb7
-/legacy-hooks-mods-compatibility/testing:
-  en: c1acce0d8ddc91e3
-  zh: 2cf222159ebaec24
-/legacy-hooks-mods-compatibility/the-example-mods:
-  en: b3ef5ea831c5c48f
-  zh: fa64186430e7c772
+/the-legacy-hook-protocol-mods-compatibility:
+  en: 07afd22624d9005e
+  zh: f18e83119c6bbff2
+/the-legacy-hook-protocol-mods-compatibility/packaging-and-loading:
+  en: e69abce307a63cb3
+  zh: 9644955118c595a6
+/the-legacy-hook-protocol-mods-compatibility/events:
+  en: 0f8d646166a677ed
+  zh: 8d884c4652ac5139
+/the-legacy-hook-protocol-mods-compatibility/the-chain:
+  en: 6e305455da3ec39c
+  zh: c07007442e41aabc
+/the-legacy-hook-protocol-mods-compatibility/members:
+  en: 6c496854195f84dd
+  zh: 5dd81cfbd06cadf2
+/the-legacy-hook-protocol-mods-compatibility/drawing:
+  en: 83b1ad6db842f9cc
+  zh: 493e8c336120c0b8
+/the-legacy-hook-protocol-mods-compatibility/testing:
+  en: 0eaec30de9d02ac4
+  zh: cf93419ad965fec0
+/the-legacy-hook-protocol-mods-compatibility/the-example-mods:
+  en: ee0db807d6e71396
+  zh: a4e2c75e502d3363
