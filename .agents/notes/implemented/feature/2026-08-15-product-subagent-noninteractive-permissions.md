@@ -6,7 +6,7 @@ English | [中文](2026-08-15-product-subagent-noninteractive-permissions.zh.md)
 
 ## Problem
 
-The [the legacy hook protocol and the external CLI product providers](../../../../packages/subagent/subagent-codex/README.md) run without a human interface. Native permission prompts, user dialogs, or MCP elicitation therefore cannot wait for a person, but relying on either product's ambient default can still select an interactive mode. A deployment also needs to choose broader native modes without giving the parent model or one tool call a way to raise its own authority.
+The [the legacy hook protocol and the external CLI product providers](../../../../packages/subagent/subagent-external-cli/README.md) run without a human interface. Native permission prompts, user dialogs, or MCP elicitation therefore cannot wait for a person, but relying on either product's ambient default can still select an interactive mode. A deployment also needs to choose broader native modes without giving the parent model or one tool call a way to raise its own authority.
 
 A failed product run previously reached the [subagent seam](../../../../packages/subagent/subagent/README.md) only as a stop reason. Logs could retain the product error, but the foreground parent and a [one-shot background Job](../../archived/feature/2026-08-12-product-subagent-one-shot-background-tasks.md) could not distinguish a permission refusal from another failure. Reusing assistant output for that fact would misattribute infrastructure detail to the child model.
 
@@ -40,7 +40,7 @@ the external CLI defaults to `never` and accepts the three native non-interactiv
 | `approve-for-me` | `approvalPolicy: on-request`, `approvalsReviewer: auto_review`, `sandbox: workspace-write` | Route permission requests through the external CLI automatic review. |
 | `dangerously-bypass-approvals-and-sandbox` | `approvalPolicy: never`, `sandbox: danger-full-access` | Skip approval and sandbox enforcement. |
 
-The Provider overrides only those permission and sandbox fields. An optional instance-level model is a separate direct `thread/start` override; `CODEX_HOME`, project configuration, model-provider selection, MCP, hooks, skills, authentication, and sandbox facts not selected by the mode remain native the external CLI state. The wire still denies any unexpected approval, permission, user-input, or MCP request rather than opening a dynamic allow path.
+The Provider overrides only those permission and sandbox fields. An optional instance-level model is a separate direct `thread/start` override; `EXTERNAL_CLI_HOME`, project configuration, model-provider selection, MCP, hooks, skills, authentication, and sandbox facts not selected by the mode remain native the external CLI state. The wire still denies any unexpected approval, permission, user-input, or MCP request rather than opening a dynamic allow path.
 
 ### Failure diagnostic
 

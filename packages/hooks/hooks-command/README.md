@@ -38,8 +38,8 @@ Use it when you own a the legacy hook protocol `hooks.json` (or a settings file 
 ```yaml
 - name: '@deepseek-ai/dsh-hooks-command'
   config:
-    configPath: ./.claude/hooks.json
-    pluginRoot: ./.claude/plugins/my-plugin
+    configPath: ./.legacy-provider/hooks.json
+    pluginRoot: ./.legacy-provider/plugins/my-plugin
     projectDir: .
 ```
 
@@ -172,7 +172,7 @@ A blocked prompt sends no request and invalidates nothing. Denial, feedback, and
 
 These limits describe what your the legacy hook protocol hooks cannot do through this bridge yet, and where behavior differs from the reference tool. They are current package constraints, not a task backlog.
 
-- **Unsupported hook events (23 of the legacy hook protocol's current 30)** — `Setup`, `InstructionsLoaded`, `UserPromptExpansion`, `MessageDisplay`, `PermissionRequest`, `PostToolUseFailure`, `PostToolBatch`, `PermissionDenied`, `Notification`, `TaskCreated`, `TaskCompleted`, `StopFailure`, `TeammateIdle`, `ConfigChange`, `CwdChanged`, `FileChanged`, `WorktreeCreate`, `WorktreeRemove`, `PreCompact`, `PostCompact`, `SessionEnd`, `Elicitation`, and `ElicitationResult`. Config for these events is ignored before group parsing, so an unsupported event cannot invalidate or register hooks. The comparison baseline is the legacy hook protocol's [official hook-event reference](https://code.claude.com/docs/en/hooks#hook-events).
+- **Unsupported hook events (23 of the legacy hook protocol's current 30)** — `Setup`, `InstructionsLoaded`, `UserPromptExpansion`, `MessageDisplay`, `PermissionRequest`, `PostToolUseFailure`, `PostToolBatch`, `PermissionDenied`, `Notification`, `TaskCreated`, `TaskCompleted`, `StopFailure`, `TeammateIdle`, `ConfigChange`, `CwdChanged`, `FileChanged`, `WorktreeCreate`, `WorktreeRemove`, `PreCompact`, `PostCompact`, `SessionEnd`, `Elicitation`, and `ElicitationResult`. Config for these events is ignored before group parsing, so an unsupported event cannot invalidate or register hooks. The comparison baseline is the legacy hook protocol's [official hook-event reference](https://code.legacy-provider.com/docs/en/hooks#hook-events).
 - **`SessionStart` is partial** — JSON `additionalContext` is consumed, but plain stdout context, `initialUserMessage`, `sessionTitle`, `watchPaths`, `reloadSkills`, and `CLAUDE_ENV_FILE` are unsupported. The hook runs detached, so context can miss the first request, and the payload omits optional fields such as `model`, `agent_type`, and `session_title`.
 - **`UserPromptSubmit` is partial** — blocking and JSON `additionalContext` work, but plain stdout context, `sessionTitle`, and `suppressOriginalPrompt` are unsupported. Unless overridden, the bridge also uses its 600-second default instead of the legacy hook protocol's event-specific 30-second command timeout.
 - **`PreToolUse` is partial** — `deny` and `ask` decisions work; `allow` does not pre-approve, `defer` is unsupported, `additionalContext` is ignored, and `updatedInput` is logged + warned but not honored ([the pre-tool-input-rewrite Agent Note](../../../.agents/notes/proposed/feature/2026-06-30-pre-tool-input-rewrite.md)).

@@ -1002,7 +1002,7 @@
           },
           {
             "kind": "literal",
-            "value": "hooks-claude-code"
+            "value": "hooks-legacy-hooks"
           },
           {
             "kind": "object",
@@ -1027,7 +1027,7 @@
           },
           {
             "kind": "literal",
-            "value": "hooks-codex"
+            "value": "hooks-external-cli"
           },
           {
             "kind": "object",

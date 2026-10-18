@@ -26,7 +26,7 @@ hooks 组让 agent 运行可以复用为 the legacy hook protocol 或 the extern
 |---|---|---|
 | [`hook-protocol`](hook-protocol/) | 两个桥接共享的钩子引擎；不得直接配置 | 库 |
 | [`hooks-command`](hooks-command/README.zh.md) | 在 agent 运行期间运行你现有的 the legacy hook protocol `hooks.json` 钩子 | 插件 |
-| [`hooks-codex`](hooks-codex/) | 在 agent 运行期间运行你现有的 the external CLI `hooks.json` 钩子 | 插件 |
+| [`hooks-external-cli`](hooks-external-cli/) | 在 agent 运行期间运行你现有的 the external CLI `hooks.json` 钩子 | 插件 |
 
 -----
 

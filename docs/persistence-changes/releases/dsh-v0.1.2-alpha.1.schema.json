@@ -3985,11 +3985,11 @@
           },
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           },
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           },
           {
             "kind": "primitive",
@@ -13227,11 +13227,11 @@
           },
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           },
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           },
           {
             "kind": "primitive",
@@ -13422,7 +13422,7 @@
         "nodes": [
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           }
         ]
       },
@@ -28208,11 +28208,11 @@
           },
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           },
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           },
           {
             "kind": "primitive",
@@ -34957,11 +34957,11 @@
           },
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           },
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           }
         ]
       },
@@ -37662,7 +37662,7 @@
         "nodes": [
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           }
         ]
       },

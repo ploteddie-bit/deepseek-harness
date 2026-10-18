@@ -26,7 +26,7 @@ The hooks group lets agent runs reuse shell hooks written for the legacy hook pr
 |---|---|---|
 | [`hook-protocol`](hook-protocol/) | Shared hook engine both bridges use; never configured directly | library |
 | [`hooks-command`](hooks-command/README.md) | Run your existing the legacy hook protocol `hooks.json` hooks during agent runs | plugin |
-| [`hooks-codex`](hooks-codex/) | Run your existing the external CLI `hooks.json` hooks during agent runs | plugin |
+| [`hooks-external-cli`](hooks-external-cli/) | Run your existing the external CLI `hooks.json` hooks during agent runs | plugin |
 
 -----
 

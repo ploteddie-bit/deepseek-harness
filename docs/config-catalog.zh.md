@@ -1912,7 +1912,7 @@ export type PiAiModelOverride = Omit<PiAiModelProfile, 'id'>
  * model-level switch its protocol does not take fails resolution, and a
  * route-level one skips past models it cannot fit. "The three Responses
  * protocols" below means `openai-responses`, `azure-openai-responses`, and
- * `openai-codex-responses`, which pi-ai gives one shared compat type, so a
+ * `the external OAuth provider-responses`, which pi-ai gives one shared compat type, so a
  * switch settable on one is settable on all three.
  */
 export interface PiAiCompatProfile {

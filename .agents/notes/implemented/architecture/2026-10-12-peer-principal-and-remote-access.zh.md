@@ -481,7 +481,7 @@ GlobalStandardProps.useWorkspaceAccess: (workspaceId: WorkspaceId, action: Remot
 
 | 事项 | 定稿 |
 |---|---|
-| 快照与挂载 | remote-access Client 插件从 index 注入的 baseline 起步（启动时同步读取并校验），订阅快照流，对每个 baseline 一次构建完成，提供 Client 服务 `ctx.remoteAccess.source(kind, id, action)`（身份稳定的布尔 source）并注入 `global` 资源上的 `useRemoteAccess`。入口模块 import 生成的 `/remote` contribution，连同注入的 baseline 交给 `mountAccess(ctx, contribution, initial)` 经 `ctx.remote.$mount` 自行挂载（单测传入假 contribution），先例为 experimental client-ui-cot-translation、voice-input、claude-code-mods；若由 api/remotes 集中挂载，会形成 ui-session → api/remotes → remote-access → ui-session 的 project reference 环 |
+| 快照与挂载 | remote-access Client 插件从 index 注入的 baseline 起步（启动时同步读取并校验），订阅快照流，对每个 baseline 一次构建完成，提供 Client 服务 `ctx.remoteAccess.source(kind, id, action)`（身份稳定的布尔 source）并注入 `global` 资源上的 `useRemoteAccess`。入口模块 import 生成的 `/remote` contribution，连同注入的 baseline 交给 `mountAccess(ctx, contribution, initial)` 经 `ctx.remote.$mount` 自行挂载（单测传入假 contribution），先例为 experimental client-ui-cot-translation、voice-input、legacy-hooks-mods；若由 api/remotes 集中挂载，会形成 ui-session → api/remotes → remote-access → ui-session 的 project reference 环 |
 | 会话资源 | ui-session 经 `uiSession.provide({ keyedHooks: ['access'], resolve })` 给出本会话答案，会话由框架绑定，与 `useProjection` 相同；`useSessionAccess` 经 `provideRoot` 注入 |
 | 工作区资源 | ui-workspace 经 `provideRoot` 注入 `useWorkspaceAccess` |
 | 名称区分 | `global` 答案是 `useRemoteAccess`，会话答案是 `useAccess`，两者互不遮蔽；session-maybe 无会话时 `useAccess` 为 `undefined`，调用方按不允许处理，需要 `global` 判断时读 `useRemoteAccess` |

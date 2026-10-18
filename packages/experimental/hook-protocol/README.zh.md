@@ -9,7 +9,7 @@ kind: "package-library"
 
 ## 概述
 
-`dsh-hook-protocol` 让两个桥接以相同方式处理你的钩子：它定义钩子能做什么、运行时会发生什么。你无需自行安装或配置它——选择 `dsh-hooks-command` 或 `dsh-hooks-codex`，把它指向你现有的 `hooks.json`，这些规则就会作用于你的钩子。通过任一桥接，钩子都可以带一条模型可见的消息阻塞提示词或工具调用、向对话附加额外上下文，或请求运行停止。只有 command 钩子会运行；`http`、`mcp_tool`、`prompt` 与 `agent` handler 会被跳过并给出警告。
+`dsh-hook-protocol` 让两个桥接以相同方式处理你的钩子：它定义钩子能做什么、运行时会发生什么。你无需自行安装或配置它——选择 `dsh-hooks-command` 或 `dsh-hooks-external-cli`，把它指向你现有的 `hooks.json`，这些规则就会作用于你的钩子。通过任一桥接，钩子都可以带一条模型可见的消息阻塞提示词或工具调用、向对话附加额外上下文，或请求运行停止。只有 command 钩子会运行；`http`、`mcp_tool`、`prompt` 与 `agent` handler 会被跳过并给出警告。
 
 ## 目录
 
@@ -25,11 +25,11 @@ kind: "package-library"
 <a id="use-this-package"></a>
 ## 使用本包
 
-你无需直接安装或配置本包——挂载 `dsh-hooks-command` 或 `dsh-hooks-codex` 就会把这些规则应用到你的 `hooks.json` 钩子上。用本页了解钩子能做什么、运行时会发生什么；两个桥接页面列出各方言支持的事件。
+你无需直接安装或配置本包——挂载 `dsh-hooks-command` 或 `dsh-hooks-external-cli` 就会把这些规则应用到你的 `hooks.json` 钩子上。用本页了解钩子能做什么、运行时会发生什么；两个桥接页面列出各方言支持的事件。
 
 ### 何时选择
 
-当你持有现有的 the legacy hook protocol 或 the external CLI 钩子、希望它们在 agent（智能体）运行期间继续工作时，选择 `dsh-hooks-command` 或 `dsh-hooks-codex`。你永远不会直接选择本包。没有参考工具对应物的定制行为请避开整个组：原生 Cordis 插件拥有完整的 harness API，无需中间的钩子协议。
+当你持有现有的 the legacy hook protocol 或 the external CLI 钩子、希望它们在 agent（智能体）运行期间继续工作时，选择 `dsh-hooks-command` 或 `dsh-hooks-external-cli`。你永远不会直接选择本包。没有参考工具对应物的定制行为请避开整个组：原生 Cordis 插件拥有完整的 harness API，无需中间的钩子协议。
 
 ### 钩子能做什么
 
@@ -62,7 +62,7 @@ kind: "package-library"
 
 `selectHookGroups` 按配置顺序选出包含命令的匹配组。仅当所选组中有待运行的命令时，各桥接才解析当前工作目录。`appendHookInvoked` 不会将缺失或值为 undefined 的 matcher 写入事件。
 
-本库是一串单一用途的步骤，每个步骤一个函数：校验 matcher pattern、通过 `dsh-shell` 执行器运行命令、解码结果、把每个匹配 hook 的结果合并为最严格的一个结果，并记录持久的 `hook/*` 事件对。matcher 的 `mode` 参数是两个方言唯一的差异轴——`claude-code` 把 pattern 解释为字面量备选或正则，`codex` 始终解释为未锚定正则。每个步骤都会降级为受控结果而不是抛异常，因此钩子永远不会使调用轮次崩溃：无效正则是运行时的不匹配，执行器拒绝会变成没有退出码的 `HookOutput`，退出码 2 以 stderr 作为原因阻塞，其他失败均不阻塞。合并应用 `deny > ask > allow` 优先级，保持首个 `continue: false` 停止的粘性，并按 hook 顺序累积上下文。脱离运行会被跟踪，因此 `fiber.dispose()` 能达到完全停稳。这些步骤位于 [`src/matcher.ts`](src/matcher.ts)、[`src/runner.ts`](src/runner.ts)、[`src/codec.ts`](src/codec.ts)、[`src/merge.ts`](src/merge.ts)、[`src/events.ts`](src/events.ts) 与 [`src/detached.ts`](src/detached.ts)。
+本库是一串单一用途的步骤，每个步骤一个函数：校验 matcher pattern、通过 `dsh-shell` 执行器运行命令、解码结果、把每个匹配 hook 的结果合并为最严格的一个结果，并记录持久的 `hook/*` 事件对。matcher 的 `mode` 参数是两个方言唯一的差异轴——`legacy-hooks` 把 pattern 解释为字面量备选或正则，`external-cli` 始终解释为未锚定正则。每个步骤都会降级为受控结果而不是抛异常，因此钩子永远不会使调用轮次崩溃：无效正则是运行时的不匹配，执行器拒绝会变成没有退出码的 `HookOutput`，退出码 2 以 stderr 作为原因阻塞，其他失败均不阻塞。合并应用 `deny > ask > allow` 优先级，保持首个 `continue: false` 停止的粘性，并按 hook 顺序累积上下文。脱离运行会被跟踪，因此 `fiber.dispose()` 能达到完全停稳。这些步骤位于 [`src/matcher.ts`](src/matcher.ts)、[`src/runner.ts`](src/runner.ts)、[`src/codec.ts`](src/codec.ts)、[`src/merge.ts`](src/merge.ts)、[`src/events.ts`](src/events.ts) 与 [`src/detached.ts`](src/detached.ts)。
 
 ### `hook/*` 会话事件
 
@@ -112,7 +112,7 @@ kind: "package-library"
 <a id="model-experience"></a>
 ## 模型体验
 
-通过 `dsh-hooks-command` 与 `dsh-hooks-codex` 间接影响；它们是将解码后的 hook 输出渲染为模型上下文的唯一消费方。
+通过 `dsh-hooks-command` 与 `dsh-hooks-external-cli` 间接影响；它们是将解码后的 hook 输出渲染为模型上下文的唯一消费方。
 
 #### KV Cache 影响
 

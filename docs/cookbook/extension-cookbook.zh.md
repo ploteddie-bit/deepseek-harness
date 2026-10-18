@@ -107,7 +107,7 @@ export function apply(ctx: Context) {
 
 | 产品功能 | 插件机制 |
 |---|---|
-| 钩子系统（用户级 + 项目级） | `agent/created`、`agent/pre-step`、`agent/request`、`tools/pre-execute`、`tools/post-execute` 和 `agent/turn-stopping` 上的监听器；waterfall 返回类型化决策，`agent/turn-stopping` 则可通过 steering（中途引导）触发下一步；`dsh-hooks-command` / `dsh-hooks-codex` 桥接器将钩子配置文件映射到这些扩展点上 |
+| 钩子系统（用户级 + 项目级） | `agent/created`、`agent/pre-step`、`agent/request`、`tools/pre-execute`、`tools/post-execute` 和 `agent/turn-stopping` 上的监听器；waterfall 返回类型化决策，`agent/turn-stopping` 则可通过 steering（中途引导）触发下一步；`dsh-hooks-command` / `dsh-hooks-external-cli` 桥接器将钩子配置文件映射到这些扩展点上 |
 | `/goal` | `ctx.goals` 管理持久状态，`dsh-goal-round-driver` 通过公共 `Agent` 调度同会话 Round，独立的命令/工具生产方分别提供人类/模型控制 |
 | `/loop` | 在 `turn/end` 会话事件上 `followup()` 下一次迭代；或强制继续 |
 | 动态工作流 | `ctx.workflowEngine` + PTC 工作流引擎 + `workflow` 工具；结构化的进程内子任务通过作用域化的提示词/工具注册、单调工具守卫、最终 `tools/result` 提交（包括外层 `run_code`）和结构化输出执行的单调 `concludeTurn()` 标记来强制输出 |
@@ -124,7 +124,7 @@ export function apply(ctx: Context) {
 | 子进程沙箱（landlock / sandbox-exec） | 通过 `dsh-bash-sandbox` 使用 `ctx.sandbox` 后端；能力级别的拒绝使用 `tools/pre-execute` |
 | 权限系统 / AskUserQuestion | 从 `tools/pre-execute` 返回 `ask` 并通过 `ctx.approval` 应答；为普通用户提问注册一个独立的面向模型的 ask 工具 |
 | Plan mode | [`@deepseek-ai/dsh-plan-mode`](../../packages/plan/plan-mode/README.zh.md)：落日志的 `plan/mode` 状态、`plan:policy` 引导段、`/plan [message]` 入口、`/plan off` 直接退出，以及经用户评审的 `exit_plan_mode` 出口；强制约束留在独立的沙箱/审批轴上 |
-| subagent 委派 | `ctx.subagents` 提供方注册表（`dsh-subagent-spawn-in-process`/`dsh-subagent-fork-in-process`/`dsh-subagent-acp`/`dsh-subagent-codex`/`dsh-subagent-agent-sdk`/`dsh-subagent-dsh-sdk`）+ `dsh-tool-subagent` 向模型暴露一个已配置的提供方 |
+| subagent 委派 | `ctx.subagents` 提供方注册表（`dsh-subagent-spawn-in-process`/`dsh-subagent-fork-in-process`/`dsh-subagent-acp`/`dsh-subagent-external-cli`/`dsh-subagent-agent-sdk`/`dsh-subagent-dsh-sdk`）+ `dsh-tool-subagent` 向模型暴露一个已配置的提供方 |
 | MCP | 每个服务器一个插件：发现工具 → `ctx.tools.register()` |
 | skill（技能） | section + 工具注册；调用时通过 `inject()` 注入 skill 内容 |
 | 记忆 | section 提供方 + 工具 |

@@ -91,7 +91,7 @@ refs:
   OPENAI_API_KEY: sk-…
 
 records:
-  llm-pi-ai/openai-codex:
+  llm-pi-ai/the external OAuth provider:
     kind: grant
     payload:                    # written verbatim; this provider does not interpret it
       type: oauth

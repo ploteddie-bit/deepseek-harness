@@ -1645,11 +1645,11 @@
       ]
     },
     {
-      "name": "@deepseek-ai/dsh-hooks-claude-code",
+      "name": "@deepseek-ai/dsh-hooks-legacy-hooks",
       "version": "0.1.5-rc.2",
       "installations": [
         {
-          "location": "node_modules/@deepseek-ai/dsh-hooks-claude-code",
+          "location": "node_modules/@deepseek-ai/dsh-hooks-legacy-hooks",
           "direct": true,
           "optional": false,
           "peer": false
@@ -1657,11 +1657,11 @@
       ]
     },
     {
-      "name": "@deepseek-ai/dsh-hooks-codex",
+      "name": "@deepseek-ai/dsh-hooks-external-cli",
       "version": "0.1.5-rc.2",
       "installations": [
         {
-          "location": "node_modules/@deepseek-ai/dsh-hooks-codex",
+          "location": "node_modules/@deepseek-ai/dsh-hooks-external-cli",
           "direct": true,
           "optional": false,
           "peer": false

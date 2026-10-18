@@ -41,7 +41,7 @@
       - option "moonshotai-cn"
       - option "nvidia"
       - option "openai"
-      - option "openai-codex" [selected]
+      - option "the external OAuth provider" [selected]
       - option "opencode"
       - option "opencode-go"
       - option "openrouter"

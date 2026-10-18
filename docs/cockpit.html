@@ -116,7 +116,7 @@ const COCKPIT={
     {ic:'🦊',nom:'Remote forgejo',chemin:'http://192.168.1.250:3000/eddie/deepseek-harness.git',url:'http://192.168.1.250:3000/eddie/deepseek-harness'},
   ],
   chantiers:[ /* {n:'',c:'',cmds:['','']} */
-    {n:'18/10 — Merge origin/master et purge des références tierces',c:'0 commit de retard, build tsc host/client vert, gates docs vertes, et plus aucune référence aux intégrations tierces dans le profil DSH.',cmds:['git -C $HOME/deepseek-harness status --short','pnpm run build','grep -rilE "claude|codex|gpt" $HOME/.dsh/.agent-presets']},
+    {n:'18/10 — Merge origin/master et purge des références tierces',c:'0 commit de retard, build tsc host/client vert, gates docs vertes, et plus aucune référence aux intégrations tierces dans le profil DSH.',cmds:['git -C $HOME/deepseek-harness status --short','pnpm run build','grep -rilE "legacy-provider|external-cli|an external model" $HOME/.dsh/.agent-presets']},
     {n:'Signaler à l’amont la dette rescope-vendor 0.2.1-alpha.1 (16 fichiers) et le bug pnpm run clean',c:'issue amont ouverte ou équivalent, lien consigné ici',cmds:['pnpm run rescope-vendor:check']},
     {n:'SOLDÉ 05/10 — Trancher le sort du stash readme-pi-ai (doc de l’outil effort-bench, absent du dépôt)',c:'stash abandonné définitivement le 05/10 14h40 sur décision d’Eddie (drop, reflog ~30 j)'},
     {n:'SOLDÉ 05/10 — Décider du sort des branches locales non mergées (backup/*, sync-*, fix/dette-technique-gates-docs-20260914)',c:'21 branches obsolètes supprimées le 05/10 (grand nettoyage) ; restent master + sync-up-0.2.1-alpha.1-20261005 ; commits récupérables ~30 j via reflog (ex. backup master via reflog)'},

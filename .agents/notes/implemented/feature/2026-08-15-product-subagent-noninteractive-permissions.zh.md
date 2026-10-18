@@ -6,7 +6,7 @@ Status: implemented
 
 ## Problem
 
-[the legacy hook protocol 与 the external CLI 产品提供方](../../../../packages/subagent/subagent-codex/README.zh.md)都在没有人工界面的情况下运行。因此，原生权限提示、用户对话或 MCP elicitation 不能等待人员响应，但依赖任一产品环境中的默认值仍可能选择交互模式。部署也需要选择更宽松的原生模式，同时不能让父模型或单次工具调用提升自身权限。
+[the legacy hook protocol 与 the external CLI 产品提供方](../../../../packages/subagent/subagent-external-cli/README.zh.md)都在没有人工界面的情况下运行。因此，原生权限提示、用户对话或 MCP elicitation 不能等待人员响应，但依赖任一产品环境中的默认值仍可能选择交互模式。部署也需要选择更宽松的原生模式，同时不能让父模型或单次工具调用提升自身权限。
 
 失败的产品运行此前只能把终止原因送入 [subagent seam](../../../../packages/subagent/subagent/README.zh.md)。日志可以保留产品错误，但前台父 agent 与[一次性后台 Job](../../archived/feature/2026-08-12-product-subagent-one-shot-background-tasks.md)无法区分权限拒绝和其他失败。若复用 assistant 输出承载该事实，则会把基础设施说明错误归因给子模型。
 
@@ -40,7 +40,7 @@ the external CLI 默认使用 `never`，并接受 the external CLI 0.153.4 公�
 | `approve-for-me` | `approvalPolicy: on-request`、`approvalsReviewer: auto_review`、`sandbox: workspace-write` | 由 the external CLI 自动评审权限请求。 |
 | `dangerously-bypass-approvals-and-sandbox` | `approvalPolicy: never`、`sandbox: danger-full-access` | 跳过审批与 sandbox。 |
 
-提供方只覆盖这些权限与 sandbox 字段。可选的实例级模型是独立的直接 `thread/start` 覆盖；`CODEX_HOME`、项目配置、模型 provider 选择、MCP、hook、skill、身份验证，以及模式未选择的 sandbox 事实仍属于 the external CLI 原生状态。wire 仍会拒绝任何意外到达的审批、权限、用户输入或 MCP 请求，而不会开放动态 allow 通道。
+提供方只覆盖这些权限与 sandbox 字段。可选的实例级模型是独立的直接 `thread/start` 覆盖；`EXTERNAL_CLI_HOME`、项目配置、模型 provider 选择、MCP、hook、skill、身份验证，以及模式未选择的 sandbox 事实仍属于 the external CLI 原生状态。wire 仍会拒绝任何意外到达的审批、权限、用户输入或 MCP 请求，而不会开放动态 allow 通道。
 
 ### 失败诊断
 

@@ -45,7 +45,7 @@ seam 的边缘与写入路径同一纪律。prompt 被拒是结果而非故障�
 
 - **把 pi-ai 的 `CredentialStore` 形状直接放进 seam。** 那是行得通且已经设计好的形状。它同时把 `api_key`/`oauth` 定为世上仅有的两种凭据类别，并以 provider id 为键，也就是上文那种所有权丢失；第二个 adapter 家族将不得不假装自己是 pi-ai 才能参与。记录联合体刻意只在两处更抽象一步——键，以及 grant 的不透明性。
 - **在 `user-questions` 旁再建一个专用登录交互 seam。** 授权提示看起来就像问题，复用 `ctx.userQuestions` 很有诱惑力。但那个 seam 是为"模型的工具调用代表 agent 暂停"而建的：它校验调用方 agent、拒绝被委派的调用方、只有一个环境 UI 提供方。授权提示没有 agent，必须抵达发起它的配置页面，还可能被浏览器回调赢得竞速后按单个提示撤下。词汇重叠，生命周期不重叠。
-- **把 `~/.codex/auth.json` 读进一个 store。** 这能让 the external CLI 在不做上述任何事的情况下工作，刷新也由 pi-ai 负责。它同时为了一个提供方把 harness 绑死在另一个工具的私有文件格式上，且其余所有登录仍然没有着落。
+- **把 `~/.external-cli/auth.json` 读进一个 store。** 这能让 the external CLI 在不做上述任何事的情况下工作，刷新也由 pi-ai 负责。它同时为了一个提供方把 harness 绑死在另一个工具的私有文件格式上，且其余所有登录仍然没有着落。
 - **让第二次 `begin()` 并入已在运行的尝试。** 比拒绝更友好，直到两个人在回答同一个 flow 的问题为止。以 entry 上的 `inFlight` 配合拒绝，界面得以禁用按钮，而不是靠报错才发现状态。
 - **把"仅 OAuth 则扣留"当安全网保留。** 它现在会藏起一个能用的提供方。该判定被删除而不是留成惰性代码；`docs/subsystems/credentials.md` 与包 README 承载了取代它的内容。
 

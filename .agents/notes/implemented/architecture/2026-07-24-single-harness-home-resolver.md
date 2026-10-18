@@ -33,7 +33,7 @@ An empty or whitespace-only `$DSH_HOME` is treated as unset; otherwise `resolve(
 
 **Leave the two `resolveDshHome` copies in place.** They had already drifted (one expands tildes, one didn't) and encode the same cross-cutting fact twice. Consolidation is the point of the `util/` layer; a duplicate resolver is a latent divergence bug.
 
-**Adopt XDG (honor `$XDG_CONFIG_HOME`, or split config/data/cache into separate trees).** Considered and dropped in favor of one obvious root. A single `$DSH_HOME || ~/.dsh` ground truth matches `~/.claude` / `~/.aws`, needs no per-kind reclassification of every `~/.dsh` consumer, and leaves no resolver asymmetry to reconcile.
+**Adopt XDG (honor `$XDG_CONFIG_HOME`, or split config/data/cache into separate trees).** Considered and dropped in favor of one obvious root. A single `$DSH_HOME || ~/.dsh` ground truth matches `~/.legacy-provider` / `~/.aws`, needs no per-kind reclassification of every `~/.dsh` consumer, and leaves no resolver asymmetry to reconcile.
 
 ## Consequences
 

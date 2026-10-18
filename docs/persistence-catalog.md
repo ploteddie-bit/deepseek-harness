@@ -573,7 +573,7 @@ Source: [`packages/goal/goal/src/domain.ts:66`](../packages/goal/goal/src/domain
 /**
  * A hook command was invoked at a hook point — a log-only record (like
  * `compaction/*`; NOT a {@link SurfaceEventType}, carries no `surfaceOp`).
- * `dialect` is the bridge that ran it (`claude`/`codex`), `point`
+ * `dialect` is the bridge that ran it (`legacy-provider`/`external-cli`), `point`
  * the hook point (`PreToolUse`, `Stop`, …), `matcher` the matcher-group
  * pattern that selected it (absent for match-all), `handlerId` a stable id
  * for the command (so an invoked/result pair correlates). `turn` is the open
@@ -1565,11 +1565,11 @@ SHA-256: `14230f9b8b5797bb7e8c621fa636531cfbde2ffba1ef5f1fd058216ff21952a0`
 
 <a id="persistence-type-sha256-aff60ef947c18b012644852bdd0d5bfe72065e061dd563787c76c646b4a10f6b"></a>
 
-### `"claude-code"`
+### `"legacy-hooks"`
 
 SHA-256: `aff60ef947c18b012644852bdd0d5bfe72065e061dd563787c76c646b4a10f6b`
 
-`"claude-code"`
+`"legacy-hooks"`
 
 <a id="persistence-type-sha256-e7e154d47d5fbc5366330fb4dade1f108c6dfe4335044d21ded14b7bf1dce084"></a>
 
@@ -1581,11 +1581,11 @@ SHA-256: `e7e154d47d5fbc5366330fb4dade1f108c6dfe4335044d21ded14b7bf1dce084`
 
 <a id="persistence-type-sha256-15495614ccfa9cbdeefb0ec2abd76406435f4c6ff3dae42acae8e09ef42025c9"></a>
 
-### `"codex"`
+### `"external-cli"`
 
 SHA-256: `15495614ccfa9cbdeefb0ec2abd76406435f4c6ff3dae42acae8e09ef42025c9`
 
-`"codex"`
+`"external-cli"`
 
 <a id="persistence-type-sha256-8cdd3fdd295cee53035de16a1b23411716f75e9f994fe9510cac5d7fef605c76"></a>
 
@@ -3683,8 +3683,8 @@ Sources: [`packages/experimental/hook-protocol/src/types.ts:48`](../packages/exp
 
 One of:
 
-- `"claude-code"`
-- `"codex"`
+- `"legacy-hooks"`
+- `"external-cli"`
 
 <a id="persistence-type-sha256-b0b0eb1b16490f6bee135b2377e8f8c39227974c799ad7d49ff418af23ecbc35"></a>
 

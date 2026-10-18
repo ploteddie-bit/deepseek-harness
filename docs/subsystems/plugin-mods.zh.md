@@ -2,20 +2,20 @@
 
 [English](plugin-mods.md) | 中文
 
-模组经本桥接运行时与在 the legacy hook protocol 下行为不同的每一处，基准为 the legacy hook protocol 2.1.287（[模组参考](https://code.claude.com/docs/en/plugins/mods/reference)及其 `claude-code.d.ts`）与 2026-10-01 的 [Getting started with the legacy hook protocol mods](https://claude.dev/blog/getting-started-with-plugin-mods/) 一文。每行给出 the legacy hook protocol 的行为、本桥接的做法，以及原因或后续工作。未列出的一切均按参考文档描述的方式运行；对本宿主永不触发的事件注册钩子会在模组加载时以警告点名，服务表之外的 `$` 调用以 `no implementation for <namespace>.<method>` 拒绝。
+模组经本桥接运行时与在 the legacy hook protocol 下行为不同的每一处，基准为 the legacy hook protocol 2.1.287（[模组参考](https://code.legacy-provider.com/docs/en/plugins/mods/reference)及其 `legacy-hooks.d.ts`）与 2026-10-01 的 [Getting started with the legacy hook protocol mods](https://legacy-provider.dev/blog/getting-started-with-plugin-mods/) 一文。每行给出 the legacy hook protocol 的行为、本桥接的做法，以及原因或后续工作。未列出的一切均按参考文档描述的方式运行；对本宿主永不触发的事件注册钩子会在模组加载时以警告点名，服务表之外的 `$` 调用以 `no implementation for <namespace>.<method>` 拒绝。
 
 ## 打包与加载
 
 | the legacy hook protocol | 本桥接 | 原因或后续 |
 |---|---|---|
-| 一个插件目录，含 `.claude-plugin/plugin.json` 与指定一个钩子模块的 `hooks/hooks.json`；`claude --plugin-dir`、市场、`/plugin install` | 模组就是插件：`defineMod({ name, version, root, userConfig, register })` 包装钩子模块，并在桥接之后经 cordis.yml 挂载；不读取 `plugin.json` 与 `hooks.json` | 模组加入每个 DSH 插件都使用的同一组合机制；示例目录保留其清单，因此也能在 `claude --plugin-dir` 下运行 |
+| 一个插件目录，含 `.legacy-provider-plugin/plugin.json` 与指定一个钩子模块的 `hooks/hooks.json`；`legacy-provider --plugin-dir`、市场、`/plugin install` | 模组就是插件：`defineMod({ name, version, root, userConfig, register })` 包装钩子模块，并在桥接之后经 cordis.yml 挂载；不读取 `plugin.json` 与 `hooks.json` | 模组加入每个 DSH 插件都使用的同一组合机制；示例目录保留其清单，因此也能在 `legacy-provider --plugin-dir` 下运行 |
 | `plugin.json` 中带类型默认值的 `userConfig` schema；选项在加载时校验 | `userConfig` 是 `defineMod` 规格的默认值对象；插件的 cordis.yml `config` 覆盖其上，并按字符串、数字、布尔与字符串列表的记录校验 | 不读取清单 |
 | 层级（`user`、`project`、`managed`）与 `next.to(e, tier)` | 每个模组都以 `user` 加载；测试中的 `tier()` 被接受并忽略；`next.to` 拒绝 | 托管设置不是 DSH 的概念 |
-| 编辑时热重载钩子模块；`claude plugin validate`、`claude plugin test`、由 `types/index.d.ts` 生成类型 | 这些命令都没有；重新挂载会在同一已求值模块上重新运行 `register`，模块级变量保留其值 | 仅按需跟进；测试工具包的 `createModTestKit` 在 Vitest 中替代 `claude plugin test` |
+| 编辑时热重载钩子模块；`legacy-provider plugin validate`、`legacy-provider plugin test`、由 `types/index.d.ts` 生成类型 | 这些命令都没有；重新挂载会在同一已求值模块上重新运行 `register`，模块级变量保留其值 | 仅按需跟进；测试工具包的 `createModTestKit` 在 Vitest 中替代 `legacy-provider plugin test` |
 | 钩子模块可以是 TypeScript | `.ts` 钩子模块只在启动器转译时可加载（源码启动可以；构建后的安装不行） | DSH 交付的是纯 Node |
 | 模组在进程内运行，`$` 是其访问宿主的唯一途径 | 钩子模块以 Node 全局对象在进程内运行，没有访问规则，并拥有进程的全部权限：`$.env` 读写 harness 环境变量，`$.http.fetch` 可访问任意 URL，`$.fs` 与 `$.tool.call` 以会话的身份行动 | 不对模组施加沙箱；只挂载你愿意作为插件运行的模组 |
-| `import type { … } from 'claude-code'`、`declare module 'claude-code' { interface PluginState }` | `claude-code` 模块名只在本仓库的测试设置中解析到桥接的类型；仓库外的模组导入 `@deepseek-ai/dsh-experimental-plugin-mods` | 类型名是桥接自己的 |
-| `hooks.json` 中的设置钩子与模组钩子并行运行 | 不运行；为它们挂载 `@deepseek-ai/dsh-hooks-claude-code` | 不同的桥接 |
+| `import type { … } from 'legacy-hooks'`、`declare module 'legacy-hooks' { interface PluginState }` | `legacy-hooks` 模块名只在本仓库的测试设置中解析到桥接的类型；仓库外的模组导入 `@deepseek-ai/dsh-experimental-plugin-mods` | 类型名是桥接自己的 |
+| `hooks.json` 中的设置钩子与模组钩子并行运行 | 不运行；为它们挂载 `@deepseek-ai/dsh-hooks-legacy-hooks` | 不同的桥接 |
 
 ## 事件
 
@@ -78,7 +78,7 @@
 
 ## 测试
 
-| `claude-code/testing` | 本桥接 |
+| `legacy-hooks/testing` | 本桥接 |
 |---|---|
 | `describe`、`test(name, ($, on) => …)`、`expect`、`mock`、`tier` | 在本仓库内同一模块名基于 Vitest 提供它们；`test` 从测试文件位置推断模组（`<mod>/tests/*.test.ts` → `<mod>/index.ts`），`defineModTests` 可覆盖。仓库外则从 `@deepseek-ai/dsh-experimental-plugin-mods/testing` 获取 `createModTestKit` 与 `mock` |
 | `on` 为引擎的答案打桩；工具包自行回答 `ui.*` | 相同；`ui.open` 回答 `{ isPlaced: false }`，`ui.invalidate` 与 `ui.close` 成功；`session.cwd`、`process.run`、`fs.*`、`store.*`、`env.*` 需要桩（`mock.store`、`mock.env`、`mock.clock` 回答整个命名空间） |
@@ -92,7 +92,7 @@
 | Token Weather | 文中的模块、类型契约与测试，原样 | 按发布原样运行；测试中的三处 `as any` 转换因工具包带类型而去掉。通过 token 计量器从 `$.session.usage` 在横幅中绘制 |
 | Blast Radius | 文中的 `tool.call` 钩子原样；`classify`、`measure` 与树按文中描述补全 | 以真实的 `sleep` 轮询持有命令，在横幅中绘制报告（`isPlaced: false`），由 Proceed 或 Cancel 决定；请加载在 Token Weather 之前 |
 | Replay Theater | 文中的五个钩子原样；`stepsFor`、差异、`openReplay`、面板与提示补全 | 记录 Edit 与 Write 调用，轮结束后在横幅中提示，并因无面板放置而在横幅中逐步浏览差异 |
-| `diff`（[anthropics/claude-code](https://github.com/anthropics/claude-code/tree/main/mods/diff)，于 `52c7644` 阅读） | TypeScript，约 570 个文件，钩住 `command.run`、`prompt.submit`、`session.start`、`tool.call`、`ui.close`、`ui.focus`、`ui.render`、`ui.scroll` | 不可运行：需要 `$.settings.read`、`$.telemetry.*`、面板上的 `$.session.messages`、`ui.focus` 与 `ui.scroll` 事件以及已放置的 `Pane`。以阅读方式评估；该仓库的条款不允许复制夹具 |
+| `diff`（[anthropics/legacy-hooks](https://github.com/anthropics/legacy-hooks/tree/main/mods/diff)，于 `52c7644` 阅读） | TypeScript，约 570 个文件，钩住 `command.run`、`prompt.submit`、`session.start`、`tool.call`、`ui.close`、`ui.focus`、`ui.render`、`ui.scroll` | 不可运行：需要 `$.settings.read`、`$.telemetry.*`、面板上的 `$.session.messages`、`ui.focus` 与 `ui.scroll` 事件以及已放置的 `Pane`。以阅读方式评估；该仓库的条款不允许复制夹具 |
 | `agents-md`（同一仓库） | 钩住 `agent.spawn`、`prompt.context`、`session.start`、`tool.call` | 不可运行：`prompt.context` 与 `agent.spawn` 不触发，`$.fs.ancestors`、`$.telemetry.*` 不服务 |
 | `sec-default`（同一仓库） | 钩住 `tool.check`、`prompt.compose`、`settings.read`、`classic.*`、`plugin.register`…… | 不可运行：基于本宿主不触发的事件的托管层策略 |
 | `telemetry`（同一仓库） | 钩住 `engine.create`、`telemetry.*`、`session.start`、`session.end`；调用 `$.session.repo`、`$.settings.read` | 不可运行：`telemetry.*` 与 `engine.create` 不触发，两个 `$` 成员不服务 |

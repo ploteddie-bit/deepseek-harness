@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-`dsh-hook-protocol` makes both bridges handle your hooks identically: it defines what a hook can do and what happens when it runs. You never install or configure it yourself — choose `dsh-hooks-command` or `dsh-hooks-codex`, point it at your existing `hooks.json`, and these rules apply to your hooks. Through either bridge, a hook can block a prompt or tool call with a message the model sees, attach extra context to the conversation, or ask the run to stop. Only command hooks run; `http`, `mcp_tool`, `prompt`, and `agent` handlers are skipped with a warning.
+`dsh-hook-protocol` makes both bridges handle your hooks identically: it defines what a hook can do and what happens when it runs. You never install or configure it yourself — choose `dsh-hooks-command` or `dsh-hooks-external-cli`, point it at your existing `hooks.json`, and these rules apply to your hooks. Through either bridge, a hook can block a prompt or tool call with a message the model sees, attach extra context to the conversation, or ask the run to stop. Only command hooks run; `http`, `mcp_tool`, `prompt`, and `agent` handlers are skipped with a warning.
 
 ## Table of Contents
 
@@ -25,11 +25,11 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-You don't install or configure this package directly — mounting `dsh-hooks-command` or `dsh-hooks-codex` applies these rules to your existing `hooks.json` hooks. Use this page to learn what a hook can do and what happens when it runs; the two bridge pages list which events each dialect supports.
+You don't install or configure this package directly — mounting `dsh-hooks-command` or `dsh-hooks-external-cli` applies these rules to your existing `hooks.json` hooks. Use this page to learn what a hook can do and what happens when it runs; the two bridge pages list which events each dialect supports.
 
 ### When to choose it
 
-Choose `dsh-hooks-command` or `dsh-hooks-codex` when you have existing the legacy hook protocol or the external CLI hooks and want them to keep working during agent runs. You never choose this package directly. Avoid the whole group for bespoke behavior with no reference-tool equivalent: a native Cordis plugin has the full harness API with no hook protocol in between.
+Choose `dsh-hooks-command` or `dsh-hooks-external-cli` when you have existing the legacy hook protocol or the external CLI hooks and want them to keep working during agent runs. You never choose this package directly. Avoid the whole group for bespoke behavior with no reference-tool equivalent: a native Cordis plugin has the full harness API with no hook protocol in between.
 
 ### What a hook can do
 
@@ -62,7 +62,7 @@ This section explains the design decisions behind the library and points at the 
 
 `selectHookGroups` selects nonempty matching groups in config order. Each bridge resolves the current working directory only when this selection contains commands to run. `appendHookInvoked` omits absent or undefined matchers from the recorded event.
 
-The library is a chain of single-purpose steps, one function each: validate the matcher pattern, run the command through the `dsh-shell` executor, decode the outcome, merge every matched hook's outcome into one most-restrictive result, and record the durable `hook/*` event pair. The matcher's `mode` parameter is the single axis the dialects differ on — `claude-code` interprets a pattern as literal alternatives or a regex, `codex` always as an unanchored regex. Every step degrades to a contained outcome instead of throwing, so a hook can never crash the calling turn: an invalid regex is a non-match, an executor rejection becomes a `HookOutput` with no exit code, exit 2 blocks with stderr as the reason, and every other failure stays non-blocking. Merging applies `deny > ask > allow` precedence, keeps the first `continue: false` stop sticky, and accumulates context in hook order. Detached runs are tracked so `fiber.dispose()` reaches quiescence. The steps live in [`src/matcher.ts`](src/matcher.ts), [`src/runner.ts`](src/runner.ts), [`src/codec.ts`](src/codec.ts), [`src/merge.ts`](src/merge.ts), [`src/events.ts`](src/events.ts), and [`src/detached.ts`](src/detached.ts).
+The library is a chain of single-purpose steps, one function each: validate the matcher pattern, run the command through the `dsh-shell` executor, decode the outcome, merge every matched hook's outcome into one most-restrictive result, and record the durable `hook/*` event pair. The matcher's `mode` parameter is the single axis the dialects differ on — `legacy-hooks` interprets a pattern as literal alternatives or a regex, `external-cli` always as an unanchored regex. Every step degrades to a contained outcome instead of throwing, so a hook can never crash the calling turn: an invalid regex is a non-match, an executor rejection becomes a `HookOutput` with no exit code, exit 2 blocks with stderr as the reason, and every other failure stays non-blocking. Merging applies `deny > ask > allow` precedence, keeps the first `continue: false` stop sticky, and accumulates context in hook order. Detached runs are tracked so `fiber.dispose()` reaches quiescence. The steps live in [`src/matcher.ts`](src/matcher.ts), [`src/runner.ts`](src/runner.ts), [`src/codec.ts`](src/codec.ts), [`src/merge.ts`](src/merge.ts), [`src/events.ts`](src/events.ts), and [`src/detached.ts`](src/detached.ts).
 
 ### `hook/*` session events
 
@@ -112,7 +112,7 @@ Read these pages when the package-level contract is not enough. They move from t
 <a id="model-experience"></a>
 ## Model Experience
 
-Indirectly, through `dsh-hooks-command` and `dsh-hooks-codex`, which are the only consumers that render decoded hook output into model context.
+Indirectly, through `dsh-hooks-command` and `dsh-hooks-external-cli`, which are the only consumers that render decoded hook output into model context.
 
 #### KV Cache effect
 

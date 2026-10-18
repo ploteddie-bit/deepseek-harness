@@ -87,14 +87,14 @@ New directories and files request modes `0700` and `0600` on POSIX. The CLI prin
 The the external CLI and the legacy hook protocol subagent providers are separate optional Bundles. Add either package, both in one command, or remove either package independently:
 
 ```sh
-dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-codex
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-external-cli
 dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-agent-sdk
-dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-codex @deepseek-ai/dsh-subagent-agent-sdk
-dsh plugin --profile <name> remove @deepseek-ai/dsh-subagent-codex
+dsh plugin --profile <name> add @deepseek-ai/dsh-subagent-external-cli @deepseek-ai/dsh-subagent-agent-sdk
+dsh plugin --profile <name> remove @deepseek-ai/dsh-subagent-external-cli
 dsh plugin --profile <name> remove @deepseek-ai/dsh-subagent-agent-sdk
 ```
 
-The successful pnpm operation changes the Profile manifest and Bundle list on disk; a running Profile keeps the Bundle set from its current start. Restart that Profile after adding, removing, or updating a Bundle. This startup boundary applies to Bundle membership, while ordinary edits to the Profile or home `cordis.patch.yml` take effect through hot reload. On the next start, each installed Bundle registers only its dormant Host provider; a copied Preset must separately enable the matching tool row for new Agents. The [the external CLI provider README](../../../packages/subagent/subagent-codex/README.md) and [the legacy hook protocol provider README](../../../packages/subagent/subagent-agent-sdk/README.md) own executable, authentication, payload, and failure details; the [base Bundle reference](../../../packages/bundle/base/README.md) owns the default dependency closure.
+The successful pnpm operation changes the Profile manifest and Bundle list on disk; a running Profile keeps the Bundle set from its current start. Restart that Profile after adding, removing, or updating a Bundle. This startup boundary applies to Bundle membership, while ordinary edits to the Profile or home `cordis.patch.yml` take effect through hot reload. On the next start, each installed Bundle registers only its dormant Host provider; a copied Preset must separately enable the matching tool row for new Agents. The [the external CLI provider README](../../../packages/subagent/subagent-external-cli/README.md) and [the legacy hook protocol provider README](../../../packages/subagent/subagent-agent-sdk/README.md) own executable, authentication, payload, and failure details; the [base Bundle reference](../../../packages/bundle/base/README.md) owns the default dependency closure.
 
 ```sh
 dsh plugin --profile tui add github:deepseek-harness/turtle-ui
@@ -126,7 +126,7 @@ The production Web runner needs built package and frontend artifacts (`pnpm run 
 
 Process shutdown gives the plugin tree up to five seconds to dispose. The first `SIGINT`/`SIGTERM` starts that graceful drain — `SIGTERM` is a supervisor's ordinary stop request and exits 0 on every surface, `SIGINT` reports 130; a second signal forces immediate exit. If one-shot normal completion is already stuck in disposal, the first `Ctrl+C` is the escalation and exits immediately instead of being swallowed.
 
-The base-backed modes treat the invoking directory as the default workspace root, load applicable `AGENTS.md` or `CLAUDE.md` instructions with a 65,536-byte render budget, and use an in-memory SQLite session content index. The standalone `sdk-minimal` profile uses the invoking directory as its sandbox-policy root and includes `read_image`, but omits text filesystem tools, instruction discovery, and SQLite. An enabled HMR plugin watches both `cordis.patch.yml` layers (profile and home) and reapplies valid edits transactionally; without HMR, the process applies them once. A one-shot surface exits through its bounded shutdown, which disposes any live watchers.
+The base-backed modes treat the invoking directory as the default workspace root, load applicable `AGENTS.md` or `the legacy instruction file` instructions with a 65,536-byte render budget, and use an in-memory SQLite session content index. The standalone `sdk-minimal` profile uses the invoking directory as its sandbox-policy root and includes `read_image`, but omits text filesystem tools, instruction discovery, and SQLite. An enabled HMR plugin watches both `cordis.patch.yml` layers (profile and home) and reapplies valid edits transactionally; without HMR, the process applies them once. A one-shot surface exits through its bounded shutdown, which disposes any live watchers.
 
 New sessions in base-backed profiles default to the `workspace-write` permission preset. Bash and filesystem mutations are restricted to the session workspace and platform temporary roots; reads and network access are not confined, while process visibility depends on the selected sandbox backend — bwrap runs commands in a private PID namespace that hides host processes, and Landlock and Seatbelt leave host process visibility unchanged. `DSH_PERMISSION_MODE` changes the process fallback. Stored General-settings permissions affect later Web sessions, not an already-open one. The standalone `sdk-minimal` tree instead pins `danger-full-access` and mounts no approval or permission-settings service.
 

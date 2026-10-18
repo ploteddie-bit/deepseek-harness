@@ -128,13 +128,13 @@
 /session-v3-persistence-format/complete-schemas/resolved-persistence-types/chunk:
   en: 2809c65c1d854d57
   zh: 2809c65c1d854d57
-/session-v3-persistence-format/complete-schemas/resolved-persistence-types/claude-code:
+/session-v3-persistence-format/complete-schemas/resolved-persistence-types/legacy-hooks:
   en: 5078780cad778727
   zh: 5078780cad778727
 /session-v3-persistence-format/complete-schemas/resolved-persistence-types/clear:
   en: cf346da1c71650c9
   zh: cf346da1c71650c9
-/session-v3-persistence-format/complete-schemas/resolved-persistence-types/codex:
+/session-v3-persistence-format/complete-schemas/resolved-persistence-types/external-cli:
   en: c7537bafe02ae9e3
   zh: c7537bafe02ae9e3
 /session-v3-persistence-format/complete-schemas/resolved-persistence-types/command-done:

@@ -28,7 +28,7 @@ subagent 包家族让 agent（智能体）将任务委派给子 agent、继续�
 | [`subagent-spawn-in-process/`](subagent-spawn-in-process/README.zh.md) | 运行全新的进程内子 agent | 注册到 `ctx.subagents` |
 | [`subagent-fork-in-process/`](subagent-fork-in-process/README.zh.md) | 运行从父级已完成历史派生的进程内子 agent | 注册到 `ctx.subagents` |
 | [`subagent-acp/`](subagent-acp/README.zh.md) | 经 Agent Client Protocol 运行进程外子 agent | 注册到 `ctx.subagents` |
-| [`subagent-codex/`](subagent-codex/README.zh.md) | 经官方 app-server 协议运行真实 the external CLI 子 agent | 注册到 `ctx.subagents` |
+| [`subagent-external-cli/`](subagent-external-cli/README.zh.md) | 经官方 app-server 协议运行真实 the external CLI 子 agent | 注册到 `ctx.subagents` |
 | [`subagent-agent-sdk/`](subagent-agent-sdk/README.zh.md) | 经官方 Agent SDK 运行真实 the legacy hook protocol 子 agent | 注册到 `ctx.subagents` |
 | [`subagent-dsh-sdk/`](subagent-dsh-sdk/README.zh.md) | 经 TypeScript SDK 运行进程外 Harness 子 agent | 注册到 `ctx.subagents` |
 | [`tool-subagent/`](tool-subagent/README.zh.md) | 向模型公开委派 | 注册到 `ctx.tools` |

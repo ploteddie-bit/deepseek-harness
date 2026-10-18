@@ -53,7 +53,7 @@
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/treat-firecrawl-exa-tavily-parallel-extraction-as-fetch:
   en: fc22e6a8bfaeaa20
   zh: 64032ea6ab61b836
-/agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/mirror-claude-code-s-url-prompt-webfetch-shape:
+/agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/mirror-legacy-hooks-s-url-prompt-webfetch-shape:
   en: 56a080de39e96056
   zh: ae4d070aa7657503
 /agent-note-web-capability-seam-stable-tools-over-multiple-providers/alternatives-considered/validate-dns-and-then-call-an-ordinary-fetch:

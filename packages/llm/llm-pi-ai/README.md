@@ -54,7 +54,7 @@ Each profile may set a `retryPolicy`; omission uses normal mode with five retrie
       anthropic:
         apiKeyEnv: ANTHROPIC_API_KEY
         models:
-          - id: claude-sonnet-4-5
+          - id: legacy-provider-sonnet-4-5
             contextWindow: 200000
       acme-gateway:
         displayName: Acme Gateway

@@ -9908,11 +9908,11 @@
           },
           {
             "kind": "literal",
-            "value": "claude-code"
+            "value": "legacy-hooks"
           },
           {
             "kind": "literal",
-            "value": "codex"
+            "value": "external-cli"
           },
           {
             "kind": "primitive",

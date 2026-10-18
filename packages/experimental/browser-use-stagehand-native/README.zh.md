@@ -36,7 +36,7 @@ kind: "package-reference"
     mode: launch
     headless: true
     model:
-      modelName: openai/gpt-5.4-mini
+      modelName: openai/an external model-mini
       apiKey: !!js process.env.OPENAI_API_KEY
 ```
 

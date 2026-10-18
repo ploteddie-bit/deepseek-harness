@@ -12,7 +12,7 @@ Messages 以原生协议字段表示思考、签名、工具调用、工具结�
 
 [DeepSeek 适配器](../../../../packages/llm/llm-deepseek/README.zh.md)在唯一的 `deepseek-official` 路由和 `llm-deepseek` 设置命名空间下提供 Messages。[单协议说明](../../../../packages/llm/llm-deepseek/README.zh.md)拥有传输范围。`PreparedAdapterCall` 固定端点、凭据引用与模型能力；重试保留该代配置，后续调用读取新配置。
 
-适配器遵循 [DeepSeek 兼容文档](https://api-docs.deepseek.com/zh-cn/guides/anthropic_api) 和 [Anthropic 流协议](https://platform.claude.com/docs/en/build-with-claude/streaming)。pi-ai 的 Anthropic 实现为相邻用户消息、累计用量、工具参数分片和可选思考签名的处理提供参考。DeepSeek 通过 `output_config.effort` 设置思考强度；Anthropic 思考 token 预算不控制 DeepSeek 思考强度。适配器转发显式 `temperature` 值；DeepSeek 在启用思考时接受该参数但忽略其值，因此调用方可以保留已有思考配置。
+适配器遵循 [DeepSeek 兼容文档](https://api-docs.deepseek.com/zh-cn/guides/anthropic_api) 和 [Anthropic 流协议](https://platform.legacy-provider.com/docs/en/build-with-legacy-provider/streaming)。pi-ai 的 Anthropic 实现为相邻用户消息、累计用量、工具参数分片和可选思考签名的处理提供参考。DeepSeek 通过 `output_config.effort` 设置思考强度；Anthropic 思考 token 预算不控制 DeepSeek 思考强度。适配器转发显式 `temperature` 值；DeepSeek 在启用思考时接受该参数但忽略其值，因此调用方可以保留已有思考配置。
 
 助手内容块保留持久化的模型可见内容。带版本的 `ReplayEnvelope` 仅保存协议格式、模型标识、对齐的块类型以及内容块未包含的签名。同模型续接原样恢复签名，包括空签名；外部历史不生成虚构签名。不可用的元数据遵循现有[回放降级规则](../architecture/2026-07-14-provider-routed-llm-adapters.zh.md)：请求省略签名并记录警告，保留持久化内容；Messages 无法表示历史工具参数时使用[空输入兜底](../../../../packages/llm/llm-deepseek/README.zh.md)。提供者回放数据对循环保持不透明，同时能够随 Session 持久化和内容块裁剪保留。
 

@@ -43,8 +43,8 @@ kind: "package-group"
 | [`badge-skill-bundle`](badge-skill-bundle/README.zh.md) | 可选 powered-by-dsh 徽章技能 | — |
 | [`session-titles-bundle`](session-titles-bundle/README.zh.md) | 随对话中人类提示更新的可选标题 | — |
 | [`hook-protocol`](hook-protocol/README.zh.md) | 钩子桥接的通信类型与持久事件 | — |
-| [`hooks-claude-code`](hooks-claude-code/README.zh.md) | the legacy hook protocol 钩子桥接 | — |
-| [`hooks-codex`](hooks-codex/README.zh.md) | the external CLI 钩子桥接 | — |
+| [`hooks-legacy-hooks`](hooks-legacy-hooks/README.zh.md) | the legacy hook protocol 钩子桥接 | — |
+| [`hooks-external-cli`](hooks-external-cli/README.zh.md) | the external CLI 钩子桥接 | — |
 | [`webhook`](webhook/README.zh.md) | 已认证投递分发与 Workspace Session 创建 | `ctx.webhookRuntime` |
 | [`webhook-github`](webhook-github/README.zh.md) | 带签名的 GitHub webhook 入口 | — |
 | [`session-title-all-prompts-llm`](session-title-all-prompts-llm/README.zh.md) | 根据所有人类提示生成会话标题 | — |

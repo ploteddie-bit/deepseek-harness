@@ -9,7 +9,7 @@ kind: persistence-release
 
 ## 概述
 
-四个 compact/* 事件键改为 compaction/*；用户消息来源的 kind 从 workspace-instructions 改为 agent-instructions，hook 方言从 claude 改为 claude-code。这些字面量及事件键发生变化时，写入格式仍为 0。
+四个 compact/* 事件键改为 compaction/*；用户消息来源的 kind 从 workspace-instructions 改为 agent-instructions，hook 方言从 legacy-provider 改为 legacy-hooks。这些字面量及事件键发生变化时，写入格式仍为 0。
 
 ## 目录
 

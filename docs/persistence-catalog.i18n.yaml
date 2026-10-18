@@ -392,13 +392,13 @@
 /session-persistence-event-catalog/resolved-persistence-types/chunk:
   en: 491d3885b56f0ecd
   zh: 491d3885b56f0ecd
-/session-persistence-event-catalog/resolved-persistence-types/claude-code:
+/session-persistence-event-catalog/resolved-persistence-types/legacy-hooks:
   en: 6c96d71d5948c1fb
   zh: 6c96d71d5948c1fb
 /session-persistence-event-catalog/resolved-persistence-types/clear:
   en: ae48fcd465c67547
   zh: ae48fcd465c67547
-/session-persistence-event-catalog/resolved-persistence-types/codex:
+/session-persistence-event-catalog/resolved-persistence-types/external-cli:
   en: cd907982df03b4d9
   zh: cd907982df03b4d9
 /session-persistence-event-catalog/resolved-persistence-types/command-done:

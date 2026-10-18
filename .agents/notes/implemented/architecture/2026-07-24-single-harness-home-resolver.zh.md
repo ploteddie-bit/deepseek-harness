@@ -33,7 +33,7 @@ explicit configured path  >  $DSH_HOME  >  ~/.dsh
 
 **保留两份 `resolveDshHome` 副本。** 它们早已漂移（一个展开波浪号，一个不展开），并把同一条横切事实编码了两遍。`util/` 层的意义正是在于合并，重复的解析器是一个潜在的分歧 bug。
 
-**采用 XDG（遵从 `$XDG_CONFIG_HOME`，或把 config/data/cache 拆分到各自的目录树）。** 经过考虑后放弃，转而采用一个显而易见的根目录。单一的 `$DSH_HOME || ~/.dsh` 基准事实与 `~/.claude` / `~/.aws` 一致，无需对每个 `~/.dsh` 消费方按类别重新归类，也不留下任何需要协调的解析器不对称。
+**采用 XDG（遵从 `$XDG_CONFIG_HOME`，或把 config/data/cache 拆分到各自的目录树）。** 经过考虑后放弃，转而采用一个显而易见的根目录。单一的 `$DSH_HOME || ~/.dsh` 基准事实与 `~/.legacy-provider` / `~/.aws` 一致，无需对每个 `~/.dsh` 消费方按类别重新归类，也不留下任何需要协调的解析器不对称。
 
 ## 影响
 

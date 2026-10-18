@@ -129,7 +129,7 @@ V3 未知内容标签变为 `plugin:<original-type>`，其他字段原样保留�
 | 下文列出的同名第一方生产者 | 精确的 plugin 字符串 |
 | 其他任何插件名 | `plugin:` 后接完整的原始名称 |
 
-同名生产者为 `agent-instructions`、`session-reference`、`team-message`、`goal`、`skill-invocation`、`skill-catalog`、`coordinator`、`subagent-report`、`subagent-settled`、`webhook`、`agent-message`、`model-selection`、`plan-mode`、`time-context`、`tmux-context`、`user-approval`、`repeat-tool-reminder`、`tool-cordis`、`cordis-host-runner`、`tool-goal`、`tool-jobs`、`hooks-codex`、`hooks-command`、`schedule` 和 `dsh-session-title-llm`。
+同名生产者为 `agent-instructions`、`session-reference`、`team-message`、`goal`、`skill-invocation`、`skill-catalog`、`coordinator`、`subagent-report`、`subagent-settled`、`webhook`、`agent-message`、`model-selection`、`plan-mode`、`time-context`、`tmux-context`、`user-approval`、`repeat-tool-reminder`、`tool-cordis`、`cordis-host-runner`、`tool-goal`、`tool-jobs`、`hooks-external-cli`、`hooks-command`、`schedule` 和 `dsh-session-title-llm`。
 
 完整的插件字符串保留在 `plugin:` 之后：名为 `acme` 的插件变为 `plugin:acme`。直接来源保留原 kind 和每个自有 JSON 字段，包括未知或已有前缀的 kind。
 
