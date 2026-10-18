@@ -112,8 +112,6 @@
     "@deepseek-ai/dsh-webhook-github": "workspace:*",
     "@deepseek-ai/dsh-webhook": "workspace:*",
     "@deepseek-ai/dsh-tool-ralph": "workspace:*",
-    "@deepseek-ai/dsh-hooks-codex": "workspace:*",
-    "@deepseek-ai/dsh-hooks-claude-code": "workspace:*",
     "@agentclientprotocol/sdk": "1.4.0",
     "@deepseek-ai/dsh-acp": "workspace:*",
     "@deepseek-ai/dsh-agent": "workspace:*",

@@ -1,6 +1,0 @@
-# This optional Profile layer registers the dormant Claude Code provider. Agent
-# presets separately decide whether one session receives its delegation tool.
-
-- insert:
-    - id: subagent-agent-sdk
-      name: '@deepseek-ai/dsh-subagent-agent-sdk'
