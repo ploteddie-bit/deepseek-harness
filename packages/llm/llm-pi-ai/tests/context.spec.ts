@@ -66,7 +66,7 @@ function imageContext(
 function request(messages: GenerateOptions['messages']): GenerateOptions {
   return {
     provider: 'openai',
-    model: 'gpt-4.1',
+    model: 'externalModel-4.1',
     messages,
   }
 }
@@ -78,7 +78,7 @@ function user(content: ContentBlock[]): Message {
 function history(role: 'system' | 'assistant', content: ContentBlock[]): Message {
   return role === 'system'
     ? createMessage({ role, content, source: { kind: 'system-prompt' } })
-    : createMessage({ role, content, source: { kind: 'model', provider: 'openai', model: 'gpt-4.1' } })
+    : createMessage({ role, content, source: { kind: 'model', provider: 'openai', model: 'externalModel-4.1' } })
 }
 
 describe('pi-ai request context conversion', () => {
@@ -108,7 +108,7 @@ describe('pi-ai request context conversion', () => {
   })
 
   it('omits absent and empty request-level optional fields', () => {
-    const base = { provider: 'openai', model: 'gpt-4.1', messages: [] }
+    const base = { provider: 'openai', model: 'externalModel-4.1', messages: [] }
     expect(toPiContext(base)).toEqual({ messages: [] })
     expect(toPiContext({ ...base, tools: [] })).toEqual({ messages: [] })
   })
@@ -479,7 +479,7 @@ describe('pi-ai request context conversion', () => {
     expect(() => toPiAssistant(
       createAssistantMessage({
         content: [{ type: 'image', attachment: ref }],
-        source: { provider: 'openai', model: 'gpt-4.1' },
+        source: { provider: 'openai', model: 'externalModel-4.1' },
       }),
     )).toThrow(/assistant image output/)
   })
@@ -487,7 +487,7 @@ describe('pi-ai request context conversion', () => {
 })
 
 describe('pi-ai system prompt source', () => {
-  const base = { provider: 'openai', model: 'gpt-4.1' }
+  const base = { provider: 'openai', model: 'externalModel-4.1' }
   const leading = history('system', [{ type: 'text', text: 'lead ' }, { type: 'text', text: 'rule' }])
   const question = user([{ type: 'text', text: 'hi' }])
 

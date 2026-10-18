@@ -14,7 +14,7 @@ import { LocalBashExecutor } from '@deepseek-ai/dsh-bash-local'
 import LocalSubprocessRuntime from '@deepseek-ai/dsh-subprocess-local'
 import { scopeTarget } from '@deepseek-ai/dsh-scope'
 import SubagentRuntime, { SubagentRunId } from '@deepseek-ai/dsh-subagent'
-import * as HooksClaude from '@deepseek-ai/dsh-hooks-command'
+import * as HooksLegacy from '@deepseek-ai/dsh-hooks-command'
 import { MockAdapter, textResponse, toolCallResponse } from '../../../core/agent-loop/tests/mock-adapter.ts'
 
 /**
@@ -34,7 +34,7 @@ function subagentCarrier(ctx: Context) {
 
 /** Write a hooks.json + named executable scripts into a fresh temp dir. */
 function writeConfig(hooks: unknown, scripts: Record<string, string> = {}): string {
-  const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+  const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
   dirs.push(dir)
   writeFileSync(join(dir, 'hooks.json'), JSON.stringify({ hooks }))
   for (const [name, body] of Object.entries(scripts)) {
@@ -61,7 +61,7 @@ async function harnessWithFiber(
   await ctx.plugin(LocalSubprocessRuntime)
   await ctx.plugin(LocalBashExecutor, { timeoutMs: 10_000 })
   beforeHooks?.(ctx)
-  const hooks = await ctx.plugin(HooksClaude, { configPath: join(configDir, 'hooks.json') })
+  const hooks = await ctx.plugin(HooksLegacy, { configPath: join(configDir, 'hooks.json') })
   ctx.llm.registerAdapter(['mock'], adapter)
   return { ctx, hooks }
 }
@@ -92,7 +92,7 @@ describe('hooks-command bridge — UserPromptSubmit', () => {
   it('a UserPromptSubmit hook that exits 2 closes a blocked turn without a step', async () => {
     // UserPromptSubmit ignores its malformed matcher field, then exit 2 blocks
     // with the reason on stderr.
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const block = join(dir, 'block.sh')
     writeFileSync(block, '#!/usr/bin/env bash\necho "prompt denied by policy" >&2\nexit 2\n')
@@ -113,7 +113,7 @@ describe('hooks-command bridge — UserPromptSubmit', () => {
   })
 
   it('a UserPromptSubmit hook printing additionalContext injects it for the model', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const ctxScript = join(dir, 'ctx.sh')
     writeFileSync(ctxScript, '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"remember: be brief"}}\'\n')
@@ -135,7 +135,7 @@ describe('hooks-command bridge — UserPromptSubmit', () => {
 
 describe('hooks-command bridge — PreToolUse', () => {
   it('a matching PreToolUse hook that exits 2 denies the tool (isError result), tool never runs', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const deny = join(dir, 'deny.sh')
     writeFileSync(deny, '#!/usr/bin/env bash\necho "danger tool blocked" >&2\nexit 2\n')
@@ -158,7 +158,7 @@ describe('hooks-command bridge — PreToolUse', () => {
   })
 
   it('a PreToolUse hook whose matcher does NOT match leaves the tool alone', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const deny = join(dir, 'deny.sh')
     writeFileSync(deny, '#!/usr/bin/env bash\nexit 2\n')
@@ -182,7 +182,7 @@ describe('hooks-command bridge — PreToolUse', () => {
 
 describe('hooks-command bridge — PostToolUse', () => {
   it('a PostToolUse hook that blocks (exit 2) turns the result into an isError with feedback', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const block = join(dir, 'block.sh')
     writeFileSync(block, '#!/usr/bin/env bash\necho "output rejected, retry" >&2\nexit 2\n')
@@ -203,7 +203,7 @@ describe('hooks-command bridge — PostToolUse', () => {
   })
 
   it('a PostToolUse hook printing additionalContext attaches it after the tool result', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const s = join(dir, 'ctx.sh')
     writeFileSync(s, '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":"note: tool was slow"}}\'\n')
@@ -226,7 +226,7 @@ describe('hooks-command bridge — PostToolUse', () => {
   })
 
   it('a PreToolUse permissionDecision:ask fails closed without an approval service', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const s = join(dir, 'ask.sh')
     writeFileSync(s, '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"needs approval"}}\'\n')
@@ -251,7 +251,7 @@ describe('hooks-command bridge — PostToolUse', () => {
 
 describe('hooks-command bridge — SessionStart', () => {
   it('a SessionStart hook injects additionalContext the first request sees', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const s = join(dir, 'start.sh')
     writeFileSync(s, '#!/usr/bin/env bash\necho \'{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"project uses tabs"}}\'\n')
@@ -276,7 +276,7 @@ describe('hooks-command bridge — SessionStart', () => {
 
 describe('hooks-command bridge — SubagentStart / SubagentStop (observe)', () => {
   it('runs SubagentStart and SubagentStop hooks when the subagent lifecycle events fire', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     // Each hook touches a marker file so we can assert it ran (these events are
     // observe-only — there is no decision to assert, only the side effect).
@@ -315,7 +315,7 @@ describe('hooks-command bridge — SubagentStart / SubagentStop (observe)', () =
   })
 
   it('disposing the bridge aborts a still-running hook and drains to quiescence', async () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-claude-'))
+    const dir = mkdtempSync(join(tmpdir(), 'dsh-hooks-legacy-'))
     dirs.push(dir)
     const pidFile = join(dir, 'pid')
     const marker = join(dir, 'started')
@@ -357,7 +357,7 @@ describe('hooks-command bridge — load resilience', () => {
     await ctx.plugin(AgentLoop, { agents: [] })
     await ctx.plugin(LocalSubprocessRuntime)
     await ctx.plugin(LocalBashExecutor, { timeoutMs: 10_000 })
-    await ctx.plugin(HooksClaude, { configPath: '/nonexistent/hooks.json' })
+    await ctx.plugin(HooksLegacy, { configPath: '/nonexistent/hooks.json' })
     ctx.llm.registerAdapter(['mock'], adapter)
     const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
@@ -374,14 +374,14 @@ describe('hooks-command bridge — load resilience', () => {
     const adapter = new MockAdapter([textResponse('fine')])
     const warn = vi.fn()
     const ctx = await harness(dir, adapter, (ctx) => { ctx.logger.warn = warn as never })
-    const agent = await ctx.agentLoop.create(SessionId('invalid-claude-matcher'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('invalid-legacy-matcher'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
     expect(adapter.requests).toHaveLength(1)
     expect(events(agent).some(event => event.type === 'hook/invoked')).toBe(false)
 
     expect(warn).toHaveBeenCalledWith(expect.stringContaining(
-      'invalid claude-code regex matcher "(" on event "PreToolUse"',
+      'invalid legacy-hooks regex matcher "(" on event "PreToolUse"',
     ))
   })
 
@@ -393,7 +393,7 @@ describe('hooks-command bridge — load resilience', () => {
     const adapter = new MockAdapter([textResponse('should not run')])
     const warn = vi.fn()
     const ctx = await harness(dir, adapter, (ctx) => { ctx.logger.warn = warn as never })
-    const agent = await ctx.agentLoop.create(SessionId('unsupported-claude-matcher'), { provider: 'mock', model: 'mock' })
+    const agent = await ctx.agentLoop.create(SessionId('unsupported-legacy-matcher'), { provider: 'mock', model: 'mock' })
     agent.followup(createUserMessage({ content: [{ type: 'text', text: 'go' }], source: { kind: 'user' } }))
     await waitForIdle(ctx, agent)
 
@@ -401,7 +401,7 @@ describe('hooks-command bridge — load resilience', () => {
     expect(events(agent).filter(event => event.type === 'turn/start' || event.type === 'hook/invoked'
       || event.type === 'hook/result' || event.type === 'turn/end').map(event => event.type))
       .toEqual(['turn/start', 'hook/invoked', 'hook/result', 'turn/end'])
-    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('invalid claude-code regex matcher'))
+    expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('invalid legacy-hooks regex matcher'))
   })
 
   it('disposing the bridge fiber removes its listeners (HMR safety)', async () => {
@@ -417,7 +417,7 @@ describe('hooks-command bridge — load resilience', () => {
     await ctx.plugin(AgentLoop, { agents: [] })
     await ctx.plugin(LocalSubprocessRuntime)
     await ctx.plugin(LocalBashExecutor, { timeoutMs: 10_000 })
-    const fiber = await ctx.plugin(HooksClaude, { configPath: join(dir, 'hooks.json') })
+    const fiber = await ctx.plugin(HooksLegacy, { configPath: join(dir, 'hooks.json') })
     await fiber.dispose()
     ctx.llm.registerAdapter(['mock'], adapter)
     const agent = await ctx.agentLoop.create(SessionId('a1'), { provider: 'mock', model: 'mock' })
@@ -432,12 +432,12 @@ describe('hooks-command bridge — load resilience', () => {
     // `export default apply` would collapse the module via `unwrapExports`
     // (`exports.default ?? exports`), DROP `inject`, and crash at load with
     // "cannot get property … without inject". Guard the shape directly.
-    expect('default' in HooksClaude).toBe(false)
-    expect(HooksClaude.name).toBe('hooks-command')
-    expect(HooksClaude.inject).toEqual(['shell', 'sessionProjections'])
+    expect('default' in HooksLegacy).toBe(false)
+    expect(HooksLegacy.name).toBe('hooks-command')
+    expect(HooksLegacy.inject).toEqual(['shell', 'sessionProjections'])
     const loader = Object.create(Loader.prototype) as Loader
-    const unwrapped = loader.unwrapExports(HooksClaude) as Record<string, unknown>
-    expect(unwrapped).toBe(HooksClaude)
+    const unwrapped = loader.unwrapExports(HooksLegacy) as Record<string, unknown>
+    expect(unwrapped).toBe(HooksLegacy)
     expect(unwrapped.name).toBe('hooks-command')
     expect(unwrapped.inject).toEqual(['shell', 'sessionProjections'])
     expect(typeof unwrapped.apply).toBe('function')

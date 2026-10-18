@@ -562,9 +562,9 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
     ],
   },
   {
-    key: 'claudeCodeMods',
+    key: 'legacyHooksMods',
     summary: 'The bridge service: loaded mods, their hooks, and the harness listeners that raise their events.',
-    description: 'The bridge service: loaded mods, their hooks, and the harness listeners that raise their events. Mods join through ClaudeCodeMods.add, which defineMod calls when a mod plugin mounts. The Remote methods let a Client draw each session\'s band above the prompt and press its buttons.',
+    description: 'The bridge service: loaded mods, their hooks, and the harness listeners that raise their events. Mods join through LegacyCodeMods.add, which defineMod calls when a mod plugin mounts. The Remote methods let a Client draw each session\'s band above the prompt and press its buttons.',
     methods: [
       {
         signature: '@Remote({ mode: \'stream\' }) watchBand(agent: Agent, signal: AbortSignal): AsyncIterable<SurfaceSnapshot>',
@@ -583,7 +583,7 @@ export const SERVICE_API: readonly ServiceApiEntry[] = [
         description: 'Load one mod beneath every mod loaded before it: run its `register`, keep its hooks, and report which of its events this host never raises.',
         parameters: [{ name: 'definition', description: 'the mod as its plugin defined it.' }],
         returns: 'the disposer that removes the mod\'s hooks, closes its timers, and releases its registrations.',
-        throws: ['Error when the name is invalid or taken, or when `register` throws (Claude Code\'s `hooks module did not load` wording).'],
+        throws: ['Error when the name is invalid or taken, or when `register` throws (Legacy Code\'s `hooks module did not load` wording).'],
       },
     ],
   },

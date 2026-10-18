@@ -23,8 +23,8 @@ function fixture(options: {
   const number = add({ kind: 'primitive', type: 'number' })
   const object = (properties: SchemaProperty[]): number => add({ kind: 'object', properties, indices: [] })
   const property = (name: string, type: number, optional = false): SchemaProperty => ({ name, type, optional })
-  const snapshot = object([property('kind', literal('hooks-codex')), property('form', literal('snapshot')), property('sections', add({ kind: 'array', element: text }))])
-  const notice = object([property('kind', literal('hooks-codex')), property('form', literal('notice')), property('summary', text)])
+  const snapshot = object([property('kind', literal('hooks-externalCli')), property('form', literal('snapshot')), property('sections', add({ kind: 'array', element: text }))])
+  const notice = object([property('kind', literal('hooks-externalCli')), property('form', literal('notice')), property('summary', text)])
   const changing = object([property('kind', literal('changing')), property('value', options.changed ? number : text)])
   const variants = [snapshot, notice, changing]
   if (options.ambiguous) variants.push(object([property('kind', literal('changing')), property('extra', text)]))
@@ -67,7 +67,7 @@ describe('persistence review', () => {
     ] })
     const markdown = renderPersistenceReview(report)
     expect(markdown).toContain('## Compatibility review requirements')
-    expect(markdown).not.toContain('hooks-codex')
+    expect(markdown).not.toContain('hooks-externalCli')
     expect(markdown).not.toMatch(/source\[\d+\]/u)
     for (const root of report.roots) expect(root.changes).toEqual(classifyPersistenceChange(
       before.roots.find(item => item.key === root.root)!, after.roots.find(item => item.key === root.root)!,

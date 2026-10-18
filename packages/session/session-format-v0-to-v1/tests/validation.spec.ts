@@ -57,7 +57,7 @@ const validPayloads: Readonly<Record<string, SessionFormatJsonValue>> = {
     goal: { id: 'goal-1', revision: 1, objective: 'ship', phase: 'active', maxGoalRounds: 3 },
     roundsStarted: 0, createdAt: 1, updatedAt: 1,
   },
-  'hook/invoked': { turn: 1, point: 'PreToolUse', dialect: 'claude-code', handlerId: 'hook-1' },
+  'hook/invoked': { turn: 1, point: 'PreToolUse', dialect: 'legacy-hooks', handlerId: 'hook-1' },
   'hook/result': { turn: 1, point: 'PreToolUse', handlerId: 'hook-1', decision: 'pass', durationMs: 1 },
   'llm/retry': {
     retryId: 'retry-1', turn: 1, step: 0, provider: 'mock', mode: 'normal', policyKey: 'default',
@@ -642,7 +642,7 @@ describe('released event and payload inventory', () => {
         provider: 'p', model: 'm', maxTokens: 10, usage: { inputTokens: 1, outputTokens: 1 },
         rawOutput: [textBlock], llmStreamCall: true,
       }],
-      ['hook/invoked', { turn: 1, point: 'Stop', dialect: 'codex', matcher: '*', handlerId: 'h' }],
+      ['hook/invoked', { turn: 1, point: 'Stop', dialect: 'externalCli', matcher: '*', handlerId: 'h' }],
       ['hook/result', {
         turn: 1, point: 'Stop', handlerId: 'h', decision: 'pass', exitCode: -1,
         stderrSummary: 'stderr', durationMs: 1,

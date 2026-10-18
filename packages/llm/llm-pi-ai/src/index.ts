@@ -24,7 +24,7 @@
  *       anthropic:
  *         apiKeyEnv: ANTHROPIC_API_KEY
  *         models:
- *           - id: claude-sonnet-4-5
+ *           - id: legacy-sonnet-4-5
  *             contextWindow: 200000
  *       # Hand-declared route: pi-ai ships nothing under this key.
  *       acme-gateway:

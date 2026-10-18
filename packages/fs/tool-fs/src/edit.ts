@@ -57,7 +57,7 @@ export function parseEditArgs(args: { file_path: string; old_string: string; new
 }
 
 /**
- * Format an edit success (single-match or replace-all) as a Claude-style model-facing message.
+ * Format an edit success (single-match or replace-all) as a Legacy-style model-facing message.
  * @param displayPath - the backend-resolved path shown to the model.
  * @param replaceAll - selects the all-occurrences wording over the single-replacement one.
  * @returns the confirmation sentence the model sees as the tool result.
@@ -147,7 +147,7 @@ export function applyEditTool(ctx: Context, sandbox: FsSandboxController): void 
       return mutationResult(ctx, target, outcome, exec)
     },
     // Pure display: a diff card of the literal replacement (old_string → new_string), derived
-    // from the call args. `oldText: old_string || null` matches claude-agent-acp's Edit arm;
+    // from the call args. `oldText: old_string || null` matches legacy-agent-acp's Edit arm;
     // new_string is a required arg here, so it maps straight to newText.
     presentCall(args): DiffCallView {
       return {

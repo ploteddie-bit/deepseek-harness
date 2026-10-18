@@ -5,13 +5,13 @@
   ],
   "npm": "@ai-sdk/anthropic",
   "name": "Anthropic",
-  "doc": "https://docs.anthropic.com/en/docs/about-claude/models",
+  "doc": "https://docs.anthropic.com/en/docs/about-legacy/models",
   "models": {
-    "claude-opus-4-7": {
-      "id": "claude-opus-4-7",
-      "name": "Claude Opus 4.7",
+    "legacy-opus-4-7": {
+      "id": "legacy-opus-4-7",
+      "name": "Legacy Opus 4.7",
       "description": "Stronger Opus tier for advanced software work and high-stakes reasoning",
-      "family": "claude-opus",
+      "family": "legacy-opus",
       "attachment": true,
       "reasoning": true,
       "reasoning_options": [
@@ -54,11 +54,11 @@
         "cache_write": 6.25
       }
     },
-    "claude-fable-5-1": {
-      "id": "claude-fable-5-1",
-      "name": "Claude Fable 5.1",
-      "description": "Claude model for demanding reasoning and long-horizon agentic work",
-      "family": "claude-fable",
+    "legacy-fable-5-1": {
+      "id": "legacy-fable-5-1",
+      "name": "Legacy Fable 5.1",
+      "description": "Legacy model for demanding reasoning and long-horizon agentic work",
+      "family": "legacy-fable",
       "attachment": true,
       "reasoning": true,
       "reasoning_options": [
@@ -101,11 +101,11 @@
         "cache_write": 12.5
       }
     },
-    "claude-haiku-4-5": {
-      "id": "claude-haiku-4-5",
-      "name": "Claude Haiku 4.5 (latest)",
-      "description": "Fast Claude lane for lightweight agents, office tasks, and responsive chat",
-      "family": "claude-haiku",
+    "legacy-haiku-4-5": {
+      "id": "legacy-haiku-4-5",
+      "name": "Legacy Haiku 4.5 (latest)",
+      "description": "Fast Legacy lane for lightweight agents, office tasks, and responsive chat",
+      "family": "legacy-haiku",
       "attachment": true,
       "reasoning": true,
       "reasoning_options": [

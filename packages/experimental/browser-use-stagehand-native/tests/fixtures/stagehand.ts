@@ -4,7 +4,7 @@ import type { ModelConfig } from '@browserbasehq/stagehand'
 import { z } from 'zod'
 
 /** Explicit offline configuration; fixture AI calls never access a model provider. */
-export const nativeModel = { modelName: 'openai/gpt-5.4-mini', apiKey: 'fixture-model-key' } as const satisfies ModelConfig
+export const nativeModel = { modelName: 'openai/externalModel-5.4-mini', apiKey: 'fixture-model-key' } as const satisfies ModelConfig
 
 /** Valid PNG for the real attachment admission path. */
 export const screenshotBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAACXBIWXMAAAPoAAAD6AG1e1JrAAAADElEQVQImWNgZGIGAAAOAAeCcsnOAAAAAElFTkSuQmCC'

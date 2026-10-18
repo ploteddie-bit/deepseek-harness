@@ -237,7 +237,7 @@ const TOOL_PACKAGES: ToolPackage[] = [
       await ctx.plugin(BrowserUseRegistry)
       await ctx.plugin(AgentRegistry)
       await ctx.plugin(StagehandBrowserTools, {
-        mode: 'launch', model: { modelName: 'openai/gpt-5.4-mini', apiKey: 'catalog-placeholder' },
+        mode: 'launch', model: { modelName: 'openai/externalModel-5.4-mini', apiKey: 'catalog-placeholder' },
       })
     },
   },

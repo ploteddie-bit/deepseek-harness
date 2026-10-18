@@ -8,7 +8,7 @@
     "**/lib/**",
     "**/node_modules/**",
     "**/.sessions/**",
-    ".claude/**",
+    ".legacy/**",
     "**/.doc-typecheck-*/**",
     "**/.node-next-types-*/**",
     "website/.generated/**",

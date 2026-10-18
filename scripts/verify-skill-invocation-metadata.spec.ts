@@ -42,12 +42,12 @@ describe('cross-product skill invocation metadata gate', () => {
 
   it('rejects either direction of a manual-only policy mismatch', () => {
     const root = fixtureRoot()
-    writeSkill(root, 'claude-only', 'disable-model-invocation: true\n')
-    writeSkill(root, 'codex-only', '', 'policy:\n  allow_implicit_invocation: false\n')
+    writeSkill(root, 'legacy-only', 'disable-model-invocation: true\n')
+    writeSkill(root, 'externalCli-only', '', 'policy:\n  allow_implicit_invocation: false\n')
 
     expect(collectSkillInvocationMetadataViolations(root)).toEqual([
-      '.agents/skills/claude-only: Claude Code manual-only=true but Codex manual-only=false',
-      '.agents/skills/codex-only: Claude Code manual-only=false but Codex manual-only=true',
+      '.agents/skills/legacy-only: Legacy Code manual-only=true but ExternalCli manual-only=false',
+      '.agents/skills/externalCli-only: Legacy Code manual-only=false but ExternalCli manual-only=true',
     ])
   })
 })

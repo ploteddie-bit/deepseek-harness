@@ -80,7 +80,7 @@ describe('provider metadata', () => {
   })
 
   it('keeps an empty resolver result without consulting compatibility fallbacks', async () => {
-    const provider = catalogProvider('openai-codex')!
+    const provider = catalogProvider('openai-externalCli')!
     expect((await generateProviderData([provider]))[provider.id]!.env).toEqual([])
   })
 

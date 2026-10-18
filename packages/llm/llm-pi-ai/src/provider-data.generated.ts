@@ -31,7 +31,7 @@ export const PROVIDER_DATA: Record<BuiltinProvider, ProviderData> & Partial<Reco
   'moonshotai-cn': { env: ['MOONSHOT_API_KEY'], defaultBaseURL: 'https://api.moonshot.cn/v1' },
   'nvidia': { env: ['NVIDIA_API_KEY'], defaultBaseURL: 'https://integrate.api.nvidia.com/v1' },
   'openai': { env: ['OPENAI_API_KEY'], defaultBaseURL: 'https://api.openai.com/v1' },
-  'openai-codex': { env: [], defaultBaseURL: 'https://chatgpt.com/backend-api' },
+  'openai-externalCli': { env: [], defaultBaseURL: 'https://chatexternalModel.com/backend-api' },
   'opencode': { env: ['OPENCODE_API_KEY'] },
   'opencode-go': { env: ['OPENCODE_API_KEY'] },
   'openrouter': { env: ['OPENROUTER_API_KEY'], defaultBaseURL: 'https://openrouter.ai/api/v1' },

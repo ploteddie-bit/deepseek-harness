@@ -211,7 +211,7 @@ describe('deriveTurnTokenUsage', () => {
       message(3, usage()),
       event(4, 'step/end', { turn: 1, step: 1 }),
       event(5, 'step/start', { turn: 1, step: 2 }),
-      message(6, usage(), 'openai', 'gpt-5', 2),
+      message(6, usage(), 'openai', 'externalModel-5', 2),
       event(7, 'step/end', { turn: 1, step: 2 }),
       event(8, 'turn/end', { turn: 1, reason: { kind: 'completed' } }),
     ]
@@ -222,7 +222,7 @@ describe('deriveTurnTokenUsage', () => {
       cacheReadTokens: 100,
       routes: [
         { provider: 'deepseek', model: 'deepseek-chat' },
-        { provider: 'openai', model: 'gpt-5' },
+        { provider: 'openai', model: 'externalModel-5' },
       ],
     })
   })

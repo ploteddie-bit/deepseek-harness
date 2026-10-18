@@ -23,7 +23,7 @@ const { credentialStoreFrom, authContextFrom, recordKeyFor } = await import('../
 const { catalogProvider } = await import('../src/catalog.ts')
 const { registerPiAiFlows } = await import('../src/login.ts')
 
-const CODEX = recordKeyFor('openai-codex')
+const CODEX = recordKeyFor('openai-externalCli')
 const dirs: string[] = []
 
 /** A context with the record store, the seam, and every pi-ai login flow. */
@@ -89,7 +89,7 @@ describe('pi-ai login flows', () => {
     // The OAuth-only provider is exactly the case this exists for: nothing
     // else could ever configure it.
     expect(offered.find(entry => entry.key === CODEX)?.methods)
-      .toEqual([{ id: 'oauth', label: expect.stringContaining('ChatGPT') as string }])
+      .toEqual([{ id: 'oauth', label: expect.stringContaining('ChatExternalModel') as string }])
     // A provider offering both keeps both, the subscription login first.
     expect(offered.find(entry => entry.key === recordKeyFor('anthropic'))?.methods.map(one => one.id))
       .toEqual(['oauth', 'api-key'])
@@ -97,9 +97,9 @@ describe('pi-ai login flows', () => {
     // through its own prompt rather than leaving it to the settings form.
     expect(offered.find(entry => entry.key === recordKeyFor('deepseek'))?.methods.map(one => one.id))
       .toEqual(['api-key'])
-    // pi-ai ships Sign in with ChatGPT for `openai`, which needs an
+    // pi-ai ships Sign in with ChatExternalModel for `openai`, which needs an
     // installation ID the harness does not supply; only the key login is offered.
-    expect(catalogProvider('openai')?.auth.oauth?.loginLabel).toBe('Sign in with ChatGPT')
+    expect(catalogProvider('openai')?.auth.oauth?.loginLabel).toBe('Sign in with ChatExternalModel')
     expect(offered.find(entry => entry.key === recordKeyFor('openai'))?.methods.map(one => one.id))
       .toEqual(['api-key'])
   })
@@ -108,7 +108,7 @@ describe('pi-ai login flows', () => {
     const ctx = await harness()
 
     await attempt(ctx, () => Promise.resolve())
-    expect(login).toHaveBeenLastCalledWith('openai-codex', 'oauth', expect.anything())
+    expect(login).toHaveBeenLastCalledWith('openai-externalCli', 'oauth', expect.anything())
 
     await attempt(ctx, () => Promise.resolve(), { key: recordKeyFor('anthropic'), method: 'api-key' })
     expect(login).toHaveBeenLastCalledWith('anthropic', 'api_key', expect.anything())

@@ -1,5 +1,5 @@
 /**
- * Keep Claude Code and Codex invocation metadata aligned for repository skills.
+ * Keep Legacy Code and ExternalCli invocation metadata aligned for repository skills.
  * @module scripts/verify-skill-invocation-metadata
  */
 
@@ -27,7 +27,7 @@ function parseSkillFrontmatter(source: string): Record<string, unknown> {
   return metadata
 }
 
-/** Find repository skill directories that carry Codex product metadata. */
+/** Find repository skill directories that carry ExternalCli product metadata. */
 function skillDirectories(root: string): string[] {
   const skillsRoot = resolve(root, '.agents/skills')
   if (!existsSync(skillsRoot)) return []
@@ -91,15 +91,15 @@ export function collectSkillInvocationMetadataViolations(root: string): string[]
       continue
     }
 
-    const claudeManualOnly = disableModelInvocation === true
-    const codexManualOnly = allowImplicitInvocation === false
-    if (claudeManualOnly !== codexManualOnly) {
+    const legacyManualOnly = disableModelInvocation === true
+    const externalCliManualOnly = allowImplicitInvocation === false
+    if (legacyManualOnly !== externalCliManualOnly) {
       violations.push(
-        `${relativeRoot}: Claude Code manual-only=${String(claudeManualOnly)}`
-        + ` but Codex manual-only=${String(codexManualOnly)}`,
+        `${relativeRoot}: Legacy Code manual-only=${String(legacyManualOnly)}`
+        + ` but ExternalCli manual-only=${String(externalCliManualOnly)}`,
       )
     }
-    if (claudeManualOnly && userInvocable === false) {
+    if (legacyManualOnly && userInvocable === false) {
       violations.push(`${relativeRoot}/SKILL.md: a manual-only skill must remain user-invocable`)
     }
   }

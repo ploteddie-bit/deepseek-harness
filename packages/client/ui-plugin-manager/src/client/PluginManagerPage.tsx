@@ -124,8 +124,8 @@ const MORE_BUNDLES = [
   '@deepseek-ai/dsh-experimental-badge-skill-bundle',
   '@deepseek-ai/dsh-experimental-ralph-bundle',
   '@deepseek-ai/dsh-experimental-plugin-market-bundle',
-  '@deepseek-ai/dsh-subagent-codex',
-  '@deepseek-ai/dsh-subagent-claude-code',
+  '@deepseek-ai/dsh-subagent-externalCli',
+  '@deepseek-ai/dsh-subagent-legacy-hooks',
 ]
 /**
  * Whether the main list shows an official optional bundle: the always-held ones, and any held-back one the profile enabled.
@@ -138,7 +138,7 @@ function pinnedToMainList(pkg: PackageView): boolean {
 
 /**
  * Where an optional bundle sits on both lists: the always-held ones in their order, then the bundles neither list
- * ranks, then the held-back ones in theirs, so Codex and Claude Code stay last on the More list.
+ * ranks, then the held-back ones in theirs, so ExternalCli and Legacy Code stay last on the More list.
  * @param name - the bundle's package name.
  * @returns the rank; bundles of equal rank keep the order the Host reported.
  */

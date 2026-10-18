@@ -36,7 +36,7 @@ const providerCases: ProviderCase[] = [
   {
     provider: 'openai',
     api: 'openai-responses',
-    model: process.env.DSH_PI_AI_OPENAI_MODEL ?? 'gpt-5.5',
+    model: process.env.DSH_PI_AI_OPENAI_MODEL ?? 'externalModel-5.5',
     ...azureOpenAIKey
       ? { apiKey: azureOpenAIKey, headers: { 'api-key': azureOpenAIKey, Authorization: '' } }
       : {},
@@ -45,7 +45,7 @@ const providerCases: ProviderCase[] = [
   {
     provider: 'anthropic',
     api: 'anthropic-messages',
-    model: process.env.DSH_PI_AI_ANTHROPIC_MODEL ?? 'claude-opus-4-8',
+    model: process.env.DSH_PI_AI_ANTHROPIC_MODEL ?? 'legacy-opus-4-8',
     ...anthropicApiKey === undefined ? {} : { apiKey: anthropicApiKey },
     ...anthropicBaseURL === undefined ? {} : { baseURL: anthropicBaseURL },
   },

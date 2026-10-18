@@ -8,12 +8,12 @@ on:
       azure_openai_model:
         description: Azure OpenAI model from pi-ai's installed catalog
         required: true
-        default: gpt-5.5
+        default: external model-5.5
         type: string
       anthropic_model:
         description: Anthropic model from pi-ai's installed catalog
         required: true
-        default: claude-opus-4-8
+        default: legacy-opus-4-8
         type: string
 
 permissions:

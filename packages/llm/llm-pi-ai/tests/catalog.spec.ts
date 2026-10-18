@@ -330,7 +330,7 @@ describe('hand-declared providers', () => {
     expect(profile.piProvider).toBeUndefined()
   })
 
-  it.each(['bedrock-converse-stream', 'google-vertex', 'azure-openai-responses', 'openai-codex-responses'])(
+  it.each(['bedrock-converse-stream', 'google-vertex', 'azure-openai-responses', 'openai-externalCli-responses'])(
     'refuses %s, whose authentication a profile cannot express',
     (api) => {
       // These need SigV4 credentials and a region, a project plus ADC, provider
@@ -629,12 +629,12 @@ describe('catalog routes with per-model configuration', () => {
           apiKeyEnv: KEY_ENV,
           api: 'openai-completions',
           baseURL: `${server.url}/v1`,
-          models: [{ id: 'gpt-4.1', contextWindow: 100_000, maxTokens: 4096 }],
+          models: [{ id: 'externalModel-4.1', contextWindow: 100_000, maxTokens: 4096 }],
         },
       },
     })
 
-    await assemble(ctx, { provider: 'openai', model: 'gpt-4.1', messages: [] })
+    await assemble(ctx, { provider: 'openai', model: 'externalModel-4.1', messages: [] })
     expect(server.paths).toEqual(['/v1/chat/completions'])
   })
 
@@ -648,25 +648,25 @@ describe('catalog routes with per-model configuration', () => {
 
   it('lets an OAuth-only catalog route authenticate with the key its profile names', async () => {
     // pi-ai honours a request's `apiKey` override only when the provider
-    // declares an api-key method. `openai-codex` ships OAuth alone, so without
+    // declares an api-key method. `openai-externalCli` ships OAuth alone, so without
     // the harness method beside it the route refuses its own configured key as
     // `Provider is not configured` before any request goes out.
-    const resolved = resolveProfiles({ 'openai-codex': { apiKeyEnv: 'CODEX_TOKEN' } })
-    const provider = resolved.get('openai-codex')?.piProvider
+    const resolved = resolveProfiles({ 'openai-externalCli': { apiKeyEnv: 'EXTERNAL_CLI_TOKEN' } })
+    const provider = resolved.get('openai-externalCli')?.piProvider
     expect(provider?.auth.oauth).toBeDefined()
     const models = createModels()
     models.setProvider(provider as Provider)
     const model = provider?.getModels()[0] as Model<Api>
-    const auth = await models.getAuth(model, { apiKey: 'codex-token' })
-    expect(auth?.auth.apiKey).toBe('codex-token')
+    const auth = await models.getAuth(model, { apiKey: 'externalCli-token' })
+    expect(auth?.auth.apiKey).toBe('externalCli-token')
   })
 
   it('leaves an OAuth-only catalog route unconfigured when its profile names no key', () => {
     // Nothing to add: this adapter resolves credentials through its own seam
     // and holds no OAuth store, so declaring the provider configured would
     // trade a truthful refusal for an endpoint's 401.
-    const resolved = resolveProfiles({ 'openai-codex': {} })
-    expect(resolved.get('openai-codex')?.piProvider?.auth.apiKey).toBeUndefined()
+    const resolved = resolveProfiles({ 'openai-externalCli': {} })
+    expect(resolved.get('openai-externalCli')?.piProvider?.auth.apiKey).toBeUndefined()
   })
 })
 
@@ -898,7 +898,7 @@ describe('compat switches', () => {
   it('rejects a model-level switch on a protocol that has no such field, naming what it offers', () => {
     expect(() => resolveProfiles({
       anthropic: {
-        models: [{ id: 'claude-sonnet-4-5', compat: { thinkingFormat: 'openai' } }],
+        models: [{ id: 'legacy-sonnet-4-5', compat: { thinkingFormat: 'openai' } }],
       },
     })).toThrow(/its api is "anthropic-messages", which does not take it.*exists on openai-completions/s)
   })
@@ -943,13 +943,13 @@ describe('compat switches', () => {
 
   it('carries an anthropic-only switch onto an anthropic-messages route', () => {
     const models = modelsOf({
-      'acme-claude': {
+      'acme-legacy': {
         api: 'anthropic-messages',
         baseURL: 'https://acme.test',
         compat: { supportsTemperature: false, supportsCacheControlOnTools: false },
         models: [{ id: 'acme-opus' }],
       },
-    }, 'acme-claude')
+    }, 'acme-legacy')
 
     expect(models.get('acme-opus')?.compat).toEqual({
       supportsTemperature: false,
@@ -1120,11 +1120,11 @@ describe('compat switches', () => {
   })
 
   it('serves the Responses compat type on every protocol pi-ai gives it to', () => {
-    // pi-ai types azure-openai-responses and openai-codex-responses with the
+    // pi-ai types azure-openai-responses and openai-externalCli-responses with the
     // same OpenAIResponsesCompat, so a switch settable on one is settable on all.
-    for (const route of ['azure', 'openai-codex']) {
+    for (const route of ['azure', 'openai-externalCli']) {
       const models = modelsOf({ [route]: { compat: { supportsDeveloperRole: false } } }, route)
-      const model = [...models.values()].find(model => model.api === (route === 'azure' ? 'azure-openai-responses' : 'openai-codex-responses'))
+      const model = [...models.values()].find(model => model.api === (route === 'azure' ? 'azure-openai-responses' : 'openai-externalCli-responses'))
       expect(model).toBeDefined()
       expect(model?.compat).toMatchObject({ supportsDeveloperRole: false })
     }
@@ -1274,11 +1274,11 @@ describe('configurable-provider directory', () => {
     const ctx = await harness({})
     const offered = ctx.llm.listConfigurableProviders().map(entry => entry.provider)
 
-    // `openai-codex` is the one installed provider that authenticates through
+    // `openai-externalCli` is the one installed provider that authenticates through
     // OAuth alone. It is offered like any other because the collection now
     // carries a durable credential store and a login flow writes into it, so
     // the route has a posture that works rather than only one that fails.
-    expect(offered).toContain('openai-codex')
+    expect(offered).toContain('openai-externalCli')
     expect(offered).toContain('anthropic')
     expect(offered).toContain('openai')
     expect(offered).toContain('azure')
@@ -1304,15 +1304,15 @@ describe('configurable-provider directory', () => {
     // `declared` answers catalog membership, so a profile stored against a
     // route pi-ai ships is not mislabelled as one this deployment invented,
     // and it keeps the catalog's endpoint and OAuth-only native auth.
-    const ctx = await harness({ providers: { 'openai-codex': { apiKeyEnv: KEY_ENV } } })
+    const ctx = await harness({ providers: { 'openai-externalCli': { apiKeyEnv: KEY_ENV } } })
 
     expect(ctx.llm.listConfigurableProviders()).toContainEqual({
-      provider: 'openai-codex',
-      displayName: 'openai-codex',
+      provider: 'openai-externalCli',
+      displayName: 'openai-externalCli',
       settingsNs: 'llm-pi-ai',
-      settingsPath: ['providers', 'openai-codex'],
+      settingsPath: ['providers', 'openai-externalCli'],
       declared: false,
-      defaultBaseURL: 'https://chatgpt.com/backend-api',
+      defaultBaseURL: 'https://chatexternalModel.com/backend-api',
       nativeAuth: { env: [], oauth: true },
     })
   })

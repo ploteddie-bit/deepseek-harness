@@ -26,7 +26,7 @@ import {
 import { assertInstalledTree, createPackedInstallation } from './packed-installation.ts'
 
 const root = fileURLToPath(new URL('../../../..', import.meta.url))
-const packages = ['@deepseek-ai/dsh-subagent-claude-code', '@deepseek-ai/dsh-subagent-codex']
+const packages = ['@deepseek-ai/dsh-subagent-legacy-hooks', '@deepseek-ai/dsh-subagent-externalCli']
 const built = existsSync(join(root, 'apps/cli/lib/bin.js'))
   && packages.every(name => existsSync(join(root, 'packages/subagent', name.slice('@deepseek-ai/dsh-'.length), 'lib/index.js')))
 
@@ -92,7 +92,7 @@ it.skipIf(!built)('installs the exported registry\'s local closure and switches 
     root, destination: runDirectory, members: selection.members, release: readReleaseMembers(root),
   })
   const version = artifacts.find(artifact => artifact.name === packages[0])?.version
-  if (version === undefined) throw new Error('the local registry packed no claude-code provider')
+  if (version === undefined) throw new Error('the local registry packed no legacy-hooks provider')
   for (const name of packages) expect(artifacts.find(artifact => artifact.name === name), name).toMatchObject({ version })
   await writeRegistryManifest(join(runDirectory, REGISTRY_MANIFEST_FILE), createRegistryManifest({
     buildId: 'packed-e2e',
@@ -126,8 +126,8 @@ it.skipIf(!built)('installs the exported registry\'s local closure and switches 
       localDependency: '@deepseek-ai/dsh-brand',
       nativePackages: {
         // The Agent SDK publishes a musl variant of its Linux artifact, which is what pnpm installs there.
-        '@deepseek-ai/dsh-subagent-claude-code': `@anthropic-ai/claude-agent-sdk-${process.platform}-${process.arch}${hostPlatform().libc?.[0] === 'musl' ? '-musl' : ''}`,
-        '@deepseek-ai/dsh-subagent-codex': `@openai/codex-${process.platform}-${process.arch}`,
+        '@deepseek-ai/dsh-subagent-legacy-hooks': `@anthropic-ai/legacy-agent-sdk-${process.platform}-${process.arch}${hostPlatform().libc?.[0] === 'musl' ? '-musl' : ''}`,
+        '@deepseek-ai/dsh-subagent-externalCli': `@openai/externalCli-${process.platform}-${process.arch}`,
       },
     },
   }] }]))

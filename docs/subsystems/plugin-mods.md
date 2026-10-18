@@ -55,7 +55,7 @@ Every way a mod behaves differently through this bridge than under the legacy ho
 | `$.prompt` | `submit`, `compose` | `submit`; the message is `user`-sourced, framed `Message from the "<plugin>" mod:` unless `asUser`, and the `prompt.submit` it raises names the mod as origin |
 | `$.session` | `id`, `cwd`, `root`, `repo`, `model`, `turns`, `messages`, `usage`, `version`, `send`, `append`, `authorize`, `compact`, `surfaces` | `id`, `cwd`, `root`, `model`, `turns`, `messages`, `usage`, `version`; `cwd` reports the committed current directory; `root` retains the original project; `usage.context.window` is `0` and `percent` absent until the token meter knows the route's window; `rateLimits` is empty; `version` names this bridge |
 | `$.state` | Per session, survives hot reload | Per session, in memory; a read during `ui.render` subscribes the band to the slot |
-| `$.store` | Per plugin, durable | Same, in the `claude_code_mods` storage domain, 4 MiB per plugin |
+| `$.store` | Per plugin, durable | Same, in the `plugin_mods` storage domain, 4 MiB per plugin |
 | `$.clock` | `now`, `sleep`, `after`, `every`; timers die with the plugin | Same; a timer also dies with the session whose event scheduled it, and `sleep` rejects when the event is cancelled |
 | `$.fs` | `read`, `write`, `list`, `exists`, `stat`, `ancestors` | All but `ancestors`; 4 MiB per file; `stat.mtimeMs` is `0` |
 | `$.process` | `run`, `spawn` | `run` only, argv without a shell, `processTimeoutMs` default |

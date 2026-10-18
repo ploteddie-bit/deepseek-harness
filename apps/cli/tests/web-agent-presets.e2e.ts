@@ -41,8 +41,8 @@ const BASE_PATCH = join(REPO_ROOT, 'packages/bundle/base/cordis.patch.yml')
 const WEB_BUNDLE = join(REPO_ROOT, 'packages/bundle/web-app')
 const WEB_PATCHES = bundlePatchPaths(WEB_BUNDLE, (JSON.parse(readFileSync(join(WEB_BUNDLE, 'package.json'), 'utf8')) as { dsh: { bundle: { patch: string[] } } }).dsh.bundle)
 const webPatches = (label: string): PatchOptions[] => WEB_PATCHES.flatMap(file => loadOverlayPatches(label, file))
-const CODEX_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-codex')
-const CLAUDE_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-claude-code')
+const EXTERNAL_CLI_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-externalCli')
+const HOOK_CODE_PACKAGE_DIR = join(REPO_ROOT, 'packages/subagent/subagent-legacy-hooks')
 /** The installation anchor whose dependency surface the runtime resolution mirrors. */
 const INSTALL_ANCHOR = join(REPO_ROOT, 'apps/cli/package.json')
 const MINIMAL_PROMPT = 'You are a helpful software engineer assistant.'
@@ -673,9 +673,9 @@ describe('the shipped Web composition', () => {
 })
 
 describe.each(['web', 'desktop'] as const)('%s native subagent bundles', (surface) => {
-  const products = ['codex', 'claude-code'] as const
+  const products = ['externalCli', 'legacy-hooks'] as const
   type Product = typeof products[number]
-  const packageDir = (product: Product): string => (product === 'codex' ? CODEX_PACKAGE_DIR : CLAUDE_CODE_PACKAGE_DIR)
+  const packageDir = (product: Product): string => (product === 'externalCli' ? EXTERNAL_CLI_PACKAGE_DIR : HOOK_CODE_PACKAGE_DIR)
   const toolName = (product: Product): string => `subagent_${product.replaceAll('-', '_')}`
 
   async function bootSelected(installed: readonly Product[], extra: PatchOptions[] = []): Promise<Context> {
@@ -692,11 +692,11 @@ describe.each(['web', 'desktop'] as const)('%s native subagent bundles', (surfac
       setup: owner => productCtx.agentPresets.mount(owner, preset).then(() => undefined),
     })
     try {
-      return toolNames(productCtx, handle.agent).filter(name => /(?:subagent|custom)_(?:codex|claude_code)$/.test(name))
+      return toolNames(productCtx, handle.agent).filter(name => /(?:subagent|custom)_(?:externalCli|legacy_hooks)$/.test(name))
     } finally { await handle.dispose() }
   }
 
-  it.each([[[]], [['codex']], [['claude-code']], [['codex', 'claude-code']]] as Array<[Product[]]>)(
+  it.each([[[]], [['externalCli']], [['legacy-hooks']], [['externalCli', 'legacy-hooks']]] as Array<[Product[]]>)(
     'adds the selected %j delegation tools to every preset as global tools', async (installed) => {
       const productCtx = await bootSelected(installed)
       const spawn = vi.spyOn(productCtx.subprocess, 'spawn')
@@ -727,9 +727,9 @@ describe.each(['web', 'desktop'] as const)('%s native subagent bundles', (surfac
     const providerConfig = { model: 'adoption-model', env: { DSH_NATIVE_ADOPTION: 'preserved' } }
     const productCtx = await bootSelected(products, [
       ...products.map(product => ({ id: `subagent-${product}`, config: providerConfig })),
-      { id: 'tool-subagent-codex', disabled: true },
-      { id: 'tool-subagent-claude-code', config: {
-        provider: 'claude-code', toolName: 'custom_claude_code', maxDepth: 'provider-managed',
+      { id: 'tool-subagent-externalCli', disabled: true },
+      { id: 'tool-subagent-legacy-hooks', config: {
+        provider: 'legacy-hooks', toolName: 'custom_legacy_hooks', maxDepth: 'provider-managed',
       } },
     ])
     try {
@@ -738,7 +738,7 @@ describe.each(['web', 'desktop'] as const)('%s native subagent bundles', (surfac
           .toMatchObject(providerConfig)
       }
       for (const preset of ['standard', 'ptc', 'minimal']) {
-        expect(await presetTools(productCtx, preset)).toEqual(['custom_claude_code'])
+        expect(await presetTools(productCtx, preset)).toEqual(['custom_legacy_hooks'])
       }
     } finally { await productCtx.fiber.dispose() }
   }, 120_000)

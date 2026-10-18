@@ -124,7 +124,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     const options = await pick.locator('option').allTextContents()
     expect(options).toContain('anthropic')
     expect(options).toContain('minimax-cn')
-    await pick.selectOption('openai-codex')
+    await pick.selectOption('openai-externalCli')
     await expect.poll(async () => dialog.getByRole('textbox', { name: 'API 密钥', exact: true }).count(), { timeout: 10_000 }).toBe(0)
     expect(await dialog.getByRole('button', { name: '认证说明', exact: true }).count()).toBe(0)
     expect(await dialog.textContent()).not.toMatch(/oauth/i)
@@ -475,7 +475,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
     onTestFailed(() => saveFailureShot(page, 'web-e2e-models-catalog-inputs'))
     await scaffold.ctx.settings.mutate('llm-pi-ai', [{
       op: 'set', path: ['providers', 'openai'],
-      value: { models: [{ id: 'gpt-6-astra', name: 'GPT-6 Astra', contextWindow: 272000, maxTokens: 128000 }] },
+      value: { models: [{ id: 'externalModel-6-astra', name: 'ExternalModel-6 Astra', contextWindow: 272000, maxTokens: 128000 }] },
     }])
     const dialog = page.getByRole('dialog', { name: '设置' })
     const edit = dialog.getByRole('button', { name: '编辑 openai', exact: true })
@@ -501,7 +501,7 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
       await image.uncheck()
       await dialog.getByRole('button', { name: '保存', exact: true }).click()
       await types.waitFor({ state: 'detached' })
-      await expect(scaffold.ctx.llm.resolveModelInfo('openai', 'gpt-6-astra')).resolves.toMatchObject({ inputModalities: ['text'] })
+      await expect(scaffold.ctx.llm.resolveModelInfo('openai', 'externalModel-6-astra')).resolves.toMatchObject({ inputModalities: ['text'] })
       // The saved notice confirms the browser directory refresh after the editor closes.
       // Reopening before it copies the previous selection into a new draft, which
       // checkbox polling cannot correct.
@@ -516,14 +516,14 @@ describe('web e2e: Models settings page configures a dormant provider', () => {
       await dialog.getByRole('button', { name: '获取可用模型' }).click()
       const picker = page.getByRole('dialog', { name: '选择要添加的模型' })
       await picker.getByRole('button', { name: '取消全选' }).click()
-      await picker.getByRole('searchbox', { name: '搜索模型' }).fill('gpt-6-astra')
-      await picker.getByRole('checkbox', { name: 'gpt-6-astra', exact: true }).check()
+      await picker.getByRole('searchbox', { name: '搜索模型' }).fill('externalModel-6-astra')
+      await picker.getByRole('checkbox', { name: 'externalModel-6-astra', exact: true }).check()
       await picker.getByRole('button', { name: '添加所选' }).click()
       await dialog.getByRole('button', { name: '模型选项 1' }).click()
       expect(await image.isChecked()).toBe(true)
       await dialog.getByRole('button', { name: '保存', exact: true }).click()
       await types.waitFor({ state: 'detached' })
-      await expect(scaffold.ctx.llm.resolveModelInfo('openai', 'gpt-6-astra')).resolves.toMatchObject({ inputModalities: ['text', 'image'] })
+      await expect(scaffold.ctx.llm.resolveModelInfo('openai', 'externalModel-6-astra')).resolves.toMatchObject({ inputModalities: ['text', 'image'] })
     } finally {
       await scaffold.ctx.settings.mutate('llm-pi-ai', [{ op: 'unset', path: ['providers', 'openai'] }])
       await edit.waitFor({ state: 'detached' })

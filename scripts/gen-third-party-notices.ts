@@ -51,9 +51,9 @@ const FIRST_PARTY = new Set([
 ])
 
 /** Official SDK identity covered by the project's narrow owner authorization. */
-export const CLAUDE_AGENT_SDK_PACKAGE = '@anthropic-ai/claude-agent-sdk'
-const CLAUDE_PLATFORM_PACKAGE_PREFIX = `${CLAUDE_AGENT_SDK_PACKAGE}-`
-const CLAUDE_PLATFORM_DECLARED_LICENSE = 'SEE LICENSE IN LICENSE.md'
+export const HOOK_AGENT_SDK_PACKAGE = '@anthropic-ai/legacy-agent-sdk'
+const HOOK_PLATFORM_PACKAGE_PREFIX = `${HOOK_AGENT_SDK_PACKAGE}-`
+const HOOK_PLATFORM_DECLARED_LICENSE = 'SEE LICENSE IN LICENSE.md'
 const LIBREOFFICE_KIT_PACKAGE = '@deepseek-ai/libreoffice-kit'
 const LIBREOFFICE_PACKAGES = new Set([
   LIBREOFFICE_KIT_PACKAGE,
@@ -68,10 +68,10 @@ const LIBREOFFICE_PACKAGES = new Set([
  * Whether a non-permissive runtime declaration has an identity-scoped owner
  * authorization. This does not reclassify its terms as permissive.
  * @param name - exact npm package identity.
- * @returns true only for the official Claude Agent SDK package.
+ * @returns true only for the official Legacy Agent SDK package.
  */
 export function isOwnerAuthorizedRuntime(name: string): boolean {
-  return name === CLAUDE_AGENT_SDK_PACKAGE
+  return name === HOOK_AGENT_SDK_PACKAGE
 }
 
 /**
@@ -188,23 +188,23 @@ function loadWorkspaceManifests(): { manifests: Map<string, Manifest>; names: Se
 }
 
 type VirtualManifest = Manifest & {
-  claudeCodeVersion?: string
+  legacyHooksVersion?: string
   license?: string
   repository?: string | { url?: string }
   homepage?: string
 }
 
-/** One platform payload declared by the official Claude Agent SDK. */
-export interface ClaudePlatformPayload {
+/** One platform payload declared by the official Legacy Agent SDK. */
+export interface LegacyPlatformPayload {
   readonly name: string
   readonly version: string
 }
 
 /** Current SDK and CLI distribution facts derived from the installed SDK manifest. */
-export interface ClaudeDistribution {
+export interface LegacyDistribution {
   readonly sdkVersion: string
-  readonly claudeCodeVersion: string
-  readonly payloads: ClaudePlatformPayload[]
+  readonly legacyHooksVersion: string
+  readonly payloads: LegacyPlatformPayload[]
 }
 
 function requiredManifestString(
@@ -212,7 +212,7 @@ function requiredManifestString(
   field: string,
 ): string {
   if (value === undefined || value.length === 0) {
-    throw new Error(`gen-third-party-notices: ${CLAUDE_AGENT_SDK_PACKAGE} has no ${field}.`)
+    throw new Error(`gen-third-party-notices: ${HOOK_AGENT_SDK_PACKAGE} has no ${field}.`)
   }
   return value
 }
@@ -223,29 +223,29 @@ function requiredManifestString(
  * @param manifest - installed official SDK manifest.
  * @returns current SDK, CLI, and optional platform payload facts.
  */
-export function claudeDistributionFromManifest(
+export function legacyDistributionFromManifest(
   manifest: VirtualManifest,
-): ClaudeDistribution {
-  if (manifest.name !== CLAUDE_AGENT_SDK_PACKAGE) {
+): LegacyDistribution {
+  if (manifest.name !== HOOK_AGENT_SDK_PACKAGE) {
     throw new Error(
-      `gen-third-party-notices: expected ${CLAUDE_AGENT_SDK_PACKAGE} manifest, got ${JSON.stringify(manifest.name)}.`,
+      `gen-third-party-notices: expected ${HOOK_AGENT_SDK_PACKAGE} manifest, got ${JSON.stringify(manifest.name)}.`,
     )
   }
   const sdkVersion = requiredManifestString(manifest.version, 'version')
-  const claudeCodeVersion = requiredManifestString(
-    manifest.claudeCodeVersion,
-    'claudeCodeVersion',
+  const legacyHooksVersion = requiredManifestString(
+    manifest.legacyHooksVersion,
+    'legacyHooksVersion',
   )
   const entries = Object.entries(manifest.optionalDependencies ?? {})
   if (entries.length === 0) {
     throw new Error(
-      `gen-third-party-notices: ${CLAUDE_AGENT_SDK_PACKAGE} declares no optional platform payloads.`,
+      `gen-third-party-notices: ${HOOK_AGENT_SDK_PACKAGE} declares no optional platform payloads.`,
     )
   }
   const payloads = entries.map(([name, version]) => {
-    if (!name.startsWith(CLAUDE_PLATFORM_PACKAGE_PREFIX)) {
+    if (!name.startsWith(HOOK_PLATFORM_PACKAGE_PREFIX)) {
       throw new Error(
-        `gen-third-party-notices: ${CLAUDE_AGENT_SDK_PACKAGE} optional dependency ${name} is outside its authorized platform-payload identity.`,
+        `gen-third-party-notices: ${HOOK_AGENT_SDK_PACKAGE} optional dependency ${name} is outside its authorized platform-payload identity.`,
       )
     }
     return {
@@ -253,7 +253,7 @@ export function claudeDistributionFromManifest(
       version: requiredManifestString(version, `${name} optional dependency version`),
     }
   }).sort((left, right) => left.name.localeCompare(right.name))
-  return { sdkVersion, claudeCodeVersion, payloads }
+  return { sdkVersion, legacyHooksVersion, payloads }
 }
 
 /**
@@ -351,14 +351,14 @@ function installedMetadata(name: string, manifests: Map<string, Manifest>): { li
   return { license, repo }
 }
 
-function collectClaudeDistribution(manifests: Map<string, Manifest>): ClaudeDistribution {
-  const manifest = installedManifest(CLAUDE_AGENT_SDK_PACKAGE, manifests)
+function collectLegacyDistribution(manifests: Map<string, Manifest>): LegacyDistribution {
+  const manifest = installedManifest(HOOK_AGENT_SDK_PACKAGE, manifests)
   if (manifest === undefined) {
     throw new Error(
-      `gen-third-party-notices: cannot resolve ${CLAUDE_AGENT_SDK_PACKAGE}; run \`pnpm install\`.`,
+      `gen-third-party-notices: cannot resolve ${HOOK_AGENT_SDK_PACKAGE}; run \`pnpm install\`.`,
     )
   }
-  const distribution = claudeDistributionFromManifest(manifest)
+  const distribution = legacyDistributionFromManifest(manifest)
   let installedPayloads = 0
   for (const payload of distribution.payloads) {
     const installed = installedManifest(payload.name, manifests, payload.version)
@@ -367,16 +367,16 @@ function collectClaudeDistribution(manifests: Map<string, Manifest>): ClaudeDist
     if (
       installed.name !== payload.name
       || installed.version !== payload.version
-      || installed.license !== CLAUDE_PLATFORM_DECLARED_LICENSE
+      || installed.license !== HOOK_PLATFORM_DECLARED_LICENSE
     ) {
       throw new Error(
-        `gen-third-party-notices: installed ${payload.name} does not match its SDK-declared version and ${CLAUDE_PLATFORM_DECLARED_LICENSE} license field.`,
+        `gen-third-party-notices: installed ${payload.name} does not match its SDK-declared version and ${HOOK_PLATFORM_DECLARED_LICENSE} license field.`,
       )
     }
   }
   if (installedPayloads === 0) {
     throw new Error(
-      'gen-third-party-notices: no SDK-declared Claude platform payload is installed; install optional dependencies before regenerating.',
+      'gen-third-party-notices: no SDK-declared Legacy platform payload is installed; install optional dependencies before regenerating.',
     )
   }
   return distribution
@@ -718,19 +718,19 @@ function renderNpmTable(deps: ExternalDep[]): string {
   return lines.join('\n')
 }
 
-function renderClaudeDistribution(
-  distribution: ClaudeDistribution | undefined,
+function renderLegacyDistribution(
+  distribution: LegacyDistribution | undefined,
 ): string {
   if (distribution === undefined) return ''
   const rows = distribution.payloads.map(payload =>
-    `| [\`${payload.name}\`](https://www.npmjs.com/package/${payload.name}) | ${payload.version} | ${CLAUDE_PLATFORM_DECLARED_LICENSE} |`,
+    `| [\`${payload.name}\`](https://www.npmjs.com/package/${payload.name}) | ${payload.version} | ${HOOK_PLATFORM_DECLARED_LICENSE} |`,
   )
   return `
-## Official Claude Code platform payloads
+## Official Legacy Code platform payloads
 
-The project owner authorizes distribution of every version of the official \`${CLAUDE_AGENT_SDK_PACKAGE}\` package and the official Claude Code CLI/platform payloads that each version declares through \`optionalDependencies\`. This identity-scoped authorization does not classify their declared terms as permissive and does not cover any unrelated runtime package; version, declared-license, and payload-set changes still require the ordinary dependency, lockfile, compatibility, terms, and notices review.
+The project owner authorizes distribution of every version of the official \`${HOOK_AGENT_SDK_PACKAGE}\` package and the official Legacy Code CLI/platform payloads that each version declares through \`optionalDependencies\`. This identity-scoped authorization does not classify their declared terms as permissive and does not cover any unrelated runtime package; version, declared-license, and payload-set changes still require the ordinary dependency, lockfile, compatibility, terms, and notices review.
 
-The installed SDK ${distribution.sdkVersion} declares the following optional platform packages. Each carries the official Claude Code ${distribution.claudeCodeVersion} executable; the package identities and versions come from the SDK manifest, while the declared license field is verified against the platform payload installed for the current host.
+The installed SDK ${distribution.sdkVersion} declares the following optional platform packages. Each carries the official Legacy Code ${distribution.legacyHooksVersion} executable; the package identities and versions come from the SDK manifest, while the declared license field is verified against the platform payload installed for the current host.
 
 | Optional platform package | Version | Declared license |
 | --- | --- | --- |
@@ -758,10 +758,10 @@ export async function render(): Promise<string> {
   const python = collectPython()
   const bundledPython = collectBundledPythonDependencies(primaryRuntimeLock.pythonPackages)
   const patched = collectPatched()
-  const claudeDistribution = runtimeDeps.some(
-    dep => dep.name === CLAUDE_AGENT_SDK_PACKAGE,
+  const legacyDistribution = runtimeDeps.some(
+    dep => dep.name === HOOK_AGENT_SDK_PACKAGE,
   )
-    ? collectClaudeDistribution(manifests)
+    ? collectLegacyDistribution(manifests)
     : undefined
   const nonPermissiveDev = devDeps.filter(dep => !isPermissive(dep.license))
   assertRuntimeLicenses(runtimeDeps)
@@ -775,7 +775,7 @@ export async function render(): Promise<string> {
 
 DeepSeek Harness is licensed under [MIT](LICENSE). It depends on the third-party software listed below. Each project remains under its own license; nothing in this file changes those terms.
 
-This file lists **direct** dependencies declared by the workspace, the explicitly disclosed official Claude Code platform payload closure, and the Bundled Python distributions. It is generated by \`scripts/gen-third-party-notices.ts\`, and \`scripts/gen-third-party-notices.spec.ts\` asserts in the test lane that the committed bytes match. Run \`pnpm run gen-third-party-notices\` after changing one of its inputs, or \`pnpm run verify-third-party-notices\` for the standalone check.
+This file lists **direct** dependencies declared by the workspace, the explicitly disclosed official Legacy Code platform payload closure, and the Bundled Python distributions. It is generated by \`scripts/gen-third-party-notices.ts\`, and \`scripts/gen-third-party-notices.spec.ts\` asserts in the test lane that the committed bytes match. Run \`pnpm run gen-third-party-notices\` after changing one of its inputs, or \`pnpm run verify-third-party-notices\` for the standalone check.
 
 The complete npm transitive closure, including the Landlock launcher workspace, is recorded with exact pinned versions in [\`pnpm-lock.yaml\`](pnpm-lock.yaml) — inspect it with \`pnpm licenses list\`. The Python SDK closure is recorded separately in [\`python/sdk/uv.lock\`](python/sdk/uv.lock).
 
@@ -801,7 +801,7 @@ ${patchedLines.join('\n')}
 
 The optional experimental Inspector distributes a locally compiled copy of [chrome-devtools-frontend ${DEVTOOLS_NPM_VERSION}](https://www.npmjs.com/package/chrome-devtools-frontend/v/${DEVTOOLS_NPM_VERSION}), from upstream revision [${DEVTOOLS_SOURCE_REVISION}](https://chromium.googlesource.com/devtools/devtools-frontend/+/${DEVTOOLS_SOURCE_REVISION}). The build includes the Chromium [BSD-3-Clause license](packages/experimental/inspector/assets/devtools/LICENSE) and the third-party license and notice files supplied by the npm source. The Chromium root license does not replace those dependencies' licenses.
 
-${renderClaudeDistribution(claudeDistribution)}
+${renderLegacyDistribution(legacyDistribution)}
 ${kitRuntime ? `
 ## LibreOffice conversion kit
 

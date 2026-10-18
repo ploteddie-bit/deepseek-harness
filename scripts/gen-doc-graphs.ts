@@ -392,7 +392,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Durable session persistence seam',
     mode: 'seam',
     implementations: ['session-persistence-jsonl'],
-    consumers: ['agent-loop', 'tool-bash', 'hooks-command', 'hooks-codex', 'session-query', 'session-query-sqlite', 'message-feedback'],
+    consumers: ['agent-loop', 'tool-bash', 'hooks-command', 'hooks-externalCli', 'session-query', 'session-query-sqlite', 'message-feedback'],
     note: 'The JSONL backend persists the SessionEvent vocabulary as one artifact per Session.',
   },
   {
@@ -672,8 +672,8 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Subprocess seam',
     mode: 'seam',
     implementations: ['subprocess-local', 'subprocess-ssh'],
-    consumers: ['bash-local', 'bash-sandbox', 'terminal-bash', 'lsp-stdio', 'subagent-acp', 'subagent-codex', 'subagent-agent-sdk'],
-    note: 'The bash executors, the PTY shell backend, the LSP host, and the out-of-process ACP, Codex, and Claude Code subagent backends spawn through ctx.subprocess; the service owns process coordinates, tree/session lifetime, stdio dispositions, terminal mechanics, and kill escalation.',
+    consumers: ['bash-local', 'bash-sandbox', 'terminal-bash', 'lsp-stdio', 'subagent-acp', 'subagent-externalCli', 'subagent-agent-sdk'],
+    note: 'The bash executors, the PTY shell backend, the LSP host, and the out-of-process ACP, ExternalCli, and Legacy Code subagent backends spawn through ctx.subprocess; the service owns process coordinates, tree/session lifetime, stdio dispositions, terminal mechanics, and kill escalation.',
   },
   {
     key: 'shell',
@@ -681,7 +681,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     title: 'Bash executor seam',
     mode: 'seam',
     implementations: ['bash-local', 'bash-sandbox', 'pwsh-local'],
-    consumers: ['tool-bash', 'tool-pwsh', 'hooks-command', 'hooks-codex'],
+    consumers: ['tool-bash', 'tool-pwsh', 'hooks-command', 'hooks-externalCli'],
     note: 'The model-facing shell tools and hook bridges consume this seam; sandboxed, remote, or PowerShell executors replace bash-local without touching them.',
   },
   {
@@ -769,7 +769,7 @@ const SERVICE_ROLES: ServiceRole[] = [
     pkg: 'subagent',
     title: 'Subagent provider and continuation service',
     mode: 'seam',
-    implementations: ['subagent-spawn-in-process', 'subagent-fork-in-process', 'subagent-acp', 'subagent-codex', 'subagent-agent-sdk', 'subagent-dsh-sdk'],
+    implementations: ['subagent-spawn-in-process', 'subagent-fork-in-process', 'subagent-acp', 'subagent-externalCli', 'subagent-agent-sdk', 'subagent-dsh-sdk'],
     consumers: ['tool-subagent', 'tool-subagent-control', 'tool-ralph'],
     note: 'Providers prepare local children or execute external tasks; one activation manager owns both lifecycles. The delegation tool selects a backend, control tools deliver local follow-ups, and workflows await activation results.',
   },
@@ -793,7 +793,7 @@ const SERVICE_ROLES: ServiceRole[] = [
   {
     key: 'pluginMods',
     pkg: 'experimental-plugin-mods',
-    title: 'Claude Code mods bridge',
+    title: 'Legacy Code mods bridge',
     mode: 'core',
     note: 'Loads mods that defineMod plugins add, raises their hook chains from harness extension points, and draws the band above the prompt over its Remote.',
   },

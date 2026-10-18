@@ -398,8 +398,8 @@ describe('workspace context instruction discovery', () => {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(home, 'AGENTS.md'), 'global rules')
       await write(join(root, 'AGENTS.md'), 'root agents')
-      await write(join(root, 'CLAUDE.md'), 'root claude')
-      await write(join(root, 'packages/CLAUDE.md'), 'package claude')
+      await write(join(root, 'CLAUDE.md'), 'root legacy')
+      await write(join(root, 'packages/CLAUDE.md'), 'package legacy')
       await write(join(cwd, 'AGENTS.md'), 'app agents')
 
       pinHarnessHome(home)
@@ -625,7 +625,7 @@ describe('workspace context instruction discovery', () => {
     const home = await tempRepo()
     try {
       await mkdir(join(root, '.git'), { recursive: true })
-      await write(join(root, 'CLAUDE.md'), 'claude only')
+      await write(join(root, 'CLAUDE.md'), 'legacy only')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
@@ -647,8 +647,8 @@ describe('workspace context instruction discovery', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'native rule')
-      await write(join(root, 'CLAUDE.local.md'), 'local claude rule')
-      await write(join(root, 'CLAUDE.md'), 'claude rule')
+      await write(join(root, 'CLAUDE.local.md'), 'local legacy rule')
+      await write(join(root, 'CLAUDE.md'), 'legacy rule')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
@@ -670,12 +670,12 @@ describe('workspace context instruction discovery', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'native rule')
-      await write(join(root, '.claude/CLAUDE.md'), 'nested claude rule')
+      await write(join(root, '.legacy/CLAUDE.md'), 'nested legacy rule')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
         cwd: root,
-        instructionFileCandidates: ['', '.', '..', '.claude/CLAUDE.md', 'nested\\CLAUDE.md', 'AGENTS.md'],
+        instructionFileCandidates: ['', '.', '..', '.legacy/CLAUDE.md', 'nested\\CLAUDE.md', 'AGENTS.md'],
       })
 
       expect(files.map(file => file.displayPath)).toEqual(['AGENTS.md'])
@@ -1563,7 +1563,7 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'agents rule')
-      await write(join(root, 'CLAUDE.md'), 'claude rule')
+      await write(join(root, 'CLAUDE.md'), 'legacy rule')
       pinHarnessHome(home)
       await mountAgentInstructions(originalCtx, { maxBytes: 65536 })
       const original = await stubAgent(root)
@@ -1610,14 +1610,14 @@ describe('workspace context request injection', () => {
     const home = await tempRepo()
     const agentsCtx = new Context()
     provideWorkingDirectoryFixture(agentsCtx)
-    const claudeCtx = new Context()
-    provideWorkingDirectoryFixture(claudeCtx)
+    const legacyCtx = new Context()
+    provideWorkingDirectoryFixture(legacyCtx)
     const restoredCtx = new Context()
     provideWorkingDirectoryFixture(restoredCtx)
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'agents rule')
-      await write(join(root, 'CLAUDE.md'), 'claude rule')
+      await write(join(root, 'CLAUDE.md'), 'legacy rule')
       pinHarnessHome(home)
       await mountAgentInstructions(agentsCtx, {
         maxBytes: 65536,
@@ -1627,15 +1627,15 @@ describe('workspace context request injection', () => {
       await composeBaselinePrefix(agentsCtx, original)
 
       pinHarnessHome(home)
-      await mountAgentInstructions(claudeCtx, {
+      await mountAgentInstructions(legacyCtx, {
         maxBytes: 65536,
         instructionFileCandidates: ['CLAUDE.md'],
       })
-      const claudeResume = await stubAgent(root, original.session.snapshotEvents())
-      await composeBaselinePrefix(claudeCtx, claudeResume)
-      const claudeBaseline = baselineEvents(claudeResume).at(-1)
-      expect(claudeBaseline?.type === 'user/message' && claudeBaseline.data.source.kind === 'agent-instructions'
-        ? claudeBaseline.data.source.changes
+      const legacyResume = await stubAgent(root, original.session.snapshotEvents())
+      await composeBaselinePrefix(legacyCtx, legacyResume)
+      const legacyBaseline = baselineEvents(legacyResume).at(-1)
+      expect(legacyBaseline?.type === 'user/message' && legacyBaseline.data.source.kind === 'agent-instructions'
+        ? legacyBaseline.data.source.changes
         : undefined).toMatchObject([
         { action: 'remove', scope: sk('.', 'AGENTS.md'), path: 'AGENTS.md' },
         { action: 'set', scope: sk('.', 'CLAUDE.md'), path: 'CLAUDE.md' },
@@ -1646,7 +1646,7 @@ describe('workspace context request injection', () => {
         maxBytes: 65536,
         instructionFileCandidates: ['AGENTS.md'],
       })
-      const restored = await stubAgent(root, claudeResume.session.snapshotEvents())
+      const restored = await stubAgent(root, legacyResume.session.snapshotEvents())
       await composeBaselinePrefix(restoredCtx, restored)
       const restoredBaseline = baselineEvents(restored).at(-1)
       expect(restoredBaseline?.type === 'user/message' && restoredBaseline.data.source.kind === 'agent-instructions'
@@ -1658,7 +1658,7 @@ describe('workspace context request injection', () => {
     } finally {
       vi.unstubAllEnvs()
       await agentsCtx.fiber.dispose()
-      await claudeCtx.fiber.dispose()
+      await legacyCtx.fiber.dispose()
       await restoredCtx.fiber.dispose()
       await rm(root, { recursive: true, force: true })
       await rm(home, { recursive: true, force: true })
@@ -3160,14 +3160,14 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(home, 'AGENTS.md'), 'node global rule')
-      await write(join(root, 'CLAUDE.md'), 'node claude rule')
+      await write(join(root, 'CLAUDE.md'), 'node legacy rule')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       await ctx.plugin(RecordingFileSystem)
       const fs = ctx.fs as RecordingFileSystem
       fs.entries.set(join(root, '.git'), { type: 'directory' })
       fs.entries.set(join(home, 'AGENTS.md'), { type: 'file', content: 'ctx global rule' })
-      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'ctx claude rule' })
+      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'ctx legacy rule' })
       pinHarnessHome(home)
       await mountAgentInstructionsPlugin(ctx, { maxBytes: 65536 })
       const agent = await stubAgent(root)
@@ -3175,9 +3175,9 @@ describe('workspace context request injection', () => {
       await composeBaselinePrefix(ctx, agent)
 
       expect(derivedText(agent)).toContain('ctx global rule')
-      expect(derivedText(agent)).toContain('ctx claude rule')
+      expect(derivedText(agent)).toContain('ctx legacy rule')
       expect(derivedText(agent)).not.toContain('node global rule')
-      expect(derivedText(agent)).not.toContain('node claude rule')
+      expect(derivedText(agent)).not.toContain('node legacy rule')
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -3273,14 +3273,14 @@ describe('workspace context request injection', () => {
       const fs = ctx.fs as RecordingFileSystem
       fs.entries.set(join(root, '.git'), { type: 'directory' })
       fs.throwOnStat.add(join(root, 'AGENTS.md'))
-      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'claude sibling rule' })
+      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'legacy sibling rule' })
       pinHarnessHome(home)
       await mountAgentInstructionsPlugin(ctx, { maxBytes: 65536 })
       const agent = await stubAgent(root)
 
       await composeBaselinePrefix(ctx, agent)
 
-      expect(derivedText(agent)).toContain('claude sibling rule')
+      expect(derivedText(agent)).toContain('legacy sibling rule')
       expect(fs.readTargets).toContain(join(root, 'CLAUDE.md'))
       expect(fs.readTargets).not.toContain(join(root, 'AGENTS.md'))
     } finally {
@@ -3541,7 +3541,7 @@ describe('workspace context request injection', () => {
     const home = await tempRepo()
     try {
       await mkdir(join(root, '.git'), { recursive: true })
-      await write(join(root, 'CLAUDE.md'), 'claude host sibling rule')
+      await write(join(root, 'CLAUDE.md'), 'legacy host sibling rule')
       vi.resetModules()
       vi.doMock('node:fs/promises', async (importOriginal) => {
         const actual = await importOriginal<typeof import('node:fs/promises')>()
@@ -3560,7 +3560,7 @@ describe('workspace context request injection', () => {
       pinHarnessHome(home)
       const rendered = await isolated.loadBaselineInstructions({ cwd: root, maxBytes: 65536 })
 
-      expect(rendered?.text).toContain('claude host sibling rule')
+      expect(rendered?.text).toContain('legacy host sibling rule')
     } finally {
       vi.unstubAllEnvs()
       vi.doUnmock('node:fs/promises')

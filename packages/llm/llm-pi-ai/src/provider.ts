@@ -36,7 +36,7 @@ import { createProvider } from './models.ts'
  * actually reads, each completely describable with a key, an
  * endpoint, and headers. Bedrock signs with SigV4 over AWS credentials and a
  * region, Vertex needs a project, a location, and application-default
- * credentials, Azure needs provider environment plus an api-version, and Codex
+ * credentials, Azure needs provider environment plus an api-version, and ExternalCli
  * authenticates through OAuth — none of which this configuration shape can
  * express, so offering them would hand back a provider that cannot
  * authenticate. The remainder are absent for want of a consumer rather than a
@@ -118,7 +118,7 @@ export interface ProviderSpec {
  * The single addition covers a catalog provider that offers no api-key method
  * at all. pi-ai resolves a request's `apiKey` override only when the provider
  * declares one (`resolveProviderAuth` checks `provider.auth.apiKey` before
- * honouring the override), so an OAuth-only provider — `openai-codex` is the
+ * honouring the override), so an OAuth-only provider — `openai-externalCli` is the
  * one the installed catalog ships — would refuse a profile's explicit key with
  * `Provider is not configured` before any request went out. Adding the harness
  * method beside the provider's own restores that route. A keyless profile adds

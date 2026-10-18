@@ -192,7 +192,7 @@ describe('web e2e: settings modal and General preferences', () => {
       expect(await identity.textContent()).toBe(entryId)
       expect(await identity.getAttribute('title')).toBe(entryId)
     }
-    expect(await dialog.locator('[data-plugin-entry="tool-subagent-codex"], [data-plugin-entry="tool-subagent-claude-code"]').count()).toBe(0)
+    expect(await dialog.locator('[data-plugin-entry="tool-subagent-externalCli"], [data-plugin-entry="tool-subagent-legacy-hooks"]').count()).toBe(0)
     const instancesSnapshot = await captureStableAria(
       page,
       '[data-plugin-scope="preset"] ul',

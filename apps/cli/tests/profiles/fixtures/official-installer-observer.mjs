@@ -87,10 +87,10 @@ async function exercise(ctx, config) {
     const installed = (await ctx.pluginManager.listBundles()).find(bundle => bundle.name === name)
     // A transitive repository package the registry served, absent from npm at this version.
     const localDependency = JSON.parse(await readFile(join(config.profile, 'node_modules', config.localDependency, 'package.json'), 'utf8')).version
-    const provider = name.endsWith('-codex') ? 'codex' : 'claude-code'
+    const provider = name.endsWith('-externalCli') ? 'externalCli' : 'legacy-hooks'
     const providerEnabled = ctx.subagents.list().includes(provider)
     const nativeDir = join(config.profile, 'node_modules', config.nativePackages[name])
-    const binaryName = `${provider === 'codex' ? 'codex' : 'claude'}${process.platform === 'win32' ? '.exe' : ''}`
+    const binaryName = `${provider === 'externalCli' ? 'externalCli' : 'legacy'}${process.platform === 'win32' ? '.exe' : ''}`
     const nativeBinary = (await readdir(nativeDir, { recursive: true })).find(path => basename(path) === binaryName)
     const nativeArtifact = nativeBinary !== undefined && (await stat(join(nativeDir, nativeBinary))).size > 0
     const presets = await ctx.agentPresets.list()

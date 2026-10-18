@@ -35,9 +35,9 @@ export interface ParsedHookConfig {
 
 /** Substitution variables applied to each `command` string at parse time. */
 export interface SubstitutionVars {
-  /** Replaces `${CLAUDE_PLUGIN_ROOT}` — the plugin's root dir. */
+  /** Replaces `${HOOK_PLUGIN_ROOT}` — the plugin's root dir. */
   pluginRoot?: string
-  /** Replaces `${CLAUDE_PROJECT_DIR}` — the project root. */
+  /** Replaces `${HOOK_PROJECT_DIR}` — the project root. */
   projectDir?: string
 }
 
@@ -49,15 +49,15 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
 }
 
 /**
- * Apply `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_PROJECT_DIR}` substitution to a command string.
+ * Apply `${HOOK_PLUGIN_ROOT}` / `${HOOK_PROJECT_DIR}` substitution to a command string.
  * @param command - the raw command from config.
  * @param vars - the substitution values; a token whose variable is unset stays verbatim.
  * @returns the command with every occurrence of each set token replaced.
  */
 export function substituteCommand(command: string, vars: SubstitutionVars): string {
   let out = command
-  if (vars.pluginRoot !== undefined) out = out.split('${CLAUDE_PLUGIN_ROOT}').join(vars.pluginRoot)
-  if (vars.projectDir !== undefined) out = out.split('${CLAUDE_PROJECT_DIR}').join(vars.projectDir)
+  if (vars.pluginRoot !== undefined) out = out.split('${HOOK_PLUGIN_ROOT}').join(vars.pluginRoot)
+  if (vars.projectDir !== undefined) out = out.split('${HOOK_PROJECT_DIR}').join(vars.projectDir)
   return out
 }
 
@@ -109,7 +109,7 @@ export function parseHookConfig(raw: unknown, vars: SubstitutionVars = {}): Pars
       const matcher = event === 'UserPromptSubmit' || event === 'Stop'
         ? undefined
         : typeof group.matcher === 'string' ? group.matcher : undefined
-      const diagnostic = matcherDiagnostic(matcher, 'claude-code')
+      const diagnostic = matcherDiagnostic(matcher, 'legacy-hooks')
       if (diagnostic !== undefined) throw new SyntaxError(`${diagnostic} on event ${JSON.stringify(event)}`)
       groups.push({
         ...matcher !== undefined ? { matcher } : {},

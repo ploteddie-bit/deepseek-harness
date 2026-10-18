@@ -331,7 +331,7 @@ type ApiWithCompat = { [K in KnownApi]: NonNullable<Model<K>['compat']> extends 
  * Keyed by protocol, but grouped by pi-ai's compat *type*: the three Responses
  * protocols share `OpenAIResponsesCompat`, so a switch settable on one is
  * settable on all three. Keying by protocol alone would refuse
- * `azure-openai-responses` and `openai-codex-responses` the fields their own
+ * `azure-openai-responses` and `openai-externalCli-responses` the fields their own
  * models declare.
  */
 const COMPAT_GATES: Readonly<Record<ApiWithCompat, Readonly<Record<string, CompatDisposition>>>> = {
@@ -339,7 +339,7 @@ const COMPAT_GATES: Readonly<Record<ApiWithCompat, Readonly<Record<string, Compa
   'openai-completions': COMPLETIONS_COMPAT_GATE,
   'openai-responses': RESPONSES_COMPAT_GATE,
   'azure-openai-responses': RESPONSES_COMPAT_GATE,
-  'openai-codex-responses': RESPONSES_COMPAT_GATE,
+  'openai-externalCli-responses': RESPONSES_COMPAT_GATE,
   'anthropic-messages': ANTHROPIC_COMPAT_GATE,
   'bedrock-converse-stream': BEDROCK_COMPAT_GATE,
 }
@@ -382,7 +382,7 @@ type OfferedCompatField =
  * model-level switch its protocol does not take fails resolution, and a
  * route-level one skips past models it cannot fit. "The three Responses
  * protocols" below means `openai-responses`, `azure-openai-responses`, and
- * `openai-codex-responses`, which pi-ai gives one shared compat type, so a
+ * `openai-externalCli-responses`, which pi-ai gives one shared compat type, so a
  * switch settable on one is settable on all three.
  */
 export interface PiAiCompatProfile {
@@ -431,7 +431,7 @@ export interface PiAiCompatProfile {
   thinkingTokenBudgetField?: PiAiThinkingTokenBudgetField
   /** vLLM scheduler `priority`; lower runs earlier, and the server must enable priority scheduling. Omitted unless configured. */
   vllmPriority?: number
-  /** Whether `openai-responses` accepts `max_output_tokens`; `false` omits it. Azure and Codex ignore this shared compat field. */
+  /** Whether `openai-responses` accepts `max_output_tokens`; `false` omits it. Azure and ExternalCli ignore this shared compat field. */
   supportsMaxOutputTokens?: boolean
   /**
    * Whether the endpoint accepts `strict` in tool definitions;

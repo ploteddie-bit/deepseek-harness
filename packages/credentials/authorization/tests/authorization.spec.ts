@@ -9,7 +9,7 @@ import AuthorizationService, {
 } from '@deepseek-ai/dsh-authorization'
 import { MemoryCredentials } from './memory.ts'
 
-const KEY = credentialKey('llm-pi-ai', 'openai-codex')
+const KEY = credentialKey('llm-pi-ai', 'openai-externalCli')
 const OTHER = credentialKey('llm-pi-ai', 'anthropic')
 
 /** A context with the record store the seam confirms commits against. */
@@ -46,8 +46,8 @@ function committingFlow(
 ): AuthorizationFlow {
   return {
     key,
-    label: 'ChatGPT (Codex)',
-    methods: [{ id: 'oauth', label: 'Sign in with ChatGPT' }, { id: 'api-key', label: 'Paste a key' }],
+    label: 'ChatExternalModel (ExternalCli)',
+    methods: [{ id: 'oauth', label: 'Sign in with ChatExternalModel' }, { id: 'api-key', label: 'Paste a key' }],
     async run(session) {
       await run?.(session)
       await ctx.credentials.modifyRecord(key, () =>
@@ -64,11 +64,11 @@ describe('AuthorizationService registry', () => {
 
     expect(ctx.authorization.list()).toEqual([{
       key: KEY,
-      label: 'ChatGPT (Codex)',
-      methods: [{ id: 'oauth', label: 'Sign in with ChatGPT' }, { id: 'api-key', label: 'Paste a key' }],
+      label: 'ChatExternalModel (ExternalCli)',
+      methods: [{ id: 'oauth', label: 'Sign in with ChatExternalModel' }, { id: 'api-key', label: 'Paste a key' }],
       inFlight: false,
     }])
-    expect(ctx.authorization.describe(KEY)?.label).toBe('ChatGPT (Codex)')
+    expect(ctx.authorization.describe(KEY)?.label).toBe('ChatExternalModel (ExternalCli)')
     expect(ctx.authorization.describe(OTHER)).toBeUndefined()
 
     dispose()

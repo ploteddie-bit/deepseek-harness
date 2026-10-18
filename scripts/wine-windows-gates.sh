@@ -152,7 +152,7 @@ snapshot_and_install() {
   # win32-x64 so the Windows esbuild/rolldown/rollup binaries materialize.
   # Neither is recorded in the lockfile, so --frozen-lockfile stays valid;
   # --ignore-scripts skips host lifecycle scripts no gate loads.
-  git -C "$repo_root" ls-files -z --cached --others --exclude-standard -- . ':!:.claude' ':!:.codex' \
+  git -C "$repo_root" ls-files -z --cached --others --exclude-standard -- . ':!:.legacy' ':!:.external-cli' \
     | while IFS= read -r -d '' file; do [ -e "$repo_root/$file" ] && printf '%s\0' "$file"; done \
     | tar -C "$repo_root" --null --files-from=- -cf - \
     | tar -C "$scratch/tree" -xf -

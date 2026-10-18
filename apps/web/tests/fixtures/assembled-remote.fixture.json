@@ -132,8 +132,8 @@
           "name": "OpenAI",
           "models": [
             {
-              "id": "gpt-5",
-              "name": "GPT-5",
+              "id": "external model-5",
+              "name": "external model-5",
               "reasoning": {
                 "efforts": [
                   {

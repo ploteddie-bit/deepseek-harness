@@ -236,7 +236,7 @@ describe('PiAiAdapter provider routing', () => {
     await ctx.plugin(LlmPiAi, {
       providers: { openai: { apiKeyEnv: 'PI_TEST_KEY', baseURL: `${server.url}/v1` } },
     })
-    const result = await assemble(ctx, { provider: 'openai', model: 'gpt-4.1', messages: [] })
+    const result = await assemble(ctx, { provider: 'openai', model: 'externalModel-4.1', messages: [] })
     expect(result.finish.kind).toBe('error')
     expect(server.paths).toEqual(['/v1/responses'])
   })
@@ -317,7 +317,7 @@ describe('PiAiAdapter provider routing', () => {
 
     const result = await assemble(ctx, {
       provider: 'openai',
-      model: 'gpt-4.1',
+      model: 'externalModel-4.1',
       messages: [createUserMessage({
         content: [{ type: 'image', attachment: ref }],
         source: { kind: 'model', provider: 'deepseek-official', model: 'deepseek-v4-flash' },
@@ -350,7 +350,7 @@ describe('PiAiAdapter provider routing', () => {
       providers: { openai: { apiKeyEnv: 'PI_TEST_KEY', baseURL: `${server.url}/v1` } },
     })
 
-    const result = await assemble(ctx, { provider: 'openai', model: 'gpt-4.1', messages: [] })
+    const result = await assemble(ctx, { provider: 'openai', model: 'externalModel-4.1', messages: [] })
 
     expect(result.finish).toMatchObject({ kind: 'error' })
     expect(server.paths).toEqual(['/v1/responses'])
@@ -369,7 +369,7 @@ describe('PiAiAdapter provider routing', () => {
         },
       },
     })
-    const result = await assemble(ctx, { provider: 'openai', model: 'gpt-5.5', messages: [] })
+    const result = await assemble(ctx, { provider: 'openai', model: 'externalModel-5.5', messages: [] })
     expect(result.finish.kind).toBe('error')
     expect(server.paths).toEqual(['/api/projects/openai/openai/v1/responses'])
     expect(server.headers[0]?.['api-key']).toBe('test-key')
@@ -489,12 +489,12 @@ describe('provider profile lifecycle', () => {
     await ctx.plugin(LlmRuntime)
     await ctx.plugin(LlmPiAi, { providers: { openai: {} } })
     const models = await ctx.llm.listModels('openai')
-    expect(models.find(model => model.id === 'gpt-4.1')).toEqual({
-      provider: 'openai', id: 'gpt-4.1', name: 'GPT-4.1',
+    expect(models.find(model => model.id === 'externalModel-4.1')).toEqual({
+      provider: 'openai', id: 'externalModel-4.1', name: 'ExternalModel-4.1',
       inputModalities: ['text', 'image'],
     })
     expect(models.every(model => model.provider === 'openai')).toBe(true)
-    const info = await ctx.llm.resolveModelInfo('openai', 'gpt-4.1')
+    const info = await ctx.llm.resolveModelInfo('openai', 'externalModel-4.1')
     expect(typeof info.context?.contextWindow).toBe('number')
   })
 
@@ -516,7 +516,7 @@ describe('provider profile lifecycle', () => {
           ],
         },
       })
-    const extended = await ctx.llm.resolveModelInfo('openai', 'gpt-5.6-sol')
+    const extended = await ctx.llm.resolveModelInfo('openai', 'externalModel-5.6-sol')
     expect(extended.reasoning?.efforts.map(effort => effort.id)).toEqual([
       ReasoningEffortId('off'),
       ReasoningEffortId('low'),
@@ -529,7 +529,7 @@ describe('provider profile lifecycle', () => {
     // one: pi-ai reports the single level `off`, which translates to omitting
     // the reasoning option — exactly what naming no effort already does. The
     // capability is reported unavailable rather than offering that control.
-    expect((await ctx.llm.resolveModelInfo('openai', 'gpt-4.1')).reasoning).toBeUndefined()
+    expect((await ctx.llm.resolveModelInfo('openai', 'externalModel-4.1')).reasoning).toBeUndefined()
   })
 
   it('uses a supported profile reasoning value as the model default and rejects an unsupported one', async () => {
@@ -953,12 +953,12 @@ describe('provider profile lifecycle', () => {
   it('constructs the adapter directly and rejects routes it does not own', async () => {
     const adapter = adapterOf({ openai: {} })
     await expect(adapter.listModels('anthropic')).rejects.toMatchObject({ code: 'NO_ADAPTER' })
-    await expect(adapter.resolveModel('anthropic', 'claude-sonnet-4'))
+    await expect(adapter.resolveModel('anthropic', 'legacy-sonnet-4'))
       .rejects.toMatchObject({ code: 'NO_ADAPTER' })
     await expect(adapter.resolveModel('openai', 'not-a-catalog-model'))
       .rejects.toMatchObject({ code: 'UNKNOWN_MODEL' })
     await expect((async () => {
-      for await (const _chunk of adapter.stream({ provider: 'anthropic', model: 'claude-sonnet-4', messages: [] })) { /* drain */ }
+      for await (const _chunk of adapter.stream({ provider: 'anthropic', model: 'legacy-sonnet-4', messages: [] })) { /* drain */ }
     })()).rejects.toMatchObject({ code: 'NO_ADAPTER' })
     expect(new LlmError('x', 'X')).toBeInstanceOf(Error)
   })
@@ -982,7 +982,7 @@ describe('provider profile lifecycle', () => {
     })
     await expect(drain({
       provider: 'openai',
-      model: 'gpt-4.1',
+      model: 'externalModel-4.1',
       messages: [createUserMessage({
         content: [{ type: 'image', attachment: IMAGE_REF }],
         source: { kind: 'model', provider: 'deepseek-official', model: 'deepseek-v4-flash' },
@@ -990,7 +990,7 @@ describe('provider profile lifecycle', () => {
     })).rejects.toMatchObject({ code: 'UNSUPPORTED_CONTENT' })
     await expect(drain({
       provider: 'openai',
-      model: 'gpt-4.1',
+      model: 'externalModel-4.1',
       messages: [createToolResultMessage({
         callId: 'call-outer' as never,
         content: [{ type: 'image', attachment: IMAGE_REF }],

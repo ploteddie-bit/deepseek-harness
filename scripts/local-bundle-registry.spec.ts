@@ -363,9 +363,9 @@ describe('registry HTTP', () => {
     // A repository-owned name that is not even in the closure must never reach npm.
     expect((await fetch(`${url}@deepseek-ai%2fdsh-private-thing/1.0.0`)).status).toBe(404)
 
-    const external = await fetch(`${url}@anthropic-ai%2fclaude-agent-sdk`, { redirect: 'manual' })
+    const external = await fetch(`${url}@anthropic-ai%2flegacy-agent-sdk`, { redirect: 'manual' })
     expect(external.status).toBe(302)
-    expect(external.headers.get('location')).toBe('https://registry.npmjs.org/@anthropic-ai%2fclaude-agent-sdk')
+    expect(external.headers.get('location')).toBe('https://registry.npmjs.org/@anthropic-ai%2flegacy-agent-sdk')
   })
 
   it('keeps serving after a client abandons a tarball request', async () => {

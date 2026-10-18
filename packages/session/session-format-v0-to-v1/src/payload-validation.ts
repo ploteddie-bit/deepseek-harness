@@ -101,7 +101,7 @@ export function assertReleasedPayloadSemantics(event: SessionFormatEvent, versio
     case 'hook/invoked':
       countValue(data['turn'], `${label} turn`)
       nonEmptyString(data['point'], `${label} point`)
-      literalValue(data['dialect'], ['claude-code', 'codex'], `${label} dialect`)
+      literalValue(data['dialect'], ['legacy-hooks', 'externalCli'], `${label} dialect`)
       if (data['matcher'] !== undefined) stringValue(data['matcher'], `${label} matcher`)
       nonEmptyString(data['handlerId'], `${label} handlerId`)
       return

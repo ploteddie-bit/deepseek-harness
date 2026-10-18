@@ -78,7 +78,7 @@ const SNAPSHOT = {
           condition: 'process.platform === \'win32\'',
           fiberPhase: null,
         },
-        { entryId: 'codex', moduleName: '@fixture/codex', enabled: false, fiberPhase: null },
+        { entryId: 'externalCli', moduleName: '@fixture/externalCli', enabled: false, fiberPhase: null },
         { entryId: 'crashy', moduleName: '@fixture/crashy', enabled: true, fiberPhase: 'failed' },
         { entryId: null, moduleName: '@fixture/anonymous', enabled: true, fiberPhase: null },
       ],

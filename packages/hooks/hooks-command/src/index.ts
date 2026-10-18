@@ -58,15 +58,15 @@ export interface Config {
    */
   configPath: string
   /**
-   * Replaces `${CLAUDE_PLUGIN_ROOT}` in command strings (the plugin's root dir).
+   * Replaces `${HOOK_PLUGIN_ROOT}` in command strings (the plugin's root dir).
    */
   pluginRoot?: string
   /**
-   * Replaces `${CLAUDE_PROJECT_DIR}` in command strings AND is exported as the
-   * `CLAUDE_PROJECT_DIR` env var for hook processes. When omitted, the env var
+   * Replaces `${HOOK_PROJECT_DIR}` in command strings AND is exported as the
+   * `HOOK_PROJECT_DIR` env var for hook processes. When omitted, the env var
    * defaults per-run to the agent's current directory (the
-   * same dir the hook runs in) — Claude Code always exports this var, and common
-   * unmodified hooks reference `$CLAUDE_PROJECT_DIR` for project-relative paths.
+   * same dir the hook runs in) — Legacy Code always exports this var, and common
+   * unmodified hooks reference `$HOOK_PROJECT_DIR` for project-relative paths.
    */
   projectDir?: string
   /** Default per-hook timeout in ms when a hook sets none (CC default: 600000). */
@@ -86,7 +86,7 @@ export const Config: z<Config> = z.object({
 /** A stable per-handler id so an invoked/result pair correlates in the log. */
 let handlerCounter = 0
 function nextHandlerId(point: string): string {
-  return `claude-code:${point}:${++handlerCounter}`
+  return `legacy-hooks:${point}:${++handlerCounter}`
 }
 
 /** The `{kind:'hooks-command'}` producer source stamped on every context this bridge injects. */
@@ -146,23 +146,23 @@ export function apply(ctx: Context, config: Config): void {
     payload: Record<string, unknown>,
     opts: { agent?: Agent; turn?: number; directory?: 'committed'; readonly signal: AbortSignal },
   ): Promise<MergedHookOutcome> {
-    const groups = selectHookGroups(parsed[point], matchQuery, 'claude-code')
+    const groups = selectHookGroups(parsed[point], matchQuery, 'legacy-hooks')
     if (groups.length === 0) return mergeHookOutputs([])
     const outputs: HookOutput[] = []
     const workdir = opts.agent === undefined ? undefined
       : opts.directory === 'committed' ? ctx.workingDirectory.get(opts.agent.session)
         : await ctx.workingDirectory.ensure(opts.agent, opts.signal)
-    // CLAUDE_PROJECT_DIR: an explicit config value wins; otherwise default it to the session
+    // HOOK_PROJECT_DIR: an explicit config value wins; otherwise default it to the session
     // workspace (the same dir the hook runs in).
     const projectDir = config.projectDir ?? workdir
-    const hookEnv = projectDir !== undefined ? { CLAUDE_PROJECT_DIR: projectDir } : undefined
+    const hookEnv = projectDir !== undefined ? { HOOK_PROJECT_DIR: projectDir } : undefined
     for (const group of groups) {
       for (const hook of group.hooks) {
         const handlerId = nextHandlerId(point)
         const session = opts.agent?.session
         if (session && opts.turn !== undefined) {
           appendHookInvoked(session, {
-            turn: opts.turn, point, dialect: 'claude-code', handlerId,
+            turn: opts.turn, point, dialect: 'legacy-hooks', handlerId,
             matcher: group.matcher,
           })
         }
@@ -299,13 +299,13 @@ export function apply(ctx: Context, config: Config): void {
     subagentChildren.delete(info.runId)
     // The end edge follows child disposal; committed Session state remains readable.
     detached.track(runPoint('SubagentStop', SUBAGENT_TYPE, subagentPayload('SubagentStop', info, child), { ...child ? { agent: child, directory: 'committed' } : {}, signal: detached.signal })
-      .catch((error: unknown) => { ctx.logger.warn(`hooks-claude-code: SubagentStop hook failed: ${String(error)}`) }))
+      .catch((error: unknown) => { ctx.logger.warn(`hooks-legacy-hooks: SubagentStop hook failed: ${String(error)}`) }))
   })
 }
 
 /**
  * The `agent_type` value the bridge reports for SubagentStart/Stop. The harness
- * subagent seam carries no per-kind label, so the bridge uses Claude Code's own
+ * subagent seam carries no per-kind label, so the bridge uses Legacy Code's own
  * Task-tool default — a hooks.json with a default/`*`/empty `agent_type` matcher
  * fires; a config matching a specific kind (e.g. `code-reviewer`) does not.
  */

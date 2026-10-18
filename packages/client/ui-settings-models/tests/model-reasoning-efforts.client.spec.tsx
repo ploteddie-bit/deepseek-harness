@@ -291,7 +291,7 @@ describe('reasoning levels in the model list', () => {
     ['with an empty level list', []],
   ])('shows no reasoning control %s, leaving catalog rows to the installed catalog', (_label, reasoningLevels) => {
     render(<ModelListEditor
-      models={[{ id: 'gpt-5' }]} onChange={vi.fn()} catalogProvider="openai" reasoningLevels={reasoningLevels}
+      models={[{ id: 'externalModel-5' }]} onChange={vi.fn()} catalogProvider="openai" reasoningLevels={reasoningLevels}
       probe={{ settingsNs: 'llm-pi-ai', provider: 'openai' }}
       operations={operations} disabled={false} t={t} onBusyChange={() => {}}
     />)

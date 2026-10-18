@@ -1,6 +1,6 @@
 /**
- * Matching and command-group selection shared by both hook dialects. Claude treats alphanumeric/underscore/
- * pipe patterns as literal alternatives and other patterns as regex; Codex
+ * Matching and command-group selection shared by both hook dialects. Legacy treats alphanumeric/underscore/
+ * pipe patterns as literal alternatives and other patterns as regex; ExternalCli
  * treats every non-empty pattern as an unanchored regex. Missing, empty, and
  * `*` match all. Runtime matching contains invalid regexes as non-matches;
  * config parsers use {@link matcherDiagnostic} to reject them with a diagnostic.
@@ -14,8 +14,8 @@ function isMatchAll(matcher: string | undefined): boolean {
   return matcher === undefined || matcher === '' || matcher === '*'
 }
 
-/** A Claude-literal pattern is purely word chars + `|` (the regex-vs-literal discriminator). */
-const CLAUDE_LITERAL = /^[A-Za-z0-9_|]+$/
+/** A Legacy-literal pattern is purely word chars + `|` (the regex-vs-literal discriminator). */
+const HOOK_LITERAL = /^[A-Za-z0-9_|]+$/
 
 /** Compile an unanchored matcher regex; invalid patterns return `undefined`. */
 function compileRegex(pattern: string): RegExp | undefined {
@@ -37,14 +37,14 @@ function compileRegex(pattern: string): RegExp | undefined {
 export function matcherDiagnostic(matcher: string | undefined, mode: MatcherMode): string | undefined {
   if (isMatchAll(matcher)) return undefined
   const pattern = matcher as string
-  if (mode === 'claude-code' && CLAUDE_LITERAL.test(pattern)) return undefined
+  if (mode === 'legacy-hooks' && HOOK_LITERAL.test(pattern)) return undefined
   return compileRegex(pattern) === undefined
     ? `invalid ${mode} regex matcher ${JSON.stringify(pattern)}`
     : undefined
 }
 
 /**
- * Whether `matcher` selects `query` under the given dialect. Claude literal
+ * Whether `matcher` selects `query` under the given dialect. Legacy literal
  * patterns exact-match pipe-separated alternatives; all other patterns are
  * unanchored regexes. Invalid regexes return `false` rather than throwing;
  * bridge config parsers surface them through {@link matcherDiagnostic} before use.
@@ -58,7 +58,7 @@ export function matchesMatcher(matcher: string | undefined, query: string, mode:
   if (isMatchAll(matcher)) return true
   // matcher is a non-empty string past the match-all guard.
   const pattern = matcher as string
-  if (mode === 'claude-code' && CLAUDE_LITERAL.test(pattern)) {
+  if (mode === 'legacy-hooks' && HOOK_LITERAL.test(pattern)) {
     return pattern.split('|').includes(query)
   }
   return compileRegex(pattern)?.test(query) ?? false

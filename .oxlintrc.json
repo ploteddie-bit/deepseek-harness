@@ -15,7 +15,7 @@
     "**/lib/**",
     "**/node_modules/**",
     "**/.sessions/**",
-    ".claude/**", // Harness-local state belongs to other checkouts, not this checkout's sources.
+    ".legacy/**", // Harness-local state belongs to other checkouts, not this checkout's sources.
     "**/.doc-typecheck-*/**",
     "**/.node-next-types-*/**",
     "**/.oxlint-contract-*/**", // Scratch files created by the executable lint-contract tests.
@@ -23,7 +23,7 @@
     "packages/typert/generator/tests/fixtures/type-model/**", // tsgolint rejects this fixture's preserved project shapes before rules run.
     "website/.generated/**",
     "vendor/**", // Vendored source keeps upstream style and idioms.
-    "packages/experimental/plugin-mods/examples/*/{hooks,tests,types}/**", // Claude Code's published example mods and their tests keep the upstream style; see the headers.
+    "packages/experimental/plugin-mods/examples/*/{hooks,tests,types}/**", // Legacy Code's published example mods and their tests keep the upstream style; see the headers.
     "native/**", // The imported landlock-run subtree has its own gates; see native/README.md.
     "**/*.js",
     "**/*.mjs",

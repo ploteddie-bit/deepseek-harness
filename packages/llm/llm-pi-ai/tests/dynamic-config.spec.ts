@@ -61,8 +61,8 @@ describe('login flows in a real composition', () => {
 
     // Zero routes configured: signing in is what makes a route worth adding,
     // so the offer cannot wait for a profile to name the provider.
-    const codex = ctx.authorization.describe(LlmPiAi.recordKeyFor('openai-codex'))
-    expect(codex?.methods.map(method => method.id)).toEqual(['oauth'])
+    const externalCli = ctx.authorization.describe(LlmPiAi.recordKeyFor('openai-externalCli'))
+    expect(externalCli?.methods.map(method => method.id)).toEqual(['oauth'])
   })
 
   it('mounts without the seam, and simply offers no sign-in', async () => {
@@ -292,7 +292,7 @@ describe('request-level dynamic profiles', () => {
     // owns openai (an eager dispose would have dropped it), and anthropic
     // still belongs to its original adapter.
     expect(ctx.llm.listProviders().map(provider => provider.id).sort()).toEqual(['anthropic', 'openai'])
-    const result = await assemble(ctx, { provider: 'openai', model: 'gpt-4.1', messages: [] })
+    const result = await assemble(ctx, { provider: 'openai', model: 'externalModel-4.1', messages: [] })
     expect(result.finish.kind).toBe('error')
     expect(server.paths).toEqual(['/v1/responses'])
 
@@ -300,7 +300,7 @@ describe('request-level dynamic profiles', () => {
     // facts equal the ones the registry already holds.
     await configurations.get(ctx)!.replace(initialConfigs.get(ctx)!)
     expect(ctx.llm.listProviders().map(provider => provider.id).sort()).toEqual(['anthropic', 'openai'])
-    await assemble(ctx, { provider: 'openai', model: 'gpt-4.1', messages: [] })
+    await assemble(ctx, { provider: 'openai', model: 'externalModel-4.1', messages: [] })
     expect(server.paths).toEqual(['/v1/responses', '/v1/responses'])
   })
 

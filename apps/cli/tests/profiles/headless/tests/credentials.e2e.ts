@@ -54,7 +54,7 @@ const credentials = JSON.stringify({
   refs: { DEEPSEEK_API_KEY: savedKey, ANTHROPIC_API_KEY: savedKey },
   records: {
     'llm-pi-ai/anthropic': { kind: 'api-key', key: savedKey },
-    'llm-pi-ai/openai-codex': {
+    'llm-pi-ai/openai-externalCli': {
       kind: 'grant', payload: { type: 'oauth', access: 'headless-saved-access', refresh: 'headless-saved-refresh', expires: 1 },
     },
   },
@@ -174,7 +174,7 @@ describe('headless credential policy', { retry: 0 }, () => {
 
   it.each([
     { provider: 'deepseek-account', model: 'deepseek-v4-flash', code: 'ACCOUNT_SIGN_IN_REQUIRED' },
-    { provider: 'openai-codex', model: 'gpt-5.4', code: 'PI_AI_ERROR: Provider is not configured: openai-codex' },
+    { provider: 'openai-externalCli', model: 'externalModel-5.4', code: 'PI_AI_ERROR: Provider is not configured: openai-externalCli' },
   ])('fails without saved sign-in for $provider', async ({ provider, model, code }) => {
     const result = await runLoaderSmoke({
       label: `headless saved sign-in: ${provider}`,
@@ -187,7 +187,7 @@ describe('headless credential policy', { retry: 0 }, () => {
         await writeFile(join(cwd, '.dsh', '.credentials.yaml'), credentials, { mode: 0o600 })
         await writeFile(join(cwd, 'auth.patch.json'), JSON.stringify([
           { id: 'agent-default-model', config: { provider, model } },
-          ...provider === 'openai-codex' ? [{ id: 'llm-pi-ai', config: { providers: {
+          ...provider === 'openai-externalCli' ? [{ id: 'llm-pi-ai', config: { providers: {
             [provider]: { models: [{ id: model, contextWindow: 32_768, maxTokens: 1024 }] },
           } } }] : [],
         ]))

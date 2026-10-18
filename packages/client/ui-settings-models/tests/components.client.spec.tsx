@@ -2248,7 +2248,7 @@ it('refreshes a blank editor from saved credentials to environment detection wit
 })
 
 it('keeps an OAuth-only provider on its native authentication path', () => {
-  renderPiAiEditor('openai-codex', wireNamespaces().find(view => view.ns === 'llm-pi-ai')!, {
+  renderPiAiEditor('openai-externalCli', wireNamespaces().find(view => view.ns === 'llm-pi-ai')!, {
     nativeAuth: { env: [], oauth: true },
   })
   expect(screen.queryByLabelText(en.keyInput)).toBeNull()
@@ -2273,7 +2273,7 @@ it.each([
 })
 
 it.each([
-  ['an OAuth-only provider', 'openai-codex', 'CODEX_TOKEN', { env: [], oauth: true }],
+  ['an OAuth-only provider', 'openai-externalCli', 'EXTERNAL_CLI_TOKEN', { env: [], oauth: true }],
   [
     'a provider with catalog variables and an OAuth sign-in', 'anthropic', 'TEAM_ANTHROPIC_KEY',
     { env: ['ANTHROPIC_AUTH_TOKEN', 'ANTHROPIC_OAUTH_TOKEN', 'ANTHROPIC_API_KEY'], oauth: true },

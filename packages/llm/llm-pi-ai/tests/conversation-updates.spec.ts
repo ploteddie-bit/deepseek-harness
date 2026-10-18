@@ -28,7 +28,7 @@ describe('conversation capability mapping', () => {
   it.each<{ api: Api; compat: Model<Api>['compat']; toolUpdate?: ToolUpdate }>([
     { api: 'openai-completions', compat: { supportsMidConvoSystemMessages: true, supportsMidConvoToolAdditions: true }, toolUpdate: 'addition-only' },
     { api: 'anthropic-messages', compat: { supportsMidConvoSystemMessages: true, supportsMidConvoToolChanges: true }, toolUpdate: 'in-history' },
-    ...['openai-responses', 'azure-openai-responses', 'openai-codex-responses'].flatMap(api => [
+    ...['openai-responses', 'azure-openai-responses', 'openai-externalCli-responses'].flatMap(api => [
       { api, compat: { supportsMidConvoSystemMessages: true, supportsAdditionalTools: true }, toolUpdate: 'addition-only' as const },
       { api, compat: { supportsMidConvoSystemMessages: true, supportsToolSearch: true }, toolUpdate: 'addition-only' as const },
     ]),
@@ -80,7 +80,7 @@ const addition = () => createDeveloperMessage({ source: { kind: 'tool-registry' 
 
 describe('serialized conversation updates', () => {
   it.each(['anthropic', 'openai'] as const)('omits an empty initial prompt while retaining the later update through %s', async (provider) => {
-    const modelId = provider === 'anthropic' ? 'claude-opus-4-8' : 'gpt-5.4'
+    const modelId = provider === 'anthropic' ? 'legacy-opus-4-8' : 'externalModel-5.4'
     const { requests } = await send(provider, modelId, {
       messages: [system(''), user('first'), system('later prompt')],
     })
@@ -102,7 +102,7 @@ describe('serialized conversation updates', () => {
 
   it('sends full prompt snapshots and grouped tool additions through Anthropic', async () => {
     const update = addition()
-    const { requests } = await send('anthropic', 'claude-opus-4-8', {
+    const { requests } = await send('anthropic', 'legacy-opus-4-8', {
       messages: [system('initial'), user('first'), system('full updated prompt'), user('next'), update],
       tools: [baseline, added], toolHistory: { tools: [baseline], updates: [{ messageId: update.id, additions: [added] }] },
     })
@@ -123,7 +123,7 @@ describe('serialized conversation updates', () => {
 
   it('anchors Anthropic tool updates with a placeholder when every declaration is deferred', async () => {
     const update = addition()
-    const { requests } = await send('anthropic', 'claude-opus-4-8', {
+    const { requests } = await send('anthropic', 'legacy-opus-4-8', {
       messages: [user('first'), update], tools: [added],
       toolHistory: { tools: [], updates: [{ messageId: update.id, additions: [added] }] },
     })
@@ -145,7 +145,7 @@ describe('serialized conversation updates', () => {
 
   it.each([
     { provider: 'moonshotai', modelId: 'kimi-k3', field: 'messages', role: 'system' },
-    { provider: 'openai', modelId: 'gpt-5.4', field: 'input', role: 'developer' },
+    { provider: 'openai', modelId: 'externalModel-5.4', field: 'input', role: 'developer' },
   ])('preserves update placement through $provider', async ({ provider, modelId, field, role }) => {
     const { requests } = await send(provider, modelId, {
       messages: [system('initial'), user('first'),
@@ -164,10 +164,10 @@ describe('serialized conversation updates', () => {
 
   it('sends concatenated system messages and current tools on unsupported routes', async () => {
     const update = addition()
-    const { requests } = await send('openai', 'gpt-4.1', {
+    const { requests } = await send('openai', 'externalModel-4.1', {
       system: 'direct',
       messages: [system('initial'), user('first'), system('current'), user('next'), update,
-        createAssistantMessage({ source: { provider: 'openai', model: 'gpt-4.1' }, content: [{ type: 'text', text: 'answer' }] }),
+        createAssistantMessage({ source: { provider: 'openai', model: 'externalModel-4.1' }, content: [{ type: 'text', text: 'answer' }] }),
         system('current'), system('')], tools: [added],
       toolHistory: { tools: [baseline], updates: [{ messageId: update.id, additions: [added] }] },
     })
@@ -196,12 +196,12 @@ describe('historical tool availability on the wire', () => {
     })
   })
 
-  it('loads Codex tool additions through tool-search output', async () => {
-    // Codex extracts an account id from the token before contacting the mock server.
-    const payload = Buffer.from(JSON.stringify({ 'https://api.openai.com/auth': { chatgpt_account_id: 'fixture-account' } })).toString('base64url')
+  it('loads ExternalCli tool additions through tool-search output', async () => {
+    // ExternalCli extracts an account id from the token before contacting the mock server.
+    const payload = Buffer.from(JSON.stringify({ 'https://api.openai.com/auth': { chatexternalModel_account_id: 'fixture-account' } })).toString('base64url')
     const token = `e30.${payload}.fixture`
     const update = addition()
-    const { requests } = await send('openai-codex', 'gpt-5.5', {
+    const { requests } = await send('openai-externalCli', 'externalModel-5.5', {
       messages: [user('first'), update], tools: [baseline, added],
       toolHistory: { tools: [baseline], updates: [{ messageId: update.id, additions: [added] }] },
     }, token)
@@ -222,7 +222,7 @@ describe('historical tool availability on the wire', () => {
   it('retains removed declarations and reactivates them through Anthropic history', async () => {
     const remove = createDeveloperMessage({ source: { kind: 'tool-registry' }, content: [{ type: 'tool-removal', toolName: 'search' }] })
     const restore = createDeveloperMessage({ source: { kind: 'tool-registry' }, content: [{ type: 'tool-addition', toolName: 'search' }] })
-    const { requests } = await send('anthropic', 'claude-opus-4-8', {
+    const { requests } = await send('anthropic', 'legacy-opus-4-8', {
       messages: [user('first'), remove, user('restore'), restore], tools: [baseline, added],
       toolHistory: { tools: [baseline, added], updates: [
         { messageId: remove.id, additions: [] }, { messageId: restore.id, additions: [added] },
@@ -239,7 +239,7 @@ describe('historical tool availability on the wire', () => {
   it('anchors additions in Responses without emitting removal updates', async () => {
     const update = addition()
     const remove = createDeveloperMessage({ source: { kind: 'tool-registry' }, content: [{ type: 'tool-removal', toolName: 'read' }] })
-    const { requests } = await send('openai', 'gpt-5.4', {
+    const { requests } = await send('openai', 'externalModel-5.4', {
       messages: [user('first'), update, remove], tools: [added],
       toolHistory: { tools: [baseline], updates: [
         { messageId: update.id, additions: [added] }, { messageId: remove.id, additions: [] },
@@ -255,7 +255,7 @@ describe('historical tool availability on the wire', () => {
 
   it('uses current declarations when a request prefix omits recorded updates', async () => {
     const update = addition()
-    const { requests } = await send('anthropic', 'claude-opus-4-8', {
+    const { requests } = await send('anthropic', 'legacy-opus-4-8', {
       messages: [user('prefix')], tools: [added],
       toolHistory: { tools: [baseline], updates: [{ messageId: update.id, additions: [added] }] },
     })

@@ -1,4 +1,4 @@
-/** Official bundle activation reaches the real Claude SDK/CLI; only both model responses are scripted. */
+/** Official bundle activation reaches the real Legacy SDK/CLI; only both model responses are scripted. */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createServer, request as forwardRequest, type ClientRequest } from 'node:http'
 import { tmpdir } from 'node:os'
@@ -18,8 +18,8 @@ import { connectFreshWorkspace, newEnglishPage, saveFailureShot } from './suppor
 
 const DIR = fileURLToPath(new URL('../../../snapshots/web/official-subagent-bundle', import.meta.url))
 const FIXTURE = join(DIR, 'session.v4.jsonl')
-const PACKAGE = fileURLToPath(new URL('../../../packages/subagent/subagent-claude-code', import.meta.url))
-const BUNDLE = '@deepseek-ai/dsh-subagent-claude-code'
+const PACKAGE = fileURLToPath(new URL('../../../packages/subagent/subagent-legacy-hooks', import.meta.url))
+const BUNDLE = '@deepseek-ai/dsh-subagent-legacy-hooks'
 const RESPONSE = 'OFFICIAL_SUBAGENT_OK'
 const MODE = webSnapshotMode()
 
@@ -76,19 +76,19 @@ describe.skipIf(MODE === 'record')('web snapshot: Official native subagent bundl
 
   beforeAll(async () => {
     root = await mkdtemp(join(tmpdir(), 'dsh-official-subagent-'))
-    const config = join(root, 'claude-config')
+    const config = join(root, 'legacy-config')
     const xdg = join(root, 'xdg')
     await Promise.all([mkdir(config), mkdir(xdg)])
     server = await startMockLlmServer({ sequence: ['success'], successText: RESPONSE, apiKey: 'snapshot-fake-key' })
     nativeEndpoint = await heldNativeEndpoint(server.baseURL)
     const overlay = join(root, 'native-provider.patch.json')
     // This environment belongs only to the SDK-spawned product; host credentials and homes remain untouched.
-    await writeFile(overlay, JSON.stringify([{ id: 'subagent-claude-code', config: {
+    await writeFile(overlay, JSON.stringify([{ id: 'subagent-legacy-hooks', config: {
       model: 'fixture-model',
       env: {
         ANTHROPIC_API_KEY: 'snapshot-fake-key', ANTHROPIC_BASE_URL: nativeEndpoint.baseURL,
-        CLAUDE_CONFIG_DIR: config, HOME: root, XDG_CONFIG_HOME: xdg,
-        CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', CLAUDE_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL: '1',
+        HOOK_CONFIG_DIR: config, HOME: root, XDG_CONFIG_HOME: xdg,
+        HOOK_CODE_DISABLE_NONESSENTIAL_TRAFFIC: '1', HOOK_CODE_DISABLE_OFFICIAL_MARKETPLACE_AUTOINSTALL: '1',
         DISABLE_TELEMETRY: '1', DISABLE_ERROR_REPORTING: '1',
         HTTP_PROXY: '', HTTPS_PROXY: '', ALL_PROXY: '', NO_PROXY: '127.0.0.1,localhost',
       },
@@ -100,10 +100,10 @@ describe.skipIf(MODE === 'record')('web snapshot: Official native subagent bundl
     })
     expect((await scaffold.ctx.pluginManager.listBundles()).find(bundle => bundle.name === BUNDLE))
       .toMatchObject({ official: true, availability: 'profile', enabled: false })
-    expect(scaffold.ctx.tools.schemas().some(tool => tool.name === 'subagent_claude_code')).toBe(false)
+    expect(scaffold.ctx.tools.schemas().some(tool => tool.name === 'subagent_legacy_hooks')).toBe(false)
     expect(await scaffold.ctx.pluginManager.setBundleEnabled(BUNDLE, true))
       .toMatchObject({ application: 'applied', changed: true })
-    expect(scaffold.ctx.tools.schemas().some(tool => tool.name === 'subagent_claude_code')).toBe(true)
+    expect(scaffold.ctx.tools.schemas().some(tool => tool.name === 'subagent_legacy_hooks')).toBe(true)
     browser = await chromium.launch()
     page = await newEnglishPage(browser)
     tripwire = watchConsole(page)
@@ -145,11 +145,11 @@ describe.skipIf(MODE === 'record')('web snapshot: Official native subagent bundl
     expect(agent.session.requestHeader()?.tools?.map(tool => tool.name)).toEqual(['run_code'])
     const system = agent.session.deriveMessages().filter(message => message.role === 'system')
       .flatMap(message => message.content.flatMap(block => block.type === 'text' ? [block.text] : [])).join('\n')
-    expect(system).toContain('subagent_claude_code')
+    expect(system).toContain('subagent_legacy_hooks')
     const events = agent.session.snapshotEvents()
     expect(events.filter(event => event.type === 'tool/call').map(event => event.data.name)).toEqual(['run_code'])
     const dispatches = events.filter(event => event.type === 'tool/ptc-dispatch').map(event => event.data)
-    expect(dispatches).toMatchObject([{ name: 'subagent_claude_code', isError: false }])
+    expect(dispatches).toMatchObject([{ name: 'subagent_legacy_hooks', isError: false }])
     const catalog = events.filter(event => event.type === 'subagent/catalog').map(event => event.data)
     expect(catalog).toMatchObject([{ mode: 'external', label: 'Read the fixture response' }])
     const notice = events.filter(event => event.type === 'user/message').find(event => event.data.source.kind === 'subagent-settled')

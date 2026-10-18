@@ -13,9 +13,9 @@
  *
  * ```ts
  * const dispose = ctx.authorization.registerFlow({
- *   key: credentialKey('llm-pi-ai', 'openai-codex'),
- *   label: 'ChatGPT (Codex)',
- *   methods: [{ id: 'oauth', label: 'Sign in with ChatGPT' }],
+ *   key: credentialKey('llm-pi-ai', 'openai-externalCli'),
+ *   label: 'ChatExternalModel (ExternalCli)',
+ *   methods: [{ id: 'oauth', label: 'Sign in with ChatExternalModel' }],
  *   async run(session) {
  *     session.notify({ message: 'Continue in your browser', url })
  *     await commitThroughCredentials(await exchange(session.signal))

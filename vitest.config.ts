@@ -31,8 +31,8 @@ const windowsUnsupportedPackages = process.platform === 'win32'
       'packages/shell/bash-sandbox',
       'packages/shell/tool-bash',
       'packages/experimental/hook-protocol',
-      'packages/experimental/hooks-claude-code',
-      'packages/experimental/hooks-codex',
+      'packages/experimental/hooks-legacy-hooks',
+      'packages/experimental/hooks-externalCli',
       'packages/terminal/terminal-bash',
       'packages/experimental/ptc-runtime-python',
       'packages/sandbox/sandbox-local',
@@ -171,15 +171,15 @@ const processBoundTests = [
   'packages/workflow/workflow-ptc/tests/workflow-ptc.spec.ts',
 ]
 
-// Claude Code's test-kit module names, served by the mods bridge's test support so the example mods' tests import them unchanged.
-const claudeCodeTestingAliases = {
-  'claude-code/testing': fileURLToPath(new URL('./packages/experimental/claude-code-mods/tests/support/claude-code-testing.ts', import.meta.url)),
-  'claude-code': fileURLToPath(new URL('./packages/experimental/claude-code-mods/tests/support/claude-code.ts', import.meta.url)),
+// Legacy Code's test-kit module names, served by the mods bridge's test support so the example mods' tests import them unchanged.
+const legacyHooksTestingAliases = {
+  'legacy-hooks/testing': fileURLToPath(new URL('./packages/experimental/legacy-hooks-mods/tests/support/legacy-hooks-testing.ts', import.meta.url)),
+  'legacy-hooks': fileURLToPath(new URL('./packages/experimental/legacy-hooks-mods/tests/support/legacy-hooks.ts', import.meta.url)),
 }
 
 export default defineConfig({
   plugins: [pathsPlugin(), standardDecoratorPlugin()],
-  resolve: { alias: claudeCodeTestingAliases },
+  resolve: { alias: legacyHooksTestingAliases },
   test: {
     ...localWorkerBudget,
     setupFiles: ['./scripts/test-proxy-environment.ts', './scripts/test-dom-environment.ts'],
@@ -191,7 +191,7 @@ export default defineConfig({
     projects: [
       {
         plugins: [pathsPlugin(), standardDecoratorPlugin()],
-        resolve: { alias: claudeCodeTestingAliases },
+        resolve: { alias: legacyHooksTestingAliases },
         test: {
           name: 'thread-safe',
           execArgv: vitestExecArgv,
@@ -211,7 +211,7 @@ export default defineConfig({
       },
       {
         plugins: [pathsPlugin(), standardDecoratorPlugin()],
-        resolve: { alias: claudeCodeTestingAliases },
+        resolve: { alias: legacyHooksTestingAliases },
         test: {
           name: 'process-bound',
           execArgv: vitestExecArgv,
@@ -333,7 +333,7 @@ export default defineConfig({
         'packages/experimental/client-ui-voice-input/src/client/index.ts',
         // The mods band entry imports the bridge's generated Remote contribution, which exists only in lib;
         // the Web snapshot exercises the built entry, while source tests cover mountModsBand.
-        'packages/experimental/client-ui-claude-code-mods/src/client/index.ts',
+        'packages/experimental/client-ui-legacy-hooks-mods/src/client/index.ts',
         // The access entry imports its generated Remote contribution, which exists only in lib;
         // the Web snapshot exercises the built entry, while source tests cover mountAccess.
         'packages/api/remote-access/src/client/index.ts',

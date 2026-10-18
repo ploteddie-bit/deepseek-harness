@@ -77,9 +77,9 @@ describe('catalog-route model discovery', () => {
   it('includes the installed model input types for vision models', async () => {
     const ctx = await harness()
     const models = await ctx.llm.discoverModels('llm-pi-ai', { provider: 'openai' })
-    const installed = getBuiltinModels('openai').find(model => model.id === 'gpt-6-astra')
+    const installed = getBuiltinModels('openai').find(model => model.id === 'externalModel-6-astra')
     expect(installed?.input).toContain('image')
-    expect(models.find(model => model.id === 'gpt-6-astra')).toMatchObject({ inputModalities: installed?.input })
+    expect(models.find(model => model.id === 'externalModel-6-astra')).toMatchObject({ inputModalities: installed?.input })
   })
 
   it('answers from the installed registry, with capacities and no network call', async () => {
@@ -178,8 +178,8 @@ describe('draft-provider model discovery', () => {
       body: JSON.stringify({
         data: [
           {
-            id: 'claude-sonnet',
-            display_name: 'Claude Sonnet',
+            id: 'legacy-sonnet',
+            display_name: 'Legacy Sonnet',
             max_input_tokens: 200_000,
             max_tokens: 64_000,
           },
@@ -204,7 +204,7 @@ describe('draft-provider model discovery', () => {
     })
 
     expect(rootModels).toEqual([
-      { id: 'claude-sonnet', name: 'Claude Sonnet', contextWindow: 200_000, maxTokens: 64_000 },
+      { id: 'legacy-sonnet', name: 'Legacy Sonnet', contextWindow: 200_000, maxTokens: 64_000 },
     ])
     expect(versionedModels).toEqual(rootModels)
     expect(server.paths).toEqual([
@@ -379,11 +379,11 @@ describe('draft-provider model discovery', () => {
       .rejects.toMatchObject({ code: 'DISCOVERY_FAILED' })
   })
 
-  it.each(['azure-openai-responses', 'openai-codex-responses', 'google-generative-ai'])(
+  it.each(['azure-openai-responses', 'openai-externalCli-responses', 'google-generative-ai'])(
     'says it cannot interrogate %s rather than guessing a shape',
     async (api) => {
       // Azure authenticates with an `api-key` header and an `api-version`
-      // query despite its OpenAI lineage, and Codex uses OAuth; guessing at
+      // query despite its OpenAI lineage, and ExternalCli uses OAuth; guessing at
       // either would report an auth failure as a provider with no models.
       const ctx = await harness()
       await expect(ctx.llm.discoverModels('llm-pi-ai', { baseURL: 'https://gateway.example/v1', api }))
@@ -504,7 +504,7 @@ const RECORDED_LISTINGS = [
     file: 'openrouter-2026-09-02.json',
     api: 'openai-completions',
     models: [
-      { id: 'anthropic/claude-fable-5.1', name: 'Anthropic: Claude Fable 5.1', contextWindow: 1_000_000, maxTokens: 128_000 },
+      { id: 'anthropic/legacy-fable-5.1', name: 'Anthropic: Legacy Fable 5.1', contextWindow: 1_000_000, maxTokens: 128_000 },
       // The router's own aggregate route reports no completion cap.
       { id: 'openrouter/auto-beta', name: 'Auto Router (Beta)', contextWindow: 2_000_000 },
       { id: 'deepseek/deepseek-v4-flash', name: 'DeepSeek: DeepSeek V4 Flash 0423', contextWindow: 1_048_576, maxTokens: 384_000 },
@@ -515,9 +515,9 @@ const RECORDED_LISTINGS = [
     file: 'models-dev-anthropic-2026-09-02.json',
     api: 'openai-completions',
     models: [
-      { id: 'claude-opus-4-7', name: 'Claude Opus 4.7', contextWindow: 1_000_000, maxTokens: 128_000 },
-      { id: 'claude-fable-5-1', name: 'Claude Fable 5.1', contextWindow: 1_000_000, maxTokens: 128_000 },
-      { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5 (latest)', contextWindow: 200_000, maxTokens: 64_000 },
+      { id: 'legacy-opus-4-7', name: 'Legacy Opus 4.7', contextWindow: 1_000_000, maxTokens: 128_000 },
+      { id: 'legacy-fable-5-1', name: 'Legacy Fable 5.1', contextWindow: 1_000_000, maxTokens: 128_000 },
+      { id: 'legacy-haiku-4-5', name: 'Legacy Haiku 4.5 (latest)', contextWindow: 200_000, maxTokens: 64_000 },
     ],
   },
   {
@@ -536,7 +536,7 @@ const RECORDED_LISTINGS = [
     api: 'anthropic-messages',
     // The reference example fills both capacities with 0, which is not a
     // usable capacity, so the row carries the name alone.
-    models: [{ id: 'claude-opus-5', name: 'Claude Opus 5' }],
+    models: [{ id: 'legacy-opus-5', name: 'Legacy Opus 5' }],
   },
 ]
 

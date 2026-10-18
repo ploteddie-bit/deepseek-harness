@@ -246,7 +246,7 @@ describe.skipIf(!process.env.DEEPSEEK_API_KEY)('DeepSeek Messages real API', () 
     }))
     const history = [
       user('Look up the secret value.'),
-      createAssistantMessage({ source: { provider: 'foreign', model: 'claude' }, content: [...calls, { type: 'text', text: '' }] }),
+      createAssistantMessage({ source: { provider: 'foreign', model: 'legacy' }, content: [...calls, { type: 'text', text: '' }] }),
       ...calls.map(call => createToolResultMessage({ callId: call.id, content: [{ type: 'text', text: 'EMPTY_TEXT_RECOVERED_731' }], isError: false })),
       user('Do not call tools. Reply with exactly EMPTY_TEXT_RECOVERED_731.'),
     ]

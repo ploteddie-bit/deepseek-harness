@@ -1035,8 +1035,8 @@ describe('PluginManagerPage', () => {
         { packages: [
           pkg({ name: '@deepseek-ai/dsh-experimental-badge-skill-bundle', official: true, enabled: false }),
           pkg({ name: '@deepseek-ai/dsh-experimental-agent-team-profile', installed: false, optional: true, removable: false, enabled: false }),
-          pkg({ name: '@deepseek-ai/dsh-subagent-claude-code', official: true, availability: 'missing', installed: false, enabled: false }),
-          pkg({ name: '@deepseek-ai/dsh-subagent-codex', official: true, enabled: false }),
+          pkg({ name: '@deepseek-ai/dsh-subagent-legacy-hooks', official: true, availability: 'missing', installed: false, enabled: false }),
+          pkg({ name: '@deepseek-ai/dsh-subagent-externalCli', official: true, enabled: false }),
           pkg({ name: '@deepseek-ai/dsh-experimental-tool-worktree', official: true, enabled: false }),
           pkg({ name: '@acme/new-official', official: true }),
           pkg(),
@@ -1067,7 +1067,7 @@ describe('PluginManagerPage', () => {
         .toEqual(['more'])
       const more = document.querySelector('[data-plugin-group="more"]') as HTMLElement
       expect(within(more).getAllByRole('listitem').map(card => card.getAttribute('data-plugin-package')))
-        .toEqual([team, '@acme/new-official', '@deepseek-ai/dsh-experimental-tool-worktree', '@deepseek-ai/dsh-experimental-badge-skill-bundle', '@deepseek-ai/dsh-subagent-codex', '@deepseek-ai/dsh-subagent-claude-code'])
+        .toEqual([team, '@acme/new-official', '@deepseek-ai/dsh-experimental-tool-worktree', '@deepseek-ai/dsh-experimental-badge-skill-bundle', '@deepseek-ai/dsh-subagent-externalCli', '@deepseek-ai/dsh-subagent-legacy-hooks'])
       expect(document.querySelector('[data-plugin-package="dsh-better-sidebar"]')).toBeNull()
       fireEvent.click(screen.getByRole('button', { name: en.openDetail.replace('{name}', team) }))
       fireEvent.click(screen.getByRole('button', { name: en.backToPackage.replace('{name}', en.moreTitle) }))
@@ -2108,7 +2108,7 @@ describe('PluginManagerPage', () => {
     try {
       const { actions, set } = renderTab({ packages: [
         pkg({ name, official: true, enabled: false }),
-        pkg({ name: '@deepseek-ai/dsh-subagent-codex', official: true, enabled: false }),
+        pkg({ name: '@deepseek-ai/dsh-subagent-externalCli', official: true, enabled: false }),
       ] })
       expect(document.querySelector(`[data-plugin-package="${name}"]`)).toBeNull()
       set({ highlight: name })
@@ -2325,8 +2325,8 @@ it('supplies the accepted entry values and atomic mutation action to a custom pl
 
 
 describe('on-demand Official bundles', () => {
-  const name = '@deepseek-ai/dsh-subagent-codex'
-  const title = 'Codex subagent'
+  const name = '@deepseek-ai/dsh-subagent-externalCli'
+  const title = 'ExternalCli subagent'
   const catalog = (): PackageView => ({ name, meta: { title }, official: true, availability: 'missing', installed: false,
     optional: false, removable: false, enabled: false, rows: [],
     installTarget: { spec: `${name}@2.0.0`, version: '2.0.0' },
@@ -2388,10 +2388,10 @@ describe('on-demand Official bundles', () => {
   })
 
   it.each([
-    ['link:/current-checkout/codex', `${name}@2.0.0`, true],
-    ['link:/current-checkout/codex', 'link:/other-checkout/codex', true],
-    ['link:/current-checkout/codex', 'link:/current-checkout/codex', false],
-    [`${name}@2.0.0`, 'link:/current-checkout/codex', true],
+    ['link:/current-checkout/externalCli', `${name}@2.0.0`, true],
+    ['link:/current-checkout/externalCli', 'link:/other-checkout/externalCli', true],
+    ['link:/current-checkout/externalCli', 'link:/current-checkout/externalCli', false],
+    [`${name}@2.0.0`, 'link:/current-checkout/externalCli', true],
     [`${name}@2.0.0`, `${name}@^2.0.0`, false],
     [`${name}@2.0.0`, undefined, false],
   ] as const)('offers source replacement from %s with recorded source %s: %s', (spec, source, expected) => {

@@ -57,7 +57,7 @@ function event(inventory: PersistenceSchemaInventory, name = 'test/record'): str
 
 describe('persistent source type extraction', () => {
   it('keeps authored names and anonymous declaration locations without synthesized traversal names', () => {
-    const root = fixture('interface Section { text: string }\nexport interface Payload { inserted: { source: { kind: "hooks-codex"; sections: Section[] } }[] }')
+    const root = fixture('interface Section { text: string }\nexport interface Payload { inserted: { source: { kind: "hooks-externalCli"; sections: Section[] } }[] }')
     const inventory = extractPersistenceSchema(root)
     expect(inventory.types.flatMap(type => type.names).every(name => name.includes('#'))).toBe(true)
     expect(inventory.types.some(type => type.names.includes('packages/domain/payload/src/types.ts#Section'))).toBe(true)

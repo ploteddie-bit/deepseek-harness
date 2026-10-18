@@ -83,7 +83,7 @@ export function conversationUpdates(model: Model<Api>): Pick<LlmResolvedModelInf
   } else if (model.api === 'openai-completions'
     && 'supportsMidConvoToolAdditions' in compat && compat.supportsMidConvoToolAdditions) {
     updates.toolUpdate = 'addition-only'
-  } else if ((model.api === 'openai-responses' || model.api === 'azure-openai-responses' || model.api === 'openai-codex-responses')
+  } else if ((model.api === 'openai-responses' || model.api === 'azure-openai-responses' || model.api === 'openai-externalCli-responses')
     && (('supportsAdditionalTools' in compat && compat.supportsAdditionalTools)
       || ('supportsToolSearch' in compat && compat.supportsToolSearch))) {
     updates.toolUpdate = 'addition-only'

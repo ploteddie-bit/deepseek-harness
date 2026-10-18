@@ -109,7 +109,7 @@ describe('toPiContext', () => {
     ))
     const context = await toPiContext({
       provider: 'openai',
-      model: 'gpt-4.1',
+      model: 'externalModel-4.1',
       messages: [createUserMessage({
         content: [{ type: 'text', text: 'describe' }, { type: 'image', attachment }],
         source: { kind: 'test' },
@@ -145,7 +145,7 @@ describe('toPiContext', () => {
     ))
     const context = await toPiContext({
       provider: 'openai',
-      model: 'gpt-4.1',
+      model: 'externalModel-4.1',
       messages: [createToolResultMessage({
         callId: ToolCallId('outer'),
         content: [
@@ -176,7 +176,7 @@ describe('toPiContext', () => {
 
   it('rejects structured image history when no durable resolver is supplied', () => {
     expect(() => toPiContext({
-      provider: 'openai', model: 'gpt-4.1',
+      provider: 'openai', model: 'externalModel-4.1',
       messages: [createUserMessage({
         content: [{
           type: 'image',
@@ -360,8 +360,8 @@ describe('toPiContext', () => {
     const state = toPiReplayState(assistant({
       api: 'openai-responses',
       provider: 'openai',
-      model: 'gpt-5',
-      responseModel: 'gpt-5-2026-01-01',
+      model: 'externalModel-5',
+      responseModel: 'externalModel-5-2026-01-01',
       responseId: 'resp_123',
       stopReason: 'toolUse',
       content: [
@@ -372,7 +372,7 @@ describe('toPiContext', () => {
     }))
     const context = toPiContext({
       provider: 'anthropic',
-      model: 'claude-next',
+      model: 'legacy-next',
       messages: [createMessage({
         role: 'assistant',
         content: [
@@ -382,7 +382,7 @@ describe('toPiContext', () => {
         ],
         source: {
           kind: 'model',
-          ...{ provider: 'openai', model: 'gpt-5', replayState: state },
+          ...{ provider: 'openai', model: 'externalModel-5', replayState: state },
         },
       })],
     })
@@ -391,8 +391,8 @@ describe('toPiContext', () => {
       role: 'assistant',
       api: 'openai-responses',
       provider: 'openai',
-      model: 'gpt-5',
-      responseModel: 'gpt-5-2026-01-01',
+      model: 'externalModel-5',
+      responseModel: 'externalModel-5-2026-01-01',
       responseId: 'resp_123',
       stopReason: 'toolUse',
       content: [
@@ -407,7 +407,7 @@ describe('toPiContext', () => {
     const state = toPiReplayState(assistant({
       api: 'anthropic-messages',
       provider: 'anthropic',
-      model: 'claude-opus-5',
+      model: 'legacy-opus-5',
       providerThinkingLevel,
       content: [{ type: 'text', text: 'done' }],
     }))
@@ -417,7 +417,7 @@ describe('toPiContext', () => {
         version: 2,
         api: 'anthropic-messages',
         provider: 'anthropic',
-        model: 'claude-opus-5',
+        model: 'legacy-opus-5',
         providerThinkingLevel,
         stopReason: 'stop',
       },
@@ -427,11 +427,11 @@ describe('toPiContext', () => {
     const onDegrade = vi.fn()
     const context = toPiContext({
       provider: 'anthropic',
-      model: 'claude-opus-5',
+      model: 'legacy-opus-5',
       messages: [createMessage({
         role: 'assistant',
         content: [{ type: 'text', text: 'done' }],
-        source: { kind: 'model', provider: 'anthropic', model: 'claude-opus-5', replayState },
+        source: { kind: 'model', provider: 'anthropic', model: 'legacy-opus-5', replayState },
       })],
     }, undefined, onDegrade)
     expect(context.messages[0]).toMatchObject({
@@ -443,8 +443,8 @@ describe('toPiContext', () => {
   })
 
   it('replays saved v2 Anthropic alias metadata with the requested model and signed thinking', () => {
-    const requestedModel = 'claude-haiku-4-5'
-    const responseModel = 'claude-haiku-4-5-20251001'
+    const requestedModel = 'legacy-haiku-4-5'
+    const responseModel = 'legacy-haiku-4-5-20251001'
     const replayState = {
       response: {
         kind: 'pi-ai', version: 2, api: 'anthropic-messages', provider: 'anthropic',
@@ -686,9 +686,9 @@ describe('toPiContext', () => {
 
 describe('toStreamChunks', () => {
   it.each([
-    ['claude-haiku-4-5', 'claude-haiku-4-5-20251001'],
-    ['claude-opus-5', 'kimi-for-coding'],
-    ['claude-opus-5', undefined],
+    ['legacy-haiku-4-5', 'legacy-haiku-4-5-20251001'],
+    ['legacy-opus-5', 'kimi-for-coding'],
+    ['legacy-opus-5', undefined],
   ])('retains signed thinking for Anthropic request %s reported as %s', async (requestedModel, reportedModel) => {
     const native = assistant({
       api: 'anthropic-messages', provider: 'anthropic', model: requestedModel,

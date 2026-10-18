@@ -2,13 +2,13 @@ import { describe, expect, it } from 'vitest'
 import { parseHookConfig, substituteCommand } from '@deepseek-ai/dsh-hooks-command/src/config.ts'
 
 describe('substituteCommand', () => {
-  it('replaces CLAUDE_PLUGIN_ROOT and CLAUDE_PROJECT_DIR (all occurrences)', () => {
-    expect(substituteCommand('${CLAUDE_PLUGIN_ROOT}/x.sh', { pluginRoot: '/p' })).toBe('/p/x.sh')
-    expect(substituteCommand('${CLAUDE_PROJECT_DIR}/a ${CLAUDE_PROJECT_DIR}/b', { projectDir: '/proj' })).toBe('/proj/a /proj/b')
-    expect(substituteCommand('${CLAUDE_PLUGIN_ROOT}-${CLAUDE_PROJECT_DIR}', { pluginRoot: '/p', projectDir: '/d' })).toBe('/p-/d')
+  it('replaces HOOK_PLUGIN_ROOT and HOOK_PROJECT_DIR (all occurrences)', () => {
+    expect(substituteCommand('${HOOK_PLUGIN_ROOT}/x.sh', { pluginRoot: '/p' })).toBe('/p/x.sh')
+    expect(substituteCommand('${HOOK_PROJECT_DIR}/a ${HOOK_PROJECT_DIR}/b', { projectDir: '/proj' })).toBe('/proj/a /proj/b')
+    expect(substituteCommand('${HOOK_PLUGIN_ROOT}-${HOOK_PROJECT_DIR}', { pluginRoot: '/p', projectDir: '/d' })).toBe('/p-/d')
   })
   it('leaves the command untouched when no vars are supplied', () => {
-    expect(substituteCommand('${CLAUDE_PLUGIN_ROOT}/x', {})).toBe('${CLAUDE_PLUGIN_ROOT}/x')
+    expect(substituteCommand('${HOOK_PLUGIN_ROOT}/x', {})).toBe('${HOOK_PLUGIN_ROOT}/x')
   })
 })
 
@@ -23,7 +23,7 @@ describe('parseHookConfig', () => {
 
   it('carries timeout → timeoutSec and substitutes the command', () => {
     const { config } = parseHookConfig(
-      { Stop: [{ hooks: [{ type: 'command', command: '${CLAUDE_PLUGIN_ROOT}/s.sh', timeout: 30 }] }] },
+      { Stop: [{ hooks: [{ type: 'command', command: '${HOOK_PLUGIN_ROOT}/s.sh', timeout: 30 }] }] },
       { pluginRoot: '/p' },
     )
     expect(config.Stop).toEqual([{ hooks: [{ command: '/p/s.sh', timeoutSec: 30 }] }])
@@ -67,7 +67,7 @@ describe('parseHookConfig', () => {
   it('rejects an invalid regex matcher with its event name', () => {
     expect(() => parseHookConfig({
       PreToolUse: [{ matcher: '(', hooks: [{ type: 'command', command: 'x.sh' }] }],
-    })).toThrow('invalid claude-code regex matcher "(" on event "PreToolUse"')
+    })).toThrow('invalid legacy-hooks regex matcher "(" on event "PreToolUse"')
   })
 
   it('discards matcher fields on events without matcher subjects before validation', () => {

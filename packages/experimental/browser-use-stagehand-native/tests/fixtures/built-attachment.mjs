@@ -13,7 +13,7 @@ try {
   await ctx.plugin(BrowserUseRegistry)
   const provider = ctx.plugin(Provider, {
     mode: 'attach', cdpEndpoint: endpoint,
-    model: { modelName: 'openai/gpt-5.4-mini', apiKey: 'offline-browser-smoke' },
+    model: { modelName: 'openai/externalModel-5.4-mini', apiKey: 'offline-browser-smoke' },
   })
   await provider
   const harness = await mountAgentLoopTestHarness(ctx)

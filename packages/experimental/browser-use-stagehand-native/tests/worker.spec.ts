@@ -24,7 +24,7 @@ async function prepare() {
   const channel = new MessageChannel()
   transport.port = channel.port1
   peer = channel.port2
-  transport.data = { model: { modelName: 'openai/gpt-5.4-mini', apiKey: 'fixture-model-key' }, mode: 'attach', cdpEndpoint: 'http://fixture', headless: true, operationTimeoutMs: 30000, shutdownGraceMs: 5000 }
+  transport.data = { model: { modelName: 'openai/externalModel-5.4-mini', apiKey: 'fixture-model-key' }, mode: 'attach', cdpEndpoint: 'http://fixture', headless: true, operationTimeoutMs: 30000, shutdownGraceMs: 5000 }
   const { fixture, resetFixture } = await import('@browserbasehq/stagehand') as unknown as typeof import('./fixtures/stagehand.ts')
   resetFixture()
   return { fixture, peer }
@@ -39,7 +39,7 @@ it('dispatches browser arguments using the independently configured native model
   await expect(request(peer, 'navigate', { url: 'invalid' })).rejects.toThrow()
   await expect(request(peer, 'unavailable')).rejects.toThrow()
   await request(peer, 'close')
-  expect(fixture.models).toEqual([{ modelName: 'openai/gpt-5.4-mini', apiKey: 'fixture-model-key' }])
+  expect(fixture.models).toEqual([{ modelName: 'openai/externalModel-5.4-mini', apiKey: 'fixture-model-key' }])
   expect(fixture.browsers[0]?.stagehandClosed).toBe(true)
   expect(fixture.browsers[0]?.closed).toBe(false)
 })
