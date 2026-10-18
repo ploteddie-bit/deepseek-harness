@@ -91,13 +91,13 @@ function toolTimeoutResult(timeoutMs: number): ToolExecutionResult {
 
 **将插件命名为 `tool-timeout`。** 字面的 Agent Note 名称匹配了 `gen-tool-catalog` 完整性守卫的 `packages/*/tool-*` glob，该 glob 要求每个匹配项注册一个面向模型的工具。本插件不注册任何工具——它是一个 `tools/execute` 包装器——因此 `tool-*` 名称要么导致 `verify-tool-catalog` 失败，要么强制产生一个误导性的启动条目。包为 `@deepseek-ai/dsh-tool-call-timeout-policy`，位于新的 `packages/guard/` 组；cordis.yml 的 `id` 仍可为 `timeout-policy`。
 
-**仅保留逐工具的超时处理。** 这是 `bash` 和 `web_fetch` 的既有形态，也与 Claude Code 和 Codex 对 shell 命令的做法一致。它对 web 类工具不利，因为每个新的支持超时的工具都必须自行选择校验方式、上限语义、文档、快照和分类。插件集中了策略和分类，让每个工具的 schema 专注于业务输入。
+**仅保留逐工具的超时处理。** 这是 `bash` 和 `web_fetch` 的既有形态，也与 the legacy hook protocol 和 the external CLI 对 shell 命令的做法一致。它对 web 类工具不利，因为每个新的支持超时的工具都必须自行选择校验方式、上限语义、文档、快照和分类。插件集中了策略和分类，让每个工具的 schema 专注于业务输入。
 
 **立即将所有超时策略移出 bash-local。** 长期来看更干净——bash-local 将成为纯子进程执行器，所有调用方自行管理截止时间。但作为第一步不合适，因为钩子直接调用 `ctx.shell`，且 bash 模型工具的前台/后台语义与工具调用生命周期不同。保留 `BASH_TIMEOUT` 维持了这些路径的稳定，同时让工具调用超时在更简单的工具上先行验证。
 
 **为所有工具使用全局默认预算。** 方便，但会让工具作者意外：任何偶然运行超过全局预算的工具在插件加载后就会开始失败。逐工具声明预算使采纳成为有意的行为。
 
-**暴露面向模型的 `timeout_ms` 覆盖参数。** Claude Code 的 `WebFetch`/`WebSearch` 和 Codex 的 web 工具将超时排除在模型调用形状之外。模型覆盖会使超时成为提示词语义的一部分，并迫使 `timeout-policy` 引入 schema/参数剥离规则。Web 超时仅作为部署策略。
+**暴露面向模型的 `timeout_ms` 覆盖参数。** the legacy hook protocol 的 `WebFetch`/`WebSearch` 和 the external CLI 的 web 工具将超时排除在模型调用形状之外。模型覆盖会使超时成为提示词语义的一部分，并迫使 `timeout-policy` 引入 schema/参数剥离规则。Web 超时仅作为部署策略。
 
 **让 `timeout-policy` 自行匹配工具参数。** 诸如「当 `bash.run_in_background` 为 true 时禁用超时」之类的规则引擎会让策略插件了解工具特定的参数语义。通过不将 bash 迁移到工具调用超时来规避此问题。
 

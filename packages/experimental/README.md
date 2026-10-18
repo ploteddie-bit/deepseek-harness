@@ -43,8 +43,8 @@ Promotion requires a named product role, documented public behavior and limitati
 | [`badge-skill-bundle`](badge-skill-bundle/README.md) | Optional powered-by-dsh badge skill | — |
 | [`session-titles-bundle`](session-titles-bundle/README.md) | Optional titles following human prompts in a conversation | — |
 | [`hook-protocol`](hook-protocol/README.md) | Hook bridge wire types and durable events | — |
-| [`hooks-claude-code`](hooks-claude-code/README.md) | Claude Code hook bridge | — |
-| [`hooks-codex`](hooks-codex/README.md) | Codex hook bridge | — |
+| [`hooks-claude-code`](hooks-claude-code/README.md) | the legacy hook protocol hook bridge | — |
+| [`hooks-codex`](hooks-codex/README.md) | the external CLI hook bridge | — |
 | [`webhook`](webhook/README.md) | Authenticated delivery dispatch and Workspace Session creation | `ctx.webhookRuntime` |
 | [`webhook-github`](webhook-github/README.md) | Signed GitHub webhook ingress | — |
 | [`session-title-all-prompts-llm`](session-title-all-prompts-llm/README.md) | Session titles from all human prompts | — |
@@ -64,7 +64,7 @@ Promotion requires a named product role, documented public behavior and limitati
 | [`agent-team`](agent-team/README.md) | Named teammates with direct messages and a durable shared task board | `ctx.agentTeams` |
 | [`client-ui-agent-team`](client-ui-agent-team/README.md) | Team roster, task board, and teammate navigation for Web | — |
 | [`auto-review`](auto-review/README.md) | Explicit Web layer for same-model review before each native or PTC inner tool call | — |
-| [`plugin-mods`](plugin-mods/README.md) | Run Claude Code mods as plugins: their hook chains on harness extension points and a band above the prompt | `ctx.pluginMods` |
+| [`plugin-mods`](plugin-mods/README.md) | Run the legacy hook protocol mods as plugins: their hook chains on harness extension points and a band above the prompt | `ctx.pluginMods` |
 | [`client-ui-plugin-mods`](client-ui-plugin-mods/README.md) | The Web band that draws a mod's tree above the prompt and sends button clicks back | — |
 | [`ptc-runtime-python`](ptc-runtime-python/README.md) | CPython subprocess backend for the PTC execution seam | `ctx.ptcRuntime` |
 | [CUA](cua/README.md) | Shared application/window objects, consent, and logged execution. | Library |

@@ -1,12 +1,12 @@
-# Claude Code mods: compatibility
+# the legacy hook protocol mods: compatibility
 
 English | [中文](plugin-mods.zh.md)
 
-Every way a mod behaves differently through this bridge than under Claude Code, as of Claude Code 2.1.287 ([mods reference](https://code.claude.com/docs/en/plugins/mods/reference), its `claude-code.d.ts`) and the [Getting started with Claude Code mods](https://claude.dev/blog/getting-started-with-plugin-mods/) post of 2026-10-01. A row names the Claude Code behavior, what this bridge does, and the reason or the follow-up. Anything not listed here behaves as the reference describes; a hook on an event this host never raises is named in a warning when the mod loads, and a `$` call outside the served table rejects with `no implementation for <namespace>.<method>`.
+Every way a mod behaves differently through this bridge than under the legacy hook protocol, as of the legacy hook protocol 2.1.287 ([mods reference](https://code.claude.com/docs/en/plugins/mods/reference), its `claude-code.d.ts`) and the [Getting started with the legacy hook protocol mods](https://claude.dev/blog/getting-started-with-plugin-mods/) post of 2026-10-01. A row names the the legacy hook protocol behavior, what this bridge does, and the reason or the follow-up. Anything not listed here behaves as the reference describes; a hook on an event this host never raises is named in a warning when the mod loads, and a `$` call outside the served table rejects with `no implementation for <namespace>.<method>`.
 
 ## Packaging and loading
 
-| Claude Code | This bridge | Reason or follow-up |
+| the legacy hook protocol | This bridge | Reason or follow-up |
 |---|---|---|
 | A plugin directory with `.claude-plugin/plugin.json` and `hooks/hooks.json` naming one hooks module; `claude --plugin-dir`, marketplaces, `/plugin install` | A mod is a plugin: `defineMod({ name, version, root, userConfig, register })` wraps the hooks module and mounts through cordis.yml after the bridge; `plugin.json` and `hooks.json` are not read | Mods join the one composition mechanism every DSH plugin uses; the example directories keep their manifests so they also run under `claude --plugin-dir` |
 | `userConfig` schema in `plugin.json` with typed defaults; options validated at load | `userConfig` is the defaults object of the `defineMod` spec; the plugin's cordis.yml `config` overlays it and is validated as a record of strings, numbers, booleans, and string lists | No manifest is read |
@@ -19,13 +19,13 @@ Every way a mod behaves differently through this bridge than under Claude Code, 
 
 ## Events
 
-| Event | Claude Code | This bridge |
+| Event | the legacy hook protocol | This bridge |
 |---|---|---|
 | `session.start` | Raised once per session, before the first prompt | Raised for a root agent from `agent/created`, awaited before its first turn; not raised for subagents |
 | `session.end` | Raised once per session | Raised for a root agent from `agent/disposed`; `$.state` is readable until the hooks settle |
 | `prompt.submit` | `e.text` is the typed prompt; `context` entries become one block each after the prompt as typed; a prompt a plugin submitted carries `origin: { kind: 'plugin', name }` | Same; `e.text` joins the text blocks of the human's own (`user`-sourced) messages in the claimed batch, a batch of injected context alone raises nothing, and a prompt `$.prompt.submit` queued carries the submitting mod as its origin |
 | `turn.start`, `turn.complete` | Per turn; subagent turns carry `agentId` | Same; `turn.complete`'s `{ text }` reaches the host log, not a line under the answer; `durationMs` counts from `turn/start` |
-| `tool.call` | Runs before Claude Code's permission check; `next({ ...e, command })` rewrites the arguments the tool runs with, and `next({ ...e, tool })` reroutes the call | Runs around `tools/execute`, after the harness permission decision; a hook (or `.catch` handler) that rewrites arguments or names another tool is skipped with a report — the argument case names the [pre-tool input rewrite proposal](../../.agents/notes/proposed/feature/2026-06-30-pre-tool-input-rewrite.md) — because the logged call runs as logged. `{ deny }`, `{ result }`, observing, and rewriting the result or `isError` after `next` work as described |
+| `tool.call` | Runs before the legacy hook protocol's permission check; `next({ ...e, command })` rewrites the arguments the tool runs with, and `next({ ...e, tool })` reroutes the call | Runs around `tools/execute`, after the harness permission decision; a hook (or `.catch` handler) that rewrites arguments or names another tool is skipped with a report — the argument case names the [pre-tool input rewrite proposal](../../.agents/notes/proposed/feature/2026-06-30-pre-tool-input-rewrite.md) — because the logged call runs as logged. `{ deny }`, `{ result }`, observing, and rewriting the result or `isError` after `next` work as described |
 | `command.run` | Runs for a command the mod registered | Same |
 | `ui.render` | Raised for every render site (`AbovePrompt`, `Pane`, `ToolUse`, `AssistantMessage`, `Spinner`, …) | Raised for `AbovePrompt` only, once per redraw of a session's band; `Pane` hooks run only through the test kit's `$.ui.mount({ component: 'Pane' })` |
 | `tool.check`, `tool.describe`, `tool.list`, `tool.register` | Shape the tool list and permissions | Not raised; `$.tool.register` and `$.tool.list` are served as `$` calls |
@@ -36,7 +36,7 @@ Every way a mod behaves differently through this bridge than under Claude Code, 
 
 ## The chain
 
-| Claude Code | This bridge | Reason |
+| the legacy hook protocol | This bridge | Reason |
 |---|---|---|
 | A hook may call `next` more than once; each call runs the chain beneath again | `next` runs once: a second call returns the first run's result | One tool execution per logged call |
 | A hook that answers while its `next` is still running | The run beneath is awaited before the hook's answer settles; a failure beneath after the answer is reported | The event settles only when nothing it started is running |
@@ -46,7 +46,7 @@ Every way a mod behaves differently through this bridge than under Claude Code, 
 
 ## `$` members
 
-| Namespace | Claude Code | This bridge |
+| Namespace | the legacy hook protocol | This bridge |
 |---|---|---|
 | `$.plugin` | `name`, `root`, `tier` | `name`, `root` from the `defineMod` spec |
 | `$.ui` | `resolve`, `invalidate`, `open`, `close`, `panes`, `focus`, `log`, `toast`, `status`, `notice`, `ask`, `blit`, `copy`, `press`, `input`, `select` | `resolve`, `invalidate`, `open`, `close`, `panes`, `log`, `toast`, `status`, `ask`; `open` answers `{ isPlaced: false }` with a reason and redraws the band; `log`, `toast`, `status` reach the host log; the rest reject |
@@ -65,7 +65,7 @@ Every way a mod behaves differently through this bridge than under Claude Code, 
 
 ## Drawing
 
-| Claude Code | This bridge |
+| the legacy hook protocol | This bridge |
 |---|---|
 | `Box`, `Text`, `Button`, `Input`, `Spacer`, and the host's own element kinds | `Box`, `Text`, `Button` from `$.ui.resolve(e)`; the tree is validated, and a `Button`'s `onPress` stays in the host behind a per-drawing action id |
 | `Box` props: `flexDirection`, `padding*`, `gap`, `border*`, `width`, `height`, `overflow`, `scroll` | `flexDirection`, `padding`, `paddingX`, `paddingY`, `gap`, `border`, `borderColor`; the others serialize and the Web band ignores them |
@@ -135,7 +135,7 @@ The bridge service: loaded mods, their hooks, and the harness listeners that rai
  * keep its hooks, and report which of its events this host never raises.
  * @param definition - the mod as its plugin defined it.
  * @returns the disposer that removes the mod's hooks, closes its timers, and releases its registrations.
- * @throws Error when the name is invalid or taken, or when `register` throws (Claude Code's `hooks module did not load` wording).
+ * @throws Error when the name is invalid or taken, or when `register` throws (the legacy hook protocol's `hooks module did not load` wording).
  */
 async add(definition: ModDefinition): Promise<() => Promise<void>>
 ```

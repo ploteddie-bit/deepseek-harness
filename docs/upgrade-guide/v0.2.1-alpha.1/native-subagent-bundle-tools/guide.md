@@ -1,6 +1,6 @@
 ---
 kind: upgrade-guide
-description: "Claude Code and Codex bundles add global delegation tools while retaining their package and row identities."
+description: "the legacy hook protocol and the external CLI bundles add global delegation tools while retaining their package and row identities."
 ---
 
 # Native subagent bundles include global tools
@@ -18,7 +18,7 @@ Delegation follows the shared managed-activation API: the tool returns a child I
 ## Migration
 
 1. Preserve selected bundle names, provider configuration, and authentication. Existing provider-only packages need **Update** in Plugins → Official to receive the tool-contributing bundle; restart when requested. To adopt a new provider, enable its card. [Installation targets](../../../../packages/boot/plugin-manager/README.md#use-this-package) follow the published DSH version or source checkout; equal version strings do not make an older registry package equivalent to a development link. Off only deselects; Remove remains separate.
-2. Configure the tool with an ordinary row patch. Configuration overrides still replace the complete configuration. For example, this keeps the Codex tool disabled while the provider stays registered:
+2. Configure the tool with an ordinary row patch. Configuration overrides still replace the complete configuration. For example, this keeps the the external CLI tool disabled while the provider stays registered:
 
    ```yaml
    - id: tool-subagent-codex
@@ -28,4 +28,4 @@ Delegation follows the shared managed-activation API: the tool returns a child I
 3. If a manual Host row registers the same tool name, remove that redundant row or disable the bundle's row. Verify the effective tool catalog in a Session.
 4. Plugin clients receive required `BundleInfo.official` and `BundleInfo.availability` fields; detail-slot `PluginPackageRef` receives them too. `official` identifies project maintenance, `availability` reports `installation`, `profile`, or `missing`, and `installed` still means a profile dependency declaration. Detail-slot readers that only display existing fields need no changes; constructors and exact validators must include the new fields. Optional `installTarget` identifies the offered version and registry or local-link spec.
 
-**Other profiles.** The bundle layers insert Host rows only, so headless, SDK, ACP, and custom profiles can select them as well. Profiles that keep the provider package without selecting its bundle can compose the same rows using the [Codex](../../../../packages/subagent/subagent-codex/README.md#exposing-the-tool) or [Claude Code](../../../../packages/subagent/subagent-agent-sdk/README.md#exposing-the-tool) example.
+**Other profiles.** The bundle layers insert Host rows only, so headless, SDK, ACP, and custom profiles can select them as well. Profiles that keep the provider package without selecting its bundle can compose the same rows using the [the external CLI](../../../../packages/subagent/subagent-codex/README.md#exposing-the-tool) or [the legacy hook protocol](../../../../packages/subagent/subagent-agent-sdk/README.md#exposing-the-tool) example.

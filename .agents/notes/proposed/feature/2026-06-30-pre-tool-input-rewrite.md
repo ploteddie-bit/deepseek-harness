@@ -6,7 +6,7 @@ English | [中文](2026-06-30-pre-tool-input-rewrite.zh.md)
 
 ## Problem
 
-The [interception extension-points reference](../../../../packages/core/tools/README.md) defines `tools/pre-execute` as an allow/deny/ask gate over an execution whose identity is already protected and whose arguments are deeply frozen. Claude Code's `PreToolUse` hook also offers `updatedInput`, so a faithful bridge needs an explicit rewrite mechanism. A rewrite cannot be a mutation escape hatch on the existing execution object: it must keep the durable history, audit record, presentation, and executed value consistent.
+The [interception extension-points reference](../../../../packages/core/tools/README.md) defines `tools/pre-execute` as an allow/deny/ask gate over an execution whose identity is already protected and whose arguments are deeply frozen. the legacy hook protocol's `PreToolUse` hook also offers `updatedInput`, so a faithful bridge needs an explicit rewrite mechanism. A rewrite cannot be a mutation escape hatch on the existing execution object: it must keep the durable history, audit record, presentation, and executed value consistent.
 
 ## The problem: three readers of pre-execution arguments
 
@@ -32,13 +32,13 @@ Extending `PreToolDecision` at its current firing point is insufficient: both du
 
 ### Why not mutate the execution object?
 
-Allowing a pre-execute listener to assign `exec.arguments` would provide only an execution rewrite, leaving model history, audit, and presentation unchanged. Keeping the identity protected makes such partial behavior unrepresentable. Until the consistency transaction exists, a CC/Codex bridge logs and warns about `updatedInput` rather than claiming it was honored; `TODO(pre-tool-input-rewrite)` at the loop dispatch site anchors the missing earlier phase.
+Allowing a pre-execute listener to assign `exec.arguments` would provide only an execution rewrite, leaving model history, audit, and presentation unchanged. Keeping the identity protected makes such partial behavior unrepresentable. Until the consistency transaction exists, a CC/the external CLI bridge logs and warns about `updatedInput` rather than claiming it was honored; `TODO(pre-tool-input-rewrite)` at the loop dispatch site anchors the missing earlier phase.
 
 ## Acceptance criteria
 
 - A requested rewrite is resolved before `ToolExecution` identity is created and reflected in all three readers atomically: the `tool/call` audit records the rewritten arguments (the original retained in a sidecar field), derived history agrees with what executed, and presentation renders the rewritten arguments.
 - The effective `ToolExecution.arguments` remains deeply frozen and non-writable throughout pre-policy, guards, dispatch, post-policy, and final observation; no mutation shim is introduced.
-- The CC/Codex bridges honor `updatedInput` instead of logging the faithful-but-degraded warning.
+- The CC/the external CLI bridges honor `updatedInput` instead of logging the faithful-but-degraded warning.
 
 ## Risks
 

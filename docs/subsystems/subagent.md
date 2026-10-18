@@ -315,7 +315,7 @@ interface SubagentRun {
 
 ## The provider contract: SubagentProvider
 
-`SubagentManager` owns startup, message admission, and execution lifetimes. Spawn and Fork contribute detached creation inputs for local Agents. Codex, Claude Code, ACP, and DSH SDK contribute one execution handle; they do not gain multiple turns. Each activation is an execution record that directly retains its AgentHandle or SubagentRun. External completion follows the handle’s result promise; inbox and idle admission belong only to local execution. Both paths share admission, capacity, parent ownership, cancellation, and disposal. The [package reference](../../packages/subagent/subagent/README.md) describes composition and deployment requirements.
+`SubagentManager` owns startup, message admission, and execution lifetimes. Spawn and Fork contribute detached creation inputs for local Agents. the external CLI, the legacy hook protocol, ACP, and DSH SDK contribute one execution handle; they do not gain multiple turns. Each activation is an execution record that directly retains its AgentHandle or SubagentRun. External completion follows the handle’s result promise; inbox and idle admission belong only to local execution. Both paths share admission, capacity, parent ownership, cancellation, and disposal. The [package reference](../../packages/subagent/subagent/README.md) describes composition and deployment requirements.
 
 ```ts type-equiv
 /**

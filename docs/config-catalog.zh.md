@@ -1475,7 +1475,7 @@ export interface Config {
    * Replaces `${CLAUDE_PROJECT_DIR}` in command strings AND is exported as the
    * `CLAUDE_PROJECT_DIR` env var for hook processes. When omitted, the env var
    * defaults per-run to the agent's current directory (the
-   * same dir the hook runs in) — Claude Code always exports this var, and common
+   * same dir the hook runs in) — the legacy hook protocol always exports this var, and common
    * unmodified hooks reference `$CLAUDE_PROJECT_DIR` for project-relative paths.
    */
   projectDir?: string
@@ -1961,7 +1961,7 @@ export interface PiAiCompatProfile {
   thinkingTokenBudgetField?: PiAiThinkingTokenBudgetField
   /** vLLM scheduler `priority`; lower runs earlier, and the server must enable priority scheduling. Omitted unless configured. */
   vllmPriority?: number
-  /** Whether `openai-responses` accepts `max_output_tokens`; `false` omits it. Azure and Codex ignore this shared compat field. */
+  /** Whether `openai-responses` accepts `max_output_tokens`; `false` omits it. Azure and the external CLI ignore this shared compat field. */
   supportsMaxOutputTokens?: boolean
   /**
    * Whether the endpoint accepts `strict` in tool definitions;

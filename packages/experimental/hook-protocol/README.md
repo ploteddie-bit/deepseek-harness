@@ -1,5 +1,5 @@
 ---
-description: "The shared hook rules behind the Claude Code and Codex bridges — what a hook can do and what happens when it runs — for users and maintainers of the hooks subsystem."
+description: "The shared hook rules behind the the legacy hook protocol and the external CLI bridges — what a hook can do and what happens when it runs — for users and maintainers of the hooks subsystem."
 kind: "package-library"
 ---
 
@@ -29,12 +29,12 @@ You don't install or configure this package directly — mounting `dsh-hooks-com
 
 ### When to choose it
 
-Choose `dsh-hooks-command` or `dsh-hooks-codex` when you have existing Claude Code or Codex hooks and want them to keep working during agent runs. You never choose this package directly. Avoid the whole group for bespoke behavior with no reference-tool equivalent: a native Cordis plugin has the full harness API with no hook protocol in between.
+Choose `dsh-hooks-command` or `dsh-hooks-codex` when you have existing the legacy hook protocol or the external CLI hooks and want them to keep working during agent runs. You never choose this package directly. Avoid the whole group for bespoke behavior with no reference-tool equivalent: a native Cordis plugin has the full harness API with no hook protocol in between.
 
 ### What a hook can do
 
 - **Block an action with a message** — a hook that exits with code 2 stops the prompt or tool call, and its error output is shown as the reason.
-- **Ask before a tool runs** — a Claude Code hook can request confirmation instead of blocking outright; the Codex bridge does not surface this option.
+- **Ask before a tool runs** — a the legacy hook protocol hook can request confirmation instead of blocking outright; the the external CLI bridge does not surface this option.
 - **Attach context** — a hook can return extra text that the model sees in the next request.
 - **Run on chosen moments** — a hook config selects which events it fires on by name or pattern; an absent, empty, or `'*'` pattern means every event of that kind.
 - **Fail without stopping the run** — any exit code other than 2 is a non-blocking failure: the action proceeds and the failure is logged, and a hook that cannot be started at all is treated the same way.

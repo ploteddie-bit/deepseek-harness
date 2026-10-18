@@ -1,5 +1,5 @@
 ---
-description: "Claude Code 与 Codex 桥接背后的共享钩子规则——钩子能做什么、运行时会发生什么——供 hooks 子系统的用户与维护者阅读。"
+description: "the legacy hook protocol 与 the external CLI 桥接背后的共享钩子规则——钩子能做什么、运行时会发生什么——供 hooks 子系统的用户与维护者阅读。"
 kind: "package-library"
 ---
 
@@ -29,12 +29,12 @@ kind: "package-library"
 
 ### 何时选择
 
-当你持有现有的 Claude Code 或 Codex 钩子、希望它们在 agent（智能体）运行期间继续工作时，选择 `dsh-hooks-command` 或 `dsh-hooks-codex`。你永远不会直接选择本包。没有参考工具对应物的定制行为请避开整个组：原生 Cordis 插件拥有完整的 harness API，无需中间的钩子协议。
+当你持有现有的 the legacy hook protocol 或 the external CLI 钩子、希望它们在 agent（智能体）运行期间继续工作时，选择 `dsh-hooks-command` 或 `dsh-hooks-codex`。你永远不会直接选择本包。没有参考工具对应物的定制行为请避开整个组：原生 Cordis 插件拥有完整的 harness API，无需中间的钩子协议。
 
 ### 钩子能做什么
 
 - **带消息阻塞操作**——退出码为 2 的钩子会停止提示词或工具调用，其错误输出会作为原因展示。
-- **工具运行前请求确认**——Claude Code 钩子可以请求确认而非直接阻塞；Codex 桥接不呈现此选项。
+- **工具运行前请求确认**——the legacy hook protocol 钩子可以请求确认而非直接阻塞；the external CLI 桥接不呈现此选项。
 - **附加上下文**——钩子可以返回额外文本，模型会在下一次请求中看到。
 - **在选定时刻运行**——钩子配置按名称或 pattern 选择触发的事件；缺失、空或 `'*'` pattern 表示该类的每个事件。
 - **失败不停止运行**——除 2 以外的任何退出码都是非阻塞失败：操作继续，失败被记录；完全无法启动的钩子按同样方式处理。

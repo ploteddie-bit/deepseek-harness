@@ -15,7 +15,7 @@ CLI 与 Python 运行时的安装依赖不再包含 hook 桥接，CLI 也不再�
 
 ## 迁移
 
-1. 将目标 profile 缺少的包与所需 peer 一起安装。Profile 禁用自动 peer 安装。例如，运行 `dsh plugin --profile web add @deepseek-ai/dsh-hooks-claude-code @deepseek-ai/dsh-hook-protocol`。Codex 桥接需要相同的协议 peer；GitHub 适配器需要同时安装 `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`。
+1. 将目标 profile 缺少的包与所需 peer 一起安装。Profile 禁用自动 peer 安装。例如，运行 `dsh plugin --profile web add @deepseek-ai/dsh-hooks-claude-code @deepseek-ai/dsh-hook-protocol`。the external CLI 桥接需要相同的协议 peer；GitHub 适配器需要同时安装 `@deepseek-ai/dsh-webhook` 与 `@deepseek-ai/dsh-webhook-github`。
 2. 覆盖 bundle 的行之前先选择可用的 bundle。对于手动组合的能力，将覆盖已移除行的 patch 替换为完整插入。在预设的 `config.plugins` 中添加预设内工具及其所需服务。Host 徽章插入示例：
 
    ```yaml

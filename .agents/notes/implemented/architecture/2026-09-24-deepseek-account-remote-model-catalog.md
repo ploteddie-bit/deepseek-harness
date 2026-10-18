@@ -17,11 +17,11 @@ The account route's catalog was deployment configuration: a build advertised the
 
 ## Alternatives considered
 
-**Server-side filtering by client version only.** Codex sends `client_version` and lets its backend drop models. An older build then cannot show that a newer version supports a model, and a listing that omits a declaration would expose an unknown model.
+**Server-side filtering by client version only.** the external CLI sends `client_version` and lets its backend drop models. An older build then cannot show that a newer version supports a model, and a listing that omits a declaration would expose an unknown model.
 
 **Default parameters for unknown models.** Reasonix and Pi drive unknown ids with generic defaults, and MiniMax treats that as a defect. A model that needs client changes would run with the wrong behavior.
 
-**Whole-listing validation.** Codex, ZCode, and Kimi reject the whole listing on one bad field. One malformed row would then send every account back to the bundled catalog.
+**Whole-listing validation.** the external CLI, ZCode, and Kimi reject the whole listing on one bad field. One malformed row would then send every account back to the bundled catalog.
 
 **Persisting the last good listing.** A durable cache adds a persistence format and its migration duty; the bundled catalog already covers offline starts.
 

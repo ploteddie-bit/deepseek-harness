@@ -42,7 +42,7 @@ The opt-in [in-memory execution mode](2026-09-23-best-effort-persistent-ptc.md) 
 
 **Use an in-process JavaScript realm.** A language-level realm does not enforce the filesystem and process policy required for direct Node APIs. OS confinement and a host-owned process lifetime are the required protections.
 
-**Copy Codex Code Mode's execution model.** [Codex Code Mode](https://github.com/openai/codex/blob/02a8f038b87ad34d4a1dc5058eda26972ed7aa6c/codex-rs/code-mode-protocol/src/description.rs) exposes fresh raw-JavaScript isolates and host tool callbacks, with yield/wait observations separate from execution lifetime. Removing Node APIs or adding resumable cells would change PTC's programming and logging model. The retained design keeps direct Node access under OS policy and one-shot results.
+**Copy the external CLI Code Mode's execution model.** [the external CLI Code Mode](https://github.com/openai/codex/blob/02a8f038b87ad34d4a1dc5058eda26972ed7aa6c/codex-rs/code-mode-protocol/src/description.rs) exposes fresh raw-JavaScript isolates and host tool callbacks, with yield/wait observations separate from execution lifetime. Removing Node APIs or adding resumable cells would change PTC's programming and logging model. The retained design keeps direct Node access under OS policy and one-shot results.
 
 **Treat worker active time as a CPU limit.** Event-loop utilization counts active wall time in one worker, not CPU consumed by Node and its descendants. The process provider uses a host-owned elapsed deadline and does not make that stronger claim.
 

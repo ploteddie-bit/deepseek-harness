@@ -42,7 +42,7 @@ Host 在子进程启动时保留 `ELECTRON_RUN_AS_NODE`；bootstrap 在求值前
 
 **使用同进程 JavaScript realm。** 语言级 realm 不强制直接 Node API 所需的文件系统与进程策略。所需保护是 OS 约束与 Host 拥有的进程生命周期。
 
-**复制 Codex Code Mode 的执行模型。** [Codex Code Mode](https://github.com/openai/codex/blob/02a8f038b87ad34d4a1dc5058eda26972ed7aa6c/codex-rs/code-mode-protocol/src/description.rs) 提供全新原始 JavaScript isolate 与 Host 工具回调，yield/wait 观察与执行生命周期分开。移除 Node API 或增加可恢复单元会改变 PTC 的编程与日志模型。保留的设计在 OS 策略下提供直接 Node 访问，并返回一次性结果。
+**复制 the external CLI Code Mode 的执行模型。** [the external CLI Code Mode](https://github.com/openai/codex/blob/02a8f038b87ad34d4a1dc5058eda26972ed7aa6c/codex-rs/code-mode-protocol/src/description.rs) 提供全新原始 JavaScript isolate 与 Host 工具回调，yield/wait 观察与执行生命周期分开。移除 Node API 或增加可恢复单元会改变 PTC 的编程与日志模型。保留的设计在 OS 策略下提供直接 Node 访问，并返回一次性结果。
 
 **把 worker active time 当作 CPU 限制。** 事件循环占用率计量单个 worker 的活跃经过时间，不是 Node 及其后代消耗的 CPU。进程提供方使用 Host 拥有的经过时间截止，不作更强声明。
 

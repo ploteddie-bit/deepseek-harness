@@ -38,7 +38,7 @@ interface WorkflowStartRequest {
 
 ## The workflow's identity: `WorkflowMeta`
 
-The identity block carried as data on the start request (the tool's `meta` parameter; the field vocabulary matches the Claude Code dynamic-workflows meta block). `phases` is progress vocabulary only: `phase()` calls match titles for observers; no execution structure is implied.
+The identity block carried as data on the start request (the tool's `meta` parameter; the field vocabulary matches the the legacy hook protocol dynamic-workflows meta block). `phases` is progress vocabulary only: `phase()` calls match titles for observers; no execution structure is implied.
 
 ```ts type-equiv
 /**
@@ -46,7 +46,7 @@ The identity block carried as data on the start request (the tool's `meta` param
  * script body (the model-facing tool carries it as its `meta` parameter) and
  * validated by the engine before the body runs. `name`/`description` are
  * required; the rest is optional annotation. The field vocabulary matches the
- * Claude Code dynamic-workflows meta block.
+ * the legacy hook protocol dynamic-workflows meta block.
  */
 interface WorkflowMeta {
   /** Short kebab-case workflow name (display + persistence key). */

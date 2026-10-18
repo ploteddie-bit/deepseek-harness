@@ -16,7 +16,7 @@ Web 插件页只提供两个可选 bundle：Agent Teams 与语音输入。Auto r
 
 Bundle 插入普通 Host 行；可选模型工具注册到全局工具层，因此包括 minimal 在内的所有预设都会获得它们。插件管理、profile 组合与重载无需针对 bundle 的特殊行为。搜索、Ralph 与终端在 Host 组内提供自己的隔离服务。搜索按需打开一个内存索引；Host 搜索策略保持不变。徽章技能与标题提供方作用于 Host。切换 bundle 会为运行中的 Agent 注册或移除其工具，后续用户 patch 层继续优先。前一个标题提供方开始清理后，替代提供方即可注册；前一个提供方的迟到结果不会提交。
 
-Claude Code 与 Codex 通过独立的 `ON_DEMAND_BUNDLES` 目录按需安装，其成本、版本与离线发现取舍由[按需原生 bundle 决策](2026-10-05-official-on-demand-bundles.zh.md)管理。
+the legacy hook protocol 与 the external CLI 通过独立的 `ON_DEMAND_BUNDLES` 目录按需安装，其成本、版本与离线发现取舍由[按需原生 bundle 决策](2026-10-05-official-on-demand-bundles.zh.md)管理。
 
 ## 考虑过的替代方案
 

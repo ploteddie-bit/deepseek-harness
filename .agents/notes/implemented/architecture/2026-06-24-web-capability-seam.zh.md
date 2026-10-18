@@ -242,7 +242,7 @@ fetch 提供方的资源控制：
 - 请求通过 Undici lookup 回调保留这一组已验证地址，不会再次解析 hostname。原 hostname 仍作为 HTTP Host 与 TLS SNI 值，而 DNS rebinding 无法在验证后替换连接目的地址。
 - 强制执行最大 URL 长度、响应字节上限、解码正文字符上限、超时和重定向跳数上限。
 - Abort 信号传播到网络获取和高开销解码。
-- 仅自动跟随同源重定向；每个跟随的跳转都会重新解析公开地址，并把自己的连接固定到解析结果。跨源重定向以 `WEB_REDIRECT_BLOCKED` 失败，要求一次新的工具调用和新的公开地址校验。（Claude Code 的 WebFetch 使用同样的模型——它不自动跟随跨主机重定向，而是将重定向目标返回给模型以发起新调用。）
+- 仅自动跟随同源重定向；每个跟随的跳转都会重新解析公开地址，并把自己的连接固定到解析结果。跨源重定向以 `WEB_REDIRECT_BLOCKED` 失败，要求一次新的工具调用和新的公开地址校验。（the legacy hook protocol 的 WebFetch 使用同样的模型——它不自动跟随跨主机重定向，而是将重定向目标返回给模型以发起新调用。）
 - 请求携带显式的产品 User-Agent，而非静默伪装浏览器。
 
 只要 DNS 完整解析结果中存在任一非公开地址，提供方就会拒绝整个结果，而不是静默过滤不安全成员。该 fail-closed 规则可防止连接的地址族选择或回退触及未满足公开网络策略的地址。
@@ -309,7 +309,7 @@ fetch 提供方的资源控制：
 
 在第一版中否决。这些提供方通常返回提取或摘要后的内容，而非具体的 HTTP 响应。如果产品需要提取，日后设计 `web_extract` 或刻意扩展 fetch 操作。
 
-### 镜像 Claude Code 的 `url + prompt` WebFetch 形状
+### 镜像 the legacy hook protocol 的 `url + prompt` WebFetch 形状
 
 在 seam 层面否决。`prompt` 将 fetch 变成 LLM 摘要，并将公开 web 获取耦合到模型提供方。harness seam 应当确定性地获取和解码；`dsh-tool-web` 日后可以将摘要作为展示模式提供，而无需让 `ctx.web` 依赖 `ctx.llm`。
 

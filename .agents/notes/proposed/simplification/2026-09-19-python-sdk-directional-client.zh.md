@@ -8,7 +8,7 @@ Status: proposed
 
 [Python 客户端](../../../../python/sdk/src/deepseek_harness/client.py) 维护入站请求队列、关闭时的唤醒，以及 `next_request`、`respond`、`respond_error` 和 `notify` 方法。[SDK 服务端](../../../../packages/sdk/server/src/server.ts) 接收请求并发送通知，没有定义服务端主动发起的请求或客户端通知处理器。搜索 Python 源码、示例和运行时 profile 后，仅在客户端实现和[合成客户端测试](../../../../python/sdk/tests/test_client.py) 中发现反向通信。因此，导出的 `IncomingRequest` 模型没有受支持运行时的生产方。
 
-本提案只收缩 Python 客户端。[SDK 服务端](../../../../packages/sdk/server/README.zh.md) 保留持久化入队回执和 Session 事件流；prompt 响应不表示轮次完成。共享 TypeScript 传输保留双向能力，因为 [Codex wire 适配器](../../../../packages/subagent/subagent-codex/src/wire.ts) 在两个方向上都使用请求和通知。
+本提案只收缩 Python 客户端。[SDK 服务端](../../../../packages/sdk/server/README.zh.md) 保留持久化入队回执和 Session 事件流；prompt 响应不表示轮次完成。共享 TypeScript 传输保留双向能力，因为 [the external CLI wire 适配器](../../../../packages/subagent/subagent-codex/src/wire.ts) 在两个方向上都使用请求和通知。
 
 ## 提案
 
@@ -20,7 +20,7 @@ Status: proposed
 
 **保留通用 Python 对等端供外部插件使用。** 自定义运行时可能使用这些方法，但没有 SDK 方法规定其请求所有权、取消或交付协议。提案接受这一稳定前 API 损失；未来双向 SDK 功能必须提供实际的方法与生命周期要求。
 
-**同时收缩共享 TypeScript 传输。** 否决，因为 Codex 适配器是当前双向消费方。共享实现及其测试保留。
+**同时收缩共享 TypeScript 传输。** 否决，因为 the external CLI 适配器是当前双向消费方。共享实现及其测试保留。
 
 ## 验收标准
 

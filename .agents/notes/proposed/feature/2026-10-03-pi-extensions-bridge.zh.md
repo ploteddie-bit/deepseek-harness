@@ -8,7 +8,7 @@ Status: proposed
 
 Pi 1.0.0 的扩展是进程内的 TypeScript 工厂函数 `(pi: ExtensionAPI) => void`。工厂函数订阅约四十个生命周期、上下文、工具与提供方事件，注册模型工具、斜杠命令、模型提供商与 MCP server，并通过 `ctx.ui` 与用户交互（[扩展指南](https://github.com/earendil-works/pi/blob/v1.0.0/packages/coding-agent/docs/extensions.md)、[API 类型](https://github.com/earendil-works/pi/blob/v1.0.0/packages/coding-agent/src/core/extensions/types.ts)）。该 API 已发布并被广泛使用：截至 2026 年 10 月，npm 上约有 11,000 个包带有 `pi-package` 关键字。
 
-DSH 已为另外两个生态提供桥接：为 Claude Code 与 Codex 编写的 shell 钩子（[hooks 组](../../../../packages/experimental/README.zh.md)），以及 Claude Code mods（[兼容性页面](../../../../docs/subsystems/plugin-mods.zh.md)）。Pi 的扩展 API 比两者都宽。它允许一个进程内模块改写单次请求的消息、编辑工具参数、追加自己的持久记录，并让已经结束的运行继续。用 DSH 扩展点提供这套 API 可以回答两个问题：为另一个 harness 编写的扩展有多少能原样运行，以及 DSH 的哪些核心机制比 Pi 窄。
+DSH 已为另外两个生态提供桥接：为 the legacy hook protocol 与 the external CLI 编写的 shell 钩子（[hooks 组](../../../../packages/experimental/README.zh.md)），以及 the legacy hook protocol mods（[兼容性页面](../../../../docs/subsystems/plugin-mods.zh.md)）。Pi 的扩展 API 比两者都宽。它允许一个进程内模块改写单次请求的消息、编辑工具参数、追加自己的持久记录，并让已经结束的运行继续。用 DSH 扩展点提供这套 API 可以回答两个问题：为另一个 harness 编写的扩展有多少能原样运行，以及 DSH 的哪些核心机制比 Pi 窄。
 
 ## 提案
 
@@ -16,7 +16,7 @@ DSH 已为另外两个生态提供桥接：为 Claude Code 与 Codex 编写的 s
 
 ### 包与组合
 
-- `@deepseek-ai/dsh-experimental-pi-extensions` 是 Host 包，提供 `ctx.piExtensions`。`@deepseek-ai/dsh-experimental-client-ui-pi-extensions` 是 Web 包。两者都不是可选 bundle；与 Claude Code mods 桥接一样，由一个按需启用的 overlay 组合它们。
+- `@deepseek-ai/dsh-experimental-pi-extensions` 是 Host 包，提供 `ctx.piExtensions`。`@deepseek-ai/dsh-experimental-client-ui-pi-extensions` 是 Web 包。两者都不是可选 bundle；与 the legacy hook protocol mods 桥接一样，由一个按需启用的 overlay 组合它们。
 - cordis.yml 的一行指定一个扩展来源：一个文件、一个含 `index.ts` 或 `index.js` 的目录，或一个在 `package.json` 中列出 `pi.extensions` 的 Pi 包目录。该行同时携带扩展的 flag 值。行的顺序就是 Pi 的加载顺序，也是其 handler 的分发顺序。
 - 桥接不扫描 `~/.pi` 或 `.pi`，不安装包，也不判定项目信任。Pi 包中的 skill、提示词模板与主题不会被加载。
 

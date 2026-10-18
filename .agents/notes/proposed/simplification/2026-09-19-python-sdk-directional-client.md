@@ -8,7 +8,7 @@ English | [中文](2026-09-19-python-sdk-directional-client.zh.md)
 
 The [Python client](../../../../python/sdk/src/deepseek_harness/client.py) keeps an incoming-request queue, close-time wake-up, and `next_request`, `respond`, `respond_error`, and `notify` methods. The [SDK server](../../../../packages/sdk/server/src/server.ts) receives requests and emits notifications; it declares no server-originated request or client-notification handler. Searches across Python sources, examples, and runtime profiles found the reverse direction only in client implementation and [synthetic client tests](../../../../python/sdk/tests/test_client.py). The exported `IncomingRequest` model consequently has no supported runtime producer.
 
-This proposal narrows only the Python client. The [SDK server](../../../../packages/sdk/server/README.md) retains its durable enqueue receipt and streamed Session events; prompt responses do not represent turn completion. The shared TypeScript transport remains bidirectional because the [Codex wire adapter](../../../../packages/subagent/subagent-codex/src/wire.ts) uses requests and notifications in both directions.
+This proposal narrows only the Python client. The [SDK server](../../../../packages/sdk/server/README.md) retains its durable enqueue receipt and streamed Session events; prompt responses do not represent turn completion. The shared TypeScript transport remains bidirectional because the [the external CLI wire adapter](../../../../packages/subagent/subagent-codex/src/wire.ts) uses requests and notifications in both directions.
 
 ## Proposal
 
@@ -20,7 +20,7 @@ Remove the dedicated synthetic reverse-request test. Change tests that send clie
 
 **Keep a generic Python peer for external plugins.** Custom runtimes could use the methods, but no SDK method describes their request ownership, cancellation, or delivery protocol. The proposal accepts this pre-stable API loss; a future bidirectional SDK feature must supply its actual method and lifecycle requirements.
 
-**Narrow the shared TypeScript transport too.** Rejected because the Codex adapter is a current bidirectional consumer. The shared implementation and its tests remain.
+**Narrow the shared TypeScript transport too.** Rejected because the the external CLI adapter is a current bidirectional consumer. The shared implementation and its tests remain.
 
 ## Acceptance criteria
 

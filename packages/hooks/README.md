@@ -1,5 +1,5 @@
 ---
-description: "The hooks group map: run existing Claude Code and Codex shell-hook configs during agent runs, for users and maintainers navigating the group."
+description: "The hooks group map: run existing the legacy hook protocol and the external CLI shell-hook configs during agent runs, for users and maintainers navigating the group."
 kind: "package-group"
 ---
 
@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-The hooks group lets agent runs reuse shell hooks written for Claude Code or Codex. Point the matching integration at an existing `hooks.json` to run supported command hooks when sessions start, prompts arrive, tools run, or runs stop. These hooks can block prompts or tool calls with model-visible messages, add conversation context, or require the run to continue. Choose this group to preserve existing hook configurations; each integration supports only the command-hook subset documented by its source tool.
+The hooks group lets agent runs reuse shell hooks written for the legacy hook protocol or the external CLI. Point the matching integration at an existing `hooks.json` to run supported command hooks when sessions start, prompts arrive, tools run, or runs stop. These hooks can block prompts or tool calls with model-visible messages, add conversation context, or require the run to continue. Choose this group to preserve existing hook configurations; each integration supports only the command-hook subset documented by its source tool.
 
 ## Table of Contents
 
@@ -25,8 +25,8 @@ The hooks group lets agent runs reuse shell hooks written for Claude Code or Cod
 | Package | Role | Shape |
 |---|---|---|
 | [`hook-protocol`](hook-protocol/) | Shared hook engine both bridges use; never configured directly | library |
-| [`hooks-command`](hooks-command/README.md) | Run your existing Claude Code `hooks.json` hooks during agent runs | plugin |
-| [`hooks-codex`](hooks-codex/) | Run your existing Codex `hooks.json` hooks during agent runs | plugin |
+| [`hooks-command`](hooks-command/README.md) | Run your existing the legacy hook protocol `hooks.json` hooks during agent runs | plugin |
+| [`hooks-codex`](hooks-codex/) | Run your existing the external CLI `hooks.json` hooks during agent runs | plugin |
 
 -----
 

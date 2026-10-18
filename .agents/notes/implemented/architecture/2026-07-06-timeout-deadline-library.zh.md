@@ -16,7 +16,7 @@ Status: implemented
 
 ## 决策
 
-`@deepseek-ai/dsh-timeout` 位于 `packages/util/`（与 `dsh-brand` 同级），负责超时的*计时与分类*这一半；*终止*那一半——硬终止——留在各能力的实现中。它是一个纯函数库，**不是** Cordis 服务或插件：不接收 `ctx`、不注册任何东西、不持有跨调用状态、不发射事件。这里刻意不设中央「超时服务」，因为那样的服务必须知道如何停止每个能力的工作——而这正是微内核要排除在共享层之外的知识，也是 Codex 将 `ExecExpiration` 限定于 exec 族所示范的原则。
+`@deepseek-ai/dsh-timeout` 位于 `packages/util/`（与 `dsh-brand` 同级），负责超时的*计时与分类*这一半；*终止*那一半——硬终止——留在各能力的实现中。它是一个纯函数库，**不是** Cordis 服务或插件：不接收 `ctx`、不注册任何东西、不持有跨调用状态、不发射事件。这里刻意不设中央「超时服务」，因为那样的服务必须知道如何停止每个能力的工作——而这正是微内核要排除在共享层之外的知识，也是 the external CLI 将 `ExecExpiration` 限定于 exec 族所示范的原则。
 
 ### 库的对外接口
 
@@ -107,9 +107,9 @@ export function timeoutOf(x: AbortSignal | { reason?: unknown }, code?: string):
 
 ## 曾考虑的替代方案
 
-**统一的超时*插件* / `ctx.timeout` 服务。** 基于微内核原则否决。一个能停止任何工具工作的服务必须理解每个能力的终止机制（原生 scope 或 Job 终止、fallback 进程组信号、socket 拆除、系统调用边界检查），这正是架构所禁止的「内核知道太多」。Codex 的 `ExecExpiration` 被限定于 exec 族，正是因为它驱动的 kill（`killpg`）是进程族特有的；MCP 和模型流各自保有自己的。不存在一个连贯的中间层能为所有东西拥有终止权，因此共享部分只能是纯计时/分类那一半——一个库，而非服务。
+**统一的超时*插件* / `ctx.timeout` 服务。** 基于微内核原则否决。一个能停止任何工具工作的服务必须理解每个能力的终止机制（原生 scope 或 Job 终止、fallback 进程组信号、socket 拆除、系统调用边界检查），这正是架构所禁止的「内核知道太多」。the external CLI 的 `ExecExpiration` 被限定于 exec 族，正是因为它驱动的 kill（`killpg`）是进程族特有的；MCP 和模型流各自保有自己的。不存在一个连贯的中间层能为所有东西拥有终止权，因此共享部分只能是纯计时/分类那一半——一个库，而非服务。
 
-**每个工具各自实现超时，不共享代码（先前的现状，也是 Claude Code 的选择）。** 否决，因为它已经在产生分化和重复的正确性负担：web_fetch 手写了与未来网络/进程类工具各自需要重新推导的完全相同的 controller/reason 逻辑，而融合 + `signal.reason` 恢复正是容易出错的部分。Claude Code 容忍完全重复；本仓库有一个统一的共享 abort 通道（每次 `execute` 上的 `exec.signal`），使得采用一个小型共享原语明显更简洁，因此成本/收益不同。
+**每个工具各自实现超时，不共享代码（先前的现状，也是 the legacy hook protocol 的选择）。** 否决，因为它已经在产生分化和重复的正确性负担：web_fetch 手写了与未来网络/进程类工具各自需要重新推导的完全相同的 controller/reason 逻辑，而融合 + `signal.reason` 恢复正是容易出错的部分。the legacy hook protocol 容忍完全重复；本仓库有一个统一的共享 abort 通道（每次 `execute` 上的 `exec.signal`），使得采用一个小型共享原语明显更简洁，因此成本/收益不同。
 
 **用 `withTimeout(promise, ms)` 包装器代替信号工厂。** 否决，因为让 promise 与定时器竞争只是在截止时间到达时 resolve *工具调用*的 promise，而不会停止底层工作——子进程或 fetch socket 会泄漏。分发信号并要求能力监听，才能强制一条真实的终止路径存在。这与「dispose 必须达到完全停稳，而非仅仅请求它」的防御性规则一致。`idleWatchdog` 是有意保留的例外，且仅针对它所驱动的单个迭代器 demand：交给传输层的信号仍负责释放该读取（中止会销毁 socket），而当传输层永不结算时由截止时间结束该 demand。
 

@@ -91,13 +91,13 @@ A future model-facing grep/glob tool can be implemented on top of `ctx.shell` wi
 
 **Name the plugin `tool-timeout`.** The literal Agent Note name matched the `gen-tool-catalog` completeness guard's `packages/*/tool-*` glob, which requires every match to register a model-facing tool. This plugin registers none — it is a `tools/execute` wrapper — so a `tool-*` name would either fail `verify-tool-catalog` or force a misleading boot entry. The package is `@deepseek-ai/dsh-tool-call-timeout-policy` in what was then a new `timeout/` group, since folded into `packages/guard/`; the cordis.yml `id` can still be `timeout-policy`.
 
-**Keep per-tool timeout handling only.** This was the shape for `bash` and `web_fetch`, and it matches Claude Code and Codex for shell commands. It loses for web-style tools because every new timeout-capable tool must choose validation, cap semantics, docs, snapshots, and classification. The plugin centralizes policy and classification while leaving each tool's schema focused on business input.
+**Keep per-tool timeout handling only.** This was the shape for `bash` and `web_fetch`, and it matches the legacy hook protocol and the external CLI for shell commands. It loses for web-style tools because every new timeout-capable tool must choose validation, cap semantics, docs, snapshots, and classification. The plugin centralizes policy and classification while leaving each tool's schema focused on business input.
 
 **Move all timeout policy out of bash-local immediately.** Cleaner long-term — bash-local would become a pure subprocess executor and all callers would own their deadlines. It loses as the first step because hooks call `ctx.shell` directly and the bash model tool has foreground/background semantics that are not the same tool-call lifetime. Keeping `BASH_TIMEOUT` preserves those paths while tool-call timeout proves itself on simpler tools.
 
 **Use a global default budget for every tool.** Convenient, but it surprises tool authors: any tool that accidentally runs longer than the global budget would start failing once the plugin loads. A per-tool declared budget makes adoption deliberate.
 
-**Expose a model-facing `timeout_ms` override.** Claude Code's `WebFetch`/`WebSearch` and Codex's web tools keep timeout out of the model-call shape. A model override would make timeout part of prompt semantics and force schema/argument-stripping rules into `timeout-policy`. Web timeout stays deployment policy only.
+**Expose a model-facing `timeout_ms` override.** the legacy hook protocol's `WebFetch`/`WebSearch` and the external CLI's web tools keep timeout out of the model-call shape. A model override would make timeout part of prompt semantics and force schema/argument-stripping rules into `timeout-policy`. Web timeout stays deployment policy only.
 
 **Let `timeout-policy` match tool arguments itself.** A rule engine such as "disable timeout when `bash.run_in_background` is true" would make the policy plugin know tool-specific argument semantics. Avoided by not migrating bash to tool-call timeout.
 

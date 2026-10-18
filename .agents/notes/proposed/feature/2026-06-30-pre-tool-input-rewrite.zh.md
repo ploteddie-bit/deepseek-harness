@@ -6,7 +6,7 @@ Status: proposed
 
 ## 问题
 
-[拦截扩展点 参考](../../../../packages/core/tools/README.zh.md) 将 `tools/pre-execute` 定义为一道针对执行的允许/拒绝/询问门禁，此时执行的身份标识已受保护、参数已被深度冻结。Claude Code 的 `PreToolUse` 钩子还提供了 `updatedInput`，因此忠实的桥接需要一个显式的重写机制。重写不能是对现有执行对象的可变逃逸口：它必须保持持久化历史、审计记录、展示层与实际执行值之间的一致性。
+[拦截扩展点 参考](../../../../packages/core/tools/README.zh.md) 将 `tools/pre-execute` 定义为一道针对执行的允许/拒绝/询问门禁，此时执行的身份标识已受保护、参数已被深度冻结。the legacy hook protocol 的 `PreToolUse` 钩子还提供了 `updatedInput`，因此忠实的桥接需要一个显式的重写机制。重写不能是对现有执行对象的可变逃逸口：它必须保持持久化历史、审计记录、展示层与实际执行值之间的一致性。
 
 ## 问题本质：执行前参数的三个读取方
 
@@ -23,7 +23,7 @@ Status: proposed
 重写是一个「身份标识创建前的一致性事务」。当钩子提供 `updatedInput` 时，有效值必须在注册表构造其不可变的 `ToolExecution` 之前确定，并且必须原子地反映到全部三个读取方：
 
 - `tool/call` 审计事件记录重写后的参数（原始参数保留在一个伴随字段中，作为审计线索——钩子修改了调用，原始参数与生效参数都是值得保留的事实）。
-- 派生历史中的 `assistant/message` 必须与实际执行一致。待评估的选项：就地重写 assistant 消息中的工具调用块（改变模型「看到自己说了什么」），或记录一条单独的修正让下一次请求携带。Claude Code 的模型是让模型看到重写已生效。
+- 派生历史中的 `assistant/message` 必须与实际执行一致。待评估的选项：就地重写 assistant 消息中的工具调用块（改变模型「看到自己说了什么」），或记录一条单独的修正让下一次请求携带。the legacy hook protocol 的模型是让模型看到重写已生效。
 - 展示层（`presentCall`/`presentResult`）读取重写后的参数，使 UI 显示实际运行的内容。
 
 在 `PreToolDecision` 当前的触发点上做扩展是不够的：此时两条持久化记录已经存在，执行身份已受保护。实现必须将相关决策移到日志提交之前，或者增加一个专门的、更早的重写决策点来处理待定的模型调用。agent loop 将生效参数提交到历史和审计之后，再构造普通的不可变执行对象，并照常运行现有的允许/拒绝/询问和工具流水线。
@@ -32,13 +32,13 @@ Status: proposed
 
 ### 为什么不直接修改执行对象？
 
-允许 pre-execute 监听器赋值 `exec.arguments` 只能提供执行层面的重写，模型历史、审计和展示层不会随之改变。保持身份标识受保护使得这种局部行为不可表达。在一致性事务实现之前，CC/Codex 桥接对 `updatedInput` 记录日志并发出警告，而非声称已兑现；循环分发点的 `TODO(pre-tool-input-rewrite)` 标记了缺失的更早阶段。
+允许 pre-execute 监听器赋值 `exec.arguments` 只能提供执行层面的重写，模型历史、审计和展示层不会随之改变。保持身份标识受保护使得这种局部行为不可表达。在一致性事务实现之前，CC/the external CLI 桥接对 `updatedInput` 记录日志并发出警告，而非声称已兑现；循环分发点的 `TODO(pre-tool-input-rewrite)` 标记了缺失的更早阶段。
 
 ## 验收标准
 
 - 请求的重写在 `ToolExecution` 身份标识创建之前解决，并原子地反映到全部三个读取方：`tool/call` 审计记录重写后的参数（原始参数保留在伴随字段中）、派生历史与实际执行一致、展示层渲染重写后的参数。
 - 生效的 `ToolExecution.arguments` 在 pre-policy、守卫、分发、post-policy 和最终观测全程保持深度冻结且不可写；不引入任何可变 shim。
-- CC/Codex 桥接兑现 `updatedInput`，不再记录忠实但降级的警告。
+- CC/the external CLI 桥接兑现 `updatedInput`，不再记录忠实但降级的警告。
 
 ## 风险
 

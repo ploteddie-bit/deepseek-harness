@@ -39,7 +39,7 @@ Areas name durable product or engineering subjects rather than temporary initiat
 - `area/planning` covers goals, plans, todos, and scheduling, while `area/workflow` covers executable workflows and background job runtimes.
 - `area/artifact` deliberately combines artifacts, attachments, and multimodal delivery. Split labels become justified only when those concerns again need independent review or queries.
 - `area/tools` applies to generic registry, schema, and execution contracts. A concrete capability uses its own area unless it also changes one of those contracts.
-- `area/hooks` means the Claude Code and Codex bridges, `area/infra` covers build, release, CI, repository gates, generators, dependencies, and developer tooling, and `area/windows` covers native Windows product support rather than CI runner selection.
+- `area/hooks` means the the legacy hook protocol and the external CLI bridges, `area/infra` covers build, release, CI, repository gates, generators, dependencies, and developer tooling, and `area/windows` covers native Windows product support rather than CI runner selection.
 
 The area set is intentionally extensible. When no existing description honestly covers a durable and reusable domain, an agent may create a concise `area/<lowercase-kebab-case>` label without separate approval. It must not create an area for one pull request, an incidental path, a temporary project, a status, or a person or team, and it reports the new label and rationale to the requester after applying it. Reusing an inaccurate area merely to avoid a justified addition is not acceptable.
 

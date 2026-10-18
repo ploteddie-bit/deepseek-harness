@@ -1,6 +1,6 @@
 ---
 kind: upgrade-guide
-description: "Claude Code 与 Codex bundle 添加全局委派工具，同时保留包名和行标识。"
+description: "the legacy hook protocol 与 the external CLI bundle 添加全局委派工具，同时保留包名和行标识。"
 ---
 
 # 原生子代理 bundle 包含全局工具
@@ -18,7 +18,7 @@ description: "Claude Code 与 Codex bundle 添加全局委派工具，同时保�
 ## 迁移
 
 1. 保留已选中的 bundle 名称、提供方配置和认证。已有仅提供方的包需要在插件 → 官方中**更新**才能获得贡献工具的 bundle；按提示重启。要使用新的提供方，启用其卡片。[安装目标](../../../../packages/boot/plugin-manager/README.zh.md#use-this-package)对应已发布的 DSH 版本或源码 checkout；版本字符串相同不代表旧注册表包等同于开发链接。关闭只取消选择；删除仍为独立操作。
-2. 使用普通行补丁配置该工具。配置覆盖仍会替换整份配置。例如，以下补丁在保留提供方注册的同时禁用 Codex 工具：
+2. 使用普通行补丁配置该工具。配置覆盖仍会替换整份配置。例如，以下补丁在保留提供方注册的同时禁用 the external CLI 工具：
 
    ```yaml
    - id: tool-subagent-codex
@@ -28,4 +28,4 @@ description: "Claude Code 与 Codex bundle 添加全局委派工具，同时保�
 3. 如果手动的 Host 行注册了同名工具，移除该重复行，或禁用 bundle 的贡献行。在 Session 中验证有效工具目录。
 4. 插件客户端收到必填的 `BundleInfo.official` 和 `BundleInfo.availability` 字段；详情 slot 的 `PluginPackageRef` 也会收到它们。`official` 标识项目维护，`availability` 表示 `installation`、`profile` 或 `missing`，`installed` 仍表示 profile 的依赖声明。只展示已有字段的详情 slot 读取方无需修改；构造方和精确校验器必须包含新增字段。可选的 `installTarget` 标识所提供的版本及注册表或本地链接 spec。
 
-**其他 profile。** 这些 bundle 层只插入 Host 行，因此 headless、SDK、ACP 和自定义 profile 也可以选择它们。保留提供方包而不选择其 bundle 的 profile，可以参考 [Codex](../../../../packages/subagent/subagent-codex/README.zh.md#exposing-the-tool) 或 [Claude Code](../../../../packages/subagent/subagent-agent-sdk/README.zh.md) 示例组合相同的行。
+**其他 profile。** 这些 bundle 层只插入 Host 行，因此 headless、SDK、ACP 和自定义 profile 也可以选择它们。保留提供方包而不选择其 bundle 的 profile，可以参考 [the external CLI](../../../../packages/subagent/subagent-codex/README.zh.md#exposing-the-tool) 或 [the legacy hook protocol](../../../../packages/subagent/subagent-agent-sdk/README.zh.md) 示例组合相同的行。

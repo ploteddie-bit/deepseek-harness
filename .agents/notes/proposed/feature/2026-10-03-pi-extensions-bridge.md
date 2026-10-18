@@ -8,7 +8,7 @@ English | [中文](2026-10-03-pi-extensions-bridge.zh.md)
 
 Pi 1.0.0 extensions are in-process TypeScript factories `(pi: ExtensionAPI) => void`. A factory subscribes to about forty lifecycle, context, tool, and provider events, registers model tools, slash commands, model providers, and MCP servers, and talks to the user through `ctx.ui` ([extensions guide](https://github.com/earendil-works/pi/blob/v1.0.0/packages/coding-agent/docs/extensions.md), [API types](https://github.com/earendil-works/pi/blob/v1.0.0/packages/coding-agent/src/core/extensions/types.ts)). The API is published and widely used: about 11,000 npm packages carried the `pi-package` keyword in October 2026.
 
-DSH has bridges for two other ecosystems: shell hooks written for Claude Code and Codex ([hooks group](../../../../packages/experimental/README.md)) and Claude Code mods ([compatibility page](../../../../docs/subsystems/plugin-mods.md)). Pi's extension API is broader than either. It lets one in-process module rewrite the messages of a single request, edit tool arguments, append its own durable records, and continue a finished run. Serving that API from DSH extension points answers two questions: how much of an extension written for another harness runs unchanged, and which DSH core mechanisms are narrower than Pi's.
+DSH has bridges for two other ecosystems: shell hooks written for the legacy hook protocol and the external CLI ([hooks group](../../../../packages/experimental/README.md)) and the legacy hook protocol mods ([compatibility page](../../../../docs/subsystems/plugin-mods.md)). Pi's extension API is broader than either. It lets one in-process module rewrite the messages of a single request, edit tool arguments, append its own durable records, and continue a finished run. Serving that API from DSH extension points answers two questions: how much of an extension written for another harness runs unchanged, and which DSH core mechanisms are narrower than Pi's.
 
 ## Proposal
 
@@ -16,7 +16,7 @@ Add an experimental bridge that loads unmodified Pi extension sources and serves
 
 ### Packages and composition
 
-- `@deepseek-ai/dsh-experimental-pi-extensions` is the Host package and provides `ctx.piExtensions`. `@deepseek-ai/dsh-experimental-client-ui-pi-extensions` is the Web package. Neither is an optional bundle; an opt-in overlay composes them, as for the Claude Code mods bridge.
+- `@deepseek-ai/dsh-experimental-pi-extensions` is the Host package and provides `ctx.piExtensions`. `@deepseek-ai/dsh-experimental-client-ui-pi-extensions` is the Web package. Neither is an optional bundle; an opt-in overlay composes them, as for the the legacy hook protocol mods bridge.
 - One cordis.yml row names one extension source: a file, a directory with an `index.ts` or `index.js`, or a Pi package directory whose `package.json` lists `pi.extensions`. The row also carries the extension's flag values. Row order is Pi's load order, which is also its handler dispatch order.
 - The bridge does not scan `~/.pi` or `.pi`, install packages, or decide project trust. A Pi package's skills, prompt templates, and themes are not loaded.
 

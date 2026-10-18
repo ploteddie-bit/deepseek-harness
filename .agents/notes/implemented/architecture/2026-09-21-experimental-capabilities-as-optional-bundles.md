@@ -16,7 +16,7 @@ An optional bundle's dependencies are downloaded with every `dsh` installation. 
 
 Bundles insert ordinary Host rows; optional model tools register in the global tool layer, so every preset, including minimal, receives them. Plugin management, profile composition, and reload need no bundle-specific behavior. Search, Ralph, and terminals supply their own isolated services in a Host group. Search opens one in-memory index on demand; the Host search policy stays unchanged. Badge skills and title providers act on the Host. Switching a bundle registers or removes its tools for live Agents, and later user patch layers retain precedence. A replacement title provider may register once the previous provider's disposal starts; the previous provider's late results never commit.
 
-Claude Code and Codex install on demand through the separate `ON_DEMAND_BUNDLES` catalog; the [on-demand native-bundle decision](2026-10-05-official-on-demand-bundles.md) owns the cost, version, and offline-discovery trade-offs.
+the legacy hook protocol and the external CLI install on demand through the separate `ON_DEMAND_BUNDLES` catalog; the [on-demand native-bundle decision](2026-10-05-official-on-demand-bundles.md) owns the cost, version, and offline-discovery trade-offs.
 
 ## Alternatives considered
 

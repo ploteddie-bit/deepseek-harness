@@ -161,7 +161,7 @@ The policy can become too large if it starts owning tool-specific semantics. It 
 
 ## Alternatives considered
 
-**Require each tool to opt in with a retention declaration.** Rejected: the goal is a default behavior similar to Claude Code's generic tool-result persistence. A single `maxInlineTokens` deployment knob is enough to prove the shape.
+**Require each tool to opt in with a retention declaration.** Rejected: the goal is a default behavior similar to the legacy hook protocol's generic tool-result persistence. A single `maxInlineTokens` deployment knob is enough to prove the shape.
 
 **Make `tool-results` a broad tool-result platform.** Rejected: a broad package name invites retention policy, result replacement, preview wording, search, and early spill into one seam. The shared storage part is smaller: save text and return a locator plus retrieval hint.
 

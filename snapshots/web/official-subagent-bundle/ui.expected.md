@@ -1,4 +1,4 @@
-- text: Delegate a self-contained task to the official Claude Code subagent through its generated tools SDK in one run_code program. Ask it to reply with OFFICIAL_SUBAGENT_OK exactly, print its child ID, and wait for its completion notice before replying DONE. {{clock}}
+- text: Delegate a self-contained task to the official the legacy hook protocol subagent through its generated tools SDK in one run_code program. Ask it to reply with OFFICIAL_SUBAGENT_OK exactly, print its child ID, and wait for its completion notice before replying DONE. {{clock}}
 - button "Copy"
 - status: Completed
 - button "Completed in {{duration}}" [expanded]

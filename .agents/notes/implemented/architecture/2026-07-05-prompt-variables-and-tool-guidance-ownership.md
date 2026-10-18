@@ -12,7 +12,7 @@ The assembled system prompt had four defects, all of one family: facts the harne
 
 **Tool guidance was hand-written prose in leaf YAML.** The shell/subagent/todo_write usage guidance lived in the coding-agent and ACP persona strings — two drifting copies (the ACP one was already abridged) — while `dsh-tool-fs` and `dsh-tool-web` owned their guidance as `ctx.systemPrompt.section()` contributions. Loading or dropping a tool plugin meant editing every deployment's persona by hand, and the old terminal welcome banner hand-enumerated the tool set too.
 
-**The persona rendered after tool guidance.** The loop string-joined `agent.options.systemPrompt` AFTER the assembled sections, so the model read "Use the read tool…" before "You are a coding agent" — backwards relative to the identity-first convention (Claude Code, Codex) and a second composition path besides the section pipeline.
+**The persona rendered after tool guidance.** The loop string-joined `agent.options.systemPrompt` AFTER the assembled sections, so the model read "Use the read tool…" before "You are a coding agent" — backwards relative to the identity-first convention (the legacy hook protocol, the external CLI) and a second composition path besides the section pipeline.
 
 **The fork tool's description was false.** `dsh-tool-subagent` hardcoded one description written for spawn semantics — "a separate agent that works in its own context … it does not see this conversation" — and the `subagent_fork` instance (whose child inherits the parent's completed turns) got the same words; the YAML prose corrected the lie out-of-band. Minor kin: `PromptSection.name` was documented "(diagnostics / dedup)" but duplicates were silently accepted.
 

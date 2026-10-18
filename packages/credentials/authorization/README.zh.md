@@ -47,8 +47,8 @@ const key = credentialKey('llm-pi-ai', 'openai-codex') // <scope>/<id> — your 
 
 const dispose = ctx.authorization.registerFlow({
   key,
-  label: 'ChatGPT (Codex)',
-  methods: [{ id: 'oauth', label: 'Sign in with ChatGPT' }, { id: 'api-key', label: 'Paste a key' }],
+  label: 'an external assistant (the external CLI)',
+  methods: [{ id: 'oauth', label: 'Sign in with an external assistant' }, { id: 'api-key', label: 'Paste a key' }],
   async run(session: AuthorizationSession) {
     session.notify({ message: 'Continue in your browser', url: 'https://auth.example/start' })
     const code = await session.prompt({ kind: 'text', message: 'Paste the code' })

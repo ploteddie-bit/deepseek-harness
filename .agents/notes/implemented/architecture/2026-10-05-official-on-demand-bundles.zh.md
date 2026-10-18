@@ -10,7 +10,7 @@ Status: implemented
 
 ## 决策
 
-`ON_DEMAND_BUNDLES` 将 Claude Code 和 Codex bundle 纳入安装方维护的目录。目录内嵌包自身拥有的本地化元信息和图标，因此发现过程离线可用，无需解析或导入这两个包。Official 表示项目维护；可选交付与实验成熟度仍是独立属性。
+`ON_DEMAND_BUNDLES` 将 the legacy hook protocol 和 the external CLI bundle 纳入安装方维护的目录。目录内嵌包自身拥有的本地化元信息和图标，因此发现过程离线可用，无需解析或导入这两个包。Official 表示项目维护；可选交付与实验成熟度仍是独立属性。
 
 选择操作复用普通第三方 bundle 的安装器、profile 依赖、Host 行 patch、兼容性判断、进度、取消、注册表回退和构建脚本审批。原生认证与配置仍由提供方拥有。
 

@@ -10,7 +10,7 @@ Native subagent integrations bring their own runtimes. Shipping those dependenci
 
 ## Decision
 
-`ON_DEMAND_BUNDLES` admits the Claude Code and Codex bundles to an installation-owned catalog. The catalog embeds their package-owned localized metadata and icons, so discovery works offline without resolving or importing either package. Official identifies project maintenance; optional delivery and experimental maturity remain independent properties.
+`ON_DEMAND_BUNDLES` admits the the legacy hook protocol and the external CLI bundles to an installation-owned catalog. The catalog embeds their package-owned localized metadata and icons, so discovery works offline without resolving or importing either package. Official identifies project maintenance; optional delivery and experimental maturity remain independent properties.
 
 Selection uses the ordinary third-party bundle installer, profile dependency, Host row patches, compatibility evaluation, progress, cancellation, registry fallback, and build-script approval. Native authentication and configuration remain provider-owned.
 

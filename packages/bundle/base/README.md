@@ -110,7 +110,7 @@ Read these pages when you want to go deeper into profiles, the surfaces built on
 - [Bundle package map](../README.md) — the surfaces built on this core.
 - [Generated composition graph](../../../apps/cli/composition.md) — the exact plugin set each shipped profile uses.
 - [Profile plugin bundles note](../../../.agents/notes/implemented/architecture/2026-08-05-profile-plugin-bundles.md) — the profile and bundle composition design.
-- [Codex and Claude Code provider bundles](../../subagent/README.md) — optional provider bundles you can install on top.
+- [the external CLI and the legacy hook protocol provider bundles](../../subagent/README.md) — optional provider bundles you can install on top.
 
 -----
 

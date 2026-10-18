@@ -12,7 +12,7 @@ Status: implemented
 
 **工具指导是 leaf YAML 中的手写行文。** shell/subagent/todo_write 的使用指导存放在 coding-agent 和 ACP（Agent Client Protocol）的 persona 字符串里——两份漂移的副本（ACP 那份已经被删减）——而 `dsh-tool-fs` 和 `dsh-tool-web` 则通过 `ctx.systemPrompt.section()` 贡献各自的指导。加载或卸载一个工具插件意味着手动编辑每个部署的 persona，旧终端欢迎横幅也手动枚举了工具集。
 
-**Persona 渲染在工具指导之后。** agent loop（智能体循环）将 `agent.options.systemPrompt` 字符串拼接在已组装的 section 之后，于是模型先读到「Use the read tool…」再读到「You are a coding agent」——与 identity-first 约定（Claude Code、Codex）相反，且是 section 流水线之外的第二条组合路径。
+**Persona 渲染在工具指导之后。** agent loop（智能体循环）将 `agent.options.systemPrompt` 字符串拼接在已组装的 section 之后，于是模型先读到「Use the read tool…」再读到「You are a coding agent」——与 identity-first 约定（the legacy hook protocol、the external CLI）相反，且是 section 流水线之外的第二条组合路径。
 
 **Fork 工具的描述是假的。** `dsh-tool-subagent` 硬编码了一段为 spawn 语义编写的描述——「a separate agent that works in its own context … it does not see this conversation」——而 `subagent_fork` 实例（其子 agent 继承父级已完成的轮次）拿到了同样的措辞；YAML 行文在带外纠正了这个谎言。小问题：`PromptSection.name` 文档标注为「(diagnostics / dedup)」，但重复项被静默接受。
 

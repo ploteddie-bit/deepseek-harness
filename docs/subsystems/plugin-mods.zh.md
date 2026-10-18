@@ -1,12 +1,12 @@
-# Claude Code 模组：兼容性
+# the legacy hook protocol 模组：兼容性
 
 [English](plugin-mods.md) | 中文
 
-模组经本桥接运行时与在 Claude Code 下行为不同的每一处，基准为 Claude Code 2.1.287（[模组参考](https://code.claude.com/docs/en/plugins/mods/reference)及其 `claude-code.d.ts`）与 2026-10-01 的 [Getting started with Claude Code mods](https://claude.dev/blog/getting-started-with-plugin-mods/) 一文。每行给出 Claude Code 的行为、本桥接的做法，以及原因或后续工作。未列出的一切均按参考文档描述的方式运行；对本宿主永不触发的事件注册钩子会在模组加载时以警告点名，服务表之外的 `$` 调用以 `no implementation for <namespace>.<method>` 拒绝。
+模组经本桥接运行时与在 the legacy hook protocol 下行为不同的每一处，基准为 the legacy hook protocol 2.1.287（[模组参考](https://code.claude.com/docs/en/plugins/mods/reference)及其 `claude-code.d.ts`）与 2026-10-01 的 [Getting started with the legacy hook protocol mods](https://claude.dev/blog/getting-started-with-plugin-mods/) 一文。每行给出 the legacy hook protocol 的行为、本桥接的做法，以及原因或后续工作。未列出的一切均按参考文档描述的方式运行；对本宿主永不触发的事件注册钩子会在模组加载时以警告点名，服务表之外的 `$` 调用以 `no implementation for <namespace>.<method>` 拒绝。
 
 ## 打包与加载
 
-| Claude Code | 本桥接 | 原因或后续 |
+| the legacy hook protocol | 本桥接 | 原因或后续 |
 |---|---|---|
 | 一个插件目录，含 `.claude-plugin/plugin.json` 与指定一个钩子模块的 `hooks/hooks.json`；`claude --plugin-dir`、市场、`/plugin install` | 模组就是插件：`defineMod({ name, version, root, userConfig, register })` 包装钩子模块，并在桥接之后经 cordis.yml 挂载；不读取 `plugin.json` 与 `hooks.json` | 模组加入每个 DSH 插件都使用的同一组合机制；示例目录保留其清单，因此也能在 `claude --plugin-dir` 下运行 |
 | `plugin.json` 中带类型默认值的 `userConfig` schema；选项在加载时校验 | `userConfig` 是 `defineMod` 规格的默认值对象；插件的 cordis.yml `config` 覆盖其上，并按字符串、数字、布尔与字符串列表的记录校验 | 不读取清单 |
@@ -19,13 +19,13 @@
 
 ## 事件
 
-| 事件 | Claude Code | 本桥接 |
+| 事件 | the legacy hook protocol | 本桥接 |
 |---|---|---|
 | `session.start` | 每会话触发一次，在首个提示词之前 | 由根智能体的 `agent/created` 触发，在其首轮之前等待完成；不为子智能体触发 |
 | `session.end` | 每会话触发一次 | 由根智能体的 `agent/disposed` 触发；钩子结束前 `$.state` 可读 |
 | `prompt.submit` | `e.text` 是输入的提示词；`context` 条目各成一块跟在输入的提示词之后；插件提交的提示词带 `origin: { kind: 'plugin', name }` | 相同；`e.text` 拼接已认领批次中人类自己（`user` 来源）消息的文本块，仅含注入上下文的批次不触发，`$.prompt.submit` 排入的提示词以提交的模组为来源 |
 | `turn.start`、`turn.complete` | 每轮触发；子智能体的轮带 `agentId` | 相同；`turn.complete` 的 `{ text }` 到达宿主日志，而非答案下方的一行；`durationMs` 从 `turn/start` 起算 |
-| `tool.call` | 在 Claude Code 的权限检查之前运行；`next({ ...e, command })` 改写工具实际运行的参数，`next({ ...e, tool })` 把调用改派给另一工具 | 包裹 `tools/execute` 运行，在 harness 权限决定之后；改写参数或改名工具的钩子（或 `.catch` 处理器）会被跳过并报告——参数情形指向[工具前输入改写提案](../../.agents/notes/proposed/feature/2026-06-30-pre-tool-input-rewrite.zh.md)——因为已写入日志的调用按原样运行。`{ deny }`、`{ result }`、观察以及在 `next` 之后改写结果或 `isError` 均按描述工作 |
+| `tool.call` | 在 the legacy hook protocol 的权限检查之前运行；`next({ ...e, command })` 改写工具实际运行的参数，`next({ ...e, tool })` 把调用改派给另一工具 | 包裹 `tools/execute` 运行，在 harness 权限决定之后；改写参数或改名工具的钩子（或 `.catch` 处理器）会被跳过并报告——参数情形指向[工具前输入改写提案](../../.agents/notes/proposed/feature/2026-06-30-pre-tool-input-rewrite.zh.md)——因为已写入日志的调用按原样运行。`{ deny }`、`{ result }`、观察以及在 `next` 之后改写结果或 `isError` 均按描述工作 |
 | `command.run` | 为模组注册的命令运行 | 相同 |
 | `ui.render` | 为每个渲染位点触发（`AbovePrompt`、`Pane`、`ToolUse`、`AssistantMessage`、`Spinner`……） | 只为 `AbovePrompt` 触发，每次会话横幅重绘一次；`Pane` 钩子只经测试工具包的 `$.ui.mount({ component: 'Pane' })` 运行 |
 | `tool.check`、`tool.describe`、`tool.list`、`tool.register` | 塑造工具列表与权限 | 不触发；`$.tool.register` 与 `$.tool.list` 作为 `$` 调用服务 |
@@ -36,7 +36,7 @@
 
 ## 链
 
-| Claude Code | 本桥接 | 原因 |
+| the legacy hook protocol | 本桥接 | 原因 |
 |---|---|---|
 | 钩子可多次调用 `next`；每次调用都再次运行下层链 | `next` 只运行一次：第二次调用返回第一次运行的结果 | 每条写入日志的调用只执行一次工具 |
 | 钩子在其 `next` 仍在运行时作答 | 下层运行会在钩子答案落定前被等待；答案之后的下层失败会被报告 | 事件只在其启动的一切都结束后落定 |
@@ -46,7 +46,7 @@
 
 ## `$` 成员
 
-| 命名空间 | Claude Code | 本桥接 |
+| 命名空间 | the legacy hook protocol | 本桥接 |
 |---|---|---|
 | `$.plugin` | `name`、`root`、`tier` | 来自 `defineMod` 规格的 `name`、`root` |
 | `$.ui` | `resolve`、`invalidate`、`open`、`close`、`panes`、`focus`、`log`、`toast`、`status`、`notice`、`ask`、`blit`、`copy`、`press`、`input`、`select` | `resolve`、`invalidate`、`open`、`close`、`panes`、`log`、`toast`、`status`、`ask`；`open` 带原因回答 `{ isPlaced: false }` 并重绘横幅；`log`、`toast`、`status` 到达宿主日志；其余拒绝 |
@@ -65,7 +65,7 @@
 
 ## 绘制
 
-| Claude Code | 本桥接 |
+| the legacy hook protocol | 本桥接 |
 |---|---|
 | `Box`、`Text`、`Button`、`Input`、`Spacer` 以及宿主自己的元素种类 | 来自 `$.ui.resolve(e)` 的 `Box`、`Text`、`Button`；树经校验，`Button` 的 `onPress` 留在宿主中，位于按绘制分配的动作 id 之后 |
 | `Box` 属性：`flexDirection`、`padding*`、`gap`、`border*`、`width`、`height`、`overflow`、`scroll` | `flexDirection`、`padding`、`paddingX`、`paddingY`、`gap`、`border`、`borderColor`；其余会序列化，Web 横幅忽略 |
@@ -135,7 +135,7 @@ The bridge service: loaded mods, their hooks, and the harness listeners that rai
  * keep its hooks, and report which of its events this host never raises.
  * @param definition - the mod as its plugin defined it.
  * @returns the disposer that removes the mod's hooks, closes its timers, and releases its registrations.
- * @throws Error when the name is invalid or taken, or when `register` throws (Claude Code's `hooks module did not load` wording).
+ * @throws Error when the name is invalid or taken, or when `register` throws (the legacy hook protocol's `hooks module did not load` wording).
  */
 async add(definition: ModDefinition): Promise<() => Promise<void>>
 ```

@@ -12,9 +12,9 @@ harness 通过 Cordis 事件分类体系扩展 agent loop（智能体循环）�
 - `agent/*` 承载运行时实时信号，向插件传递 `Agent` 句柄。
 - `tools/*` 承载工具注册表与执行流水线。
 
-两个问题促使我们固定语义。第一，若干轮次/步骤边界同时作为持久的 `SessionEvent`（`turn/start`、`turn/end`、`step/start`、`step/end`）和镜像的 `agent/*` emit（`agent/turn-start`、`agent/turn-end`、`agent/step-start`、`agent/step-end`）存在。消费方对同一事实有两个真源，每次生命周期变更都必须同时更新两处。第二，钩子子系统需要一个连贯且有文档的订阅表面——插件作者（以及基于其上构建的 Claude Code / Codex 钩子桥接）必须在不阅读循环代码的情况下知道应该监听会话事件还是 agent 事件，以及原因。
+两个问题促使我们固定语义。第一，若干轮次/步骤边界同时作为持久的 `SessionEvent`（`turn/start`、`turn/end`、`step/start`、`step/end`）和镜像的 `agent/*` emit（`agent/turn-start`、`agent/turn-end`、`agent/step-start`、`agent/step-end`）存在。消费方对同一事实有两个真源，每次生命周期变更都必须同时更新两处。第二，钩子子系统需要一个连贯且有文档的订阅表面——插件作者（以及基于其上构建的 the legacy hook protocol / the external CLI 钩子桥接）必须在不阅读循环代码的情况下知道应该监听会话事件还是 agent 事件，以及原因。
 
-这套词汇是拦截决策、持久的 `hook/*` 日志，以及 Claude Code 和 Codex 桥接的基础。
+这套词汇是拦截决策、持久的 `hook/*` 日志，以及 the legacy hook protocol 和 the external CLI 桥接的基础。
 
 ## 决策
 

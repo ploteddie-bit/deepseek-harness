@@ -38,7 +38,7 @@ interface WorkflowStartRequest {
 
 ## 工作流的身份标识：`WorkflowMeta`
 
-作为数据附在启动请求上的身份块（工具的 `meta` 参数；字段词汇与 Claude Code 动态工作流的 meta 块一致）。`phases` 仅用于进度展示：`phase()` 调用与标题匹配，供观察者使用；不暗示任何执行结构。
+作为数据附在启动请求上的身份块（工具的 `meta` 参数；字段词汇与 the legacy hook protocol 动态工作流的 meta 块一致）。`phases` 仅用于进度展示：`phase()` 调用与标题匹配，供观察者使用；不暗示任何执行结构。
 
 ```ts type-equiv
 /**
@@ -46,7 +46,7 @@ interface WorkflowStartRequest {
  * script body (the model-facing tool carries it as its `meta` parameter) and
  * validated by the engine before the body runs. `name`/`description` are
  * required; the rest is optional annotation. The field vocabulary matches the
- * Claude Code dynamic-workflows meta block.
+ * the legacy hook protocol dynamic-workflows meta block.
  */
 interface WorkflowMeta {
   /** Short kebab-case workflow name (display + persistence key). */

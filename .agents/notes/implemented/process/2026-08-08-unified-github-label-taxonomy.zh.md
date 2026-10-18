@@ -39,7 +39,7 @@ Issue 已有原生 Issue Type 和独立的来源分类体系。在这两类对�
 - `area/planning` 覆盖目标、计划、待办和调度，`area/workflow` 则覆盖可执行工作流与后台任务运行时。
 - `area/artifact` 有意合并产物、附件与多模态交付。只有当这些关注点再次需要独立评审或查询时，才有理由拆分标签。
 - `area/tools` 适用于通用注册表、schema 与执行约定。具体能力使用自身的领域标签，除非它还修改了其中一项约定。
-- `area/hooks` 表示 Claude Code 与 Codex 桥接，`area/infra` 覆盖构建、发布、CI、仓库门禁、生成器、依赖与开发者工具，`area/windows` 覆盖原生 Windows 产品支持，而不是 CI runner 的选型。
+- `area/hooks` 表示 the legacy hook protocol 与 the external CLI 桥接，`area/infra` 覆盖构建、发布、CI、仓库门禁、生成器、依赖与开发者工具，`area/windows` 覆盖原生 Windows 产品支持，而不是 CI runner 的选型。
 
 领域集合有意保持可扩展。当现有说明都无法如实涵盖一个持久且可复用的领域时，agent（智能体）无需另行批准，即可创建一个简洁的 `area/<lowercase-kebab-case>` 标签。agent 不得为单个 PR、偶然涉及的路径、临时项目、状态、个人或团队创建领域，并且必须在应用新标签后向请求者报告该标签及理由。仅为避免新增一个确有必要的领域标签而复用不准确的领域，不可接受。
 
