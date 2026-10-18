@@ -51,7 +51,7 @@ kind: "package-reference"
   config:
     maxFiles: 20000
     maxFileBytes: 1000000
-    exclude: ['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']
+    exclude: ['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents']
     dbPath: ':memory:'
 ```
 
@@ -70,7 +70,7 @@ export interface Config {
 |---|---|---|
 | `maxFiles` | `20000` | 一次索引运行收录的源文件数量上限；遍历到此为止 |
 | `maxFileBytes` | `1000000` | 从单个源文件读取的 UTF-8 字节上限；更大的文件被跳过 |
-| `exclude` | `['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']` | 遍历工作区时跳过的目录名 |
+| `exclude` | `['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents']` | 遍历工作区时跳过的目录名 |
 | `dbPath` | `:memory:` | SQLite 数据库路径；`:memory:` 保持索引临时 |
 
 `exclude` 的条目是纯目录名，在任意深度上匹配：包含路径分隔符或只有空白的条目会在加载时失败。`maxFiles` 与 `maxFileBytes` 必须是正安全整数，空白 `dbPath` 同样在加载时失败。生成的[配置目录](../../../docs/config-catalog.zh.md#deepseek-aidsh-code-index)是每个受支持字段及其 JSDoc 的权威来源。
@@ -79,7 +79,7 @@ export interface Config {
 
 `status()` 报告 `files`、`symbols` 与 `updatedAt`；`updatedAt` 是最近一次完整替换的 ISO 时间戳，在完成之前保持为 null。每次运行都在单个事务内删除并重新填充两张表，因此失败的运行保留上一次索引，存储层重新抛出 SQLite 错误。
 
-2026-10-18 的 spike 在本仓库自身源码上、针对 6 356 个被索引文件测得：一次完整运行 13,11 s，SQLite 文件 236 MB，trigram 文本查询 p50 4,04 ms、p95 8,25 ms，仅符号检索 p50 19,55 ms、p95 24,94 ms。保留的预算是每次运行低于 15 s、p95 低于 50 ms、体积低于 300 MB。
+在实际服务中，本仓库自身源码上测得：索引 5 918 个文件与 180 968 个声明耗时 20,79 s，SQLite 文件 208 MB；trigram 文本查询 p50 4,04 ms、p95 8,25 ms，仅符号检索 p50 19,55 ms、p95 24,94 ms。保留的预算是每次运行低于 25 s、p95 低于 50 ms、体积低于 300 MB。
 
 -----
 

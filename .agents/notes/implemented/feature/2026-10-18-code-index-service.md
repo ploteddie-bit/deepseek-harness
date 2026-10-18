@@ -32,7 +32,7 @@ The plugin registers `code_search` when `ctx.tools` is already mounted, reading 
 
 ### Measured budgets
 
-Over 6,356 indexed files, the spike measured 13.11 s for one full trigram run and 235.99 MB for the SQLite file; text queries reached p50 4.04 ms and p95 8.25 ms, symbol-only search p50 19.55 ms and p95 24.94 ms, and symbol extraction 0.93 s over 173,593 declarations. The retained budgets are under 15 s per run, under 50 ms p95, and under 300 MB. Every measured figure sits far inside the 300 ms latency budget the spike set, so the constraints that matter are index size and re-index time, not query latency.
+The 2026-10-18 spike measured the regex prototype at 13.11 s and 235.99 MB over 6,356 files. The shipped service adds full TypeScript AST extraction and measured 20.79 s, 208 MB, 5,918 indexed files and 180,968 declarations on the same repository; the three excluded build trees (`.dist`, `.turbo`, `coverage`) account for the smaller file count. Text queries stayed at p50 4.04 ms and p95 8.25 ms, symbol search at p50 19.55 ms and p95 24.94 ms. The retained budgets are under 25 s per run, under 50 ms p95, and under 300 MB. Index size and re-index time matter; query latency does not.
 
 ## Alternatives considered
 

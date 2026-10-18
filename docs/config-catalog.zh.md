@@ -701,7 +701,7 @@ export interface Config {
   maxFileBytes?: number
   /**
    * Directory names skipped while walking the workspace. Defaults to
-   * `['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']`.
+   * `['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents']`.
    */
   exclude?: string[]
   /** SQLite database path. Defaults to `:memory:`, an ephemeral index rebuilt per process. */

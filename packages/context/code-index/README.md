@@ -51,7 +51,7 @@ Every field has a default, so an empty row is a valid configuration.
   config:
     maxFiles: 20000
     maxFileBytes: 1000000
-    exclude: ['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']
+    exclude: ['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents']
     dbPath: ':memory:'
 ```
 
@@ -70,7 +70,7 @@ export interface Config {
 |---|---|---|
 | `maxFiles` | `20000` | Maximum number of source files one index run collects; the walk stops there |
 | `maxFileBytes` | `1000000` | Maximum UTF-8 bytes read from one source file; larger files are skipped |
-| `exclude` | `['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents']` | Directory names skipped while walking the workspace |
+| `exclude` | `['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents']` | Directory names skipped while walking the workspace |
 | `dbPath` | `:memory:` | SQLite database path; `:memory:` keeps the index ephemeral |
 
 `exclude` entries are plain directory names matched at any depth: an entry containing a path separator or only whitespace fails at load. `maxFiles` and `maxFileBytes` must be positive safe integers, and a blank `dbPath` fails at load. The generated [configuration catalog](../../../docs/config-catalog.md#deepseek-aidsh-code-index) is the exhaustive source for every accepted field and its JSDoc.
@@ -79,7 +79,7 @@ export interface Config {
 
 `status()` reports `files`, `symbols`, and `updatedAt`; `updatedAt` is the ISO timestamp of the most recent complete replacement and stays null until one finishes. Each run deletes and refills both tables inside a single transaction, so a failed run leaves the previous index intact and the store rethrows the SQLite error.
 
-Measured on this repository's own source with the 2026-10-18 spike, over 6,356 indexed files: 13.11 s for one full run, 236 MB for the SQLite file, p50 4.04 ms and p95 8.25 ms for trigram text queries, and p50 19.55 ms and p95 24.94 ms for symbol-only search. The retained budgets are under 15 s per run, under 50 ms p95, and under 300 MB.
+Measured on this repository's own source: the shipped service indexes 5,918 files and 180,968 declarations in 20.79 s with a 208 MB SQLite file; text queries run at p50 4.04 ms and p95 8.25 ms, symbol search at p50 19.55 ms and p95 24.94 ms. The retained budgets are under 25 s per run, under 50 ms p95, and under 300 MB.
 
 -----
 

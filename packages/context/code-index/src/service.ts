@@ -17,7 +17,7 @@ export const DEFAULT_MAX_FILES = 20_000
 /** Default maximum UTF-8 bytes read from one source file. */
 export const DEFAULT_MAX_FILE_BYTES = 1_000_000
 /** Default directory names skipped while walking the workspace. */
-export const DEFAULT_EXCLUDE = ['.git', 'node_modules', 'lib', 'dist', 'build', 'vendor', '.agents'] as const
+export const DEFAULT_EXCLUDE = ['.git', 'node_modules', 'lib', 'dist', '.dist', 'build', '.turbo', 'coverage', 'vendor', '.agents'] as const
 /** Default maximum number of returned search results. */
 export const DEFAULT_SEARCH_LIMIT = 10
 
