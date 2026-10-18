@@ -585,7 +585,7 @@ describe('dsh-workflow-ptc', { timeout: 120_000 }, () => {
       expect(() => ctx.workflowEngine.start({ script: 'return 1', meta: { name: '', description: 'd' }, parent })).toThrow(/meta\.name must be a non-empty string/)
       expect(() => ctx.workflowEngine.start({ script: 'return 1', meta: { name: 'x', description: 'd', extra: 1 } as unknown as WorkflowMeta, parent })).toThrow(/META_INVALID|not a recognized field/)
       expect(() => ctx.workflowEngine.start({ ...scripted('return ((('), parent })).toThrow(/does not parse/)
-      // The likeliest authoring slip — a Claude Code-style meta header in the
+      // The likeliest authoring slip — a script-style meta header in the
       // body — gets a pointed message, not a bare SyntaxError.
       expect(() => ctx.workflowEngine.start({ ...scripted("export const meta = { name: 'x', description: 'd' }\nreturn 1"), parent })).toThrow(/meta rides the `meta` request field/)
     })

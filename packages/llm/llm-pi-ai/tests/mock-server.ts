@@ -86,7 +86,7 @@ export async function mockServer(script: {
     request.on('data', (chunk: Buffer) => { chunks.push(chunk) })
     request.on('end', () => {
       const bytes = Buffer.concat(chunks)
-      // Codex SSE requests use zstd compression when the host supports it.
+      // Some SSE providers use zstd compression when the host supports it.
       const body = (request.headers['content-encoding'] === 'zstd' ? zstdDecompressSync(bytes) : bytes).toString('utf8')
       paths.push(request.url ?? '')
       requests.push(body.length === 0 ? undefined : JSON.parse(body))
