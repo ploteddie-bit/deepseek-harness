@@ -20,7 +20,7 @@ import { acceptedDirectCallValue } from './direct-call.ts'
 
 /**
  * Default cap on paths retained inline by one `glob` call (the `globMaxResults`
- * config), matching Claude Code's default `GlobTool` result limit.
+ * config), matching the reference tool's default result limit.
  */
 export const GLOB_MAX_RESULTS = 100
 

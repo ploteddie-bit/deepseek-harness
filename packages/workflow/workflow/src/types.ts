@@ -40,8 +40,8 @@ export interface WorkflowPhase {
  * The script's identity block, provided as plain JSON data alongside the
  * script body (the model-facing tool carries it as its `meta` parameter) and
  * validated by the engine before the body runs. `name`/`description` are
- * required; the rest is optional annotation. The field vocabulary matches the
- * Claude Code dynamic-workflows meta block.
+ * required; the rest is optional annotation. The field vocabulary follows the
+ * workflow meta block.
  */
 export interface WorkflowMeta {
   /** Short kebab-case workflow name (display + persistence key). */

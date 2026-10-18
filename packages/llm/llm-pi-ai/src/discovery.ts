@@ -32,8 +32,8 @@ import { catalogModels } from './catalog.ts'
  * bearer auth at `GET {baseURL}/models`; Anthropic Messages uses `x-api-key`
  * and `anthropic-version` at its native `GET /v1/models`. Azure is absent
  * despite its OpenAI lineage — it authenticates with an `api-key` header and
- * requires an `api-version` query — and Codex authenticates through OAuth;
- * guessing at either would report an authentication failure as a provider
+ * requires an `api-version` query — and OAuth-authenticated providers are
+ * absent; guessing at either would report an authentication failure as a provider
  * with no models. pi-ai's remaining protocols are absent for the same reason.
  */
 const LISTABLE_PROTOCOLS: ReadonlySet<string> = new Set([

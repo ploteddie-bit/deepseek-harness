@@ -210,13 +210,13 @@ describe('agent-instructions resume snapshot', () => {
         cwd = runCwd
         await mkdir(join(runCwd, '.git'), { recursive: true })
         await writeFile(join(runCwd, 'AGENTS.md'), 'Current AGENTS rule.\n')
-        await writeFile(join(runCwd, 'CLAUDE.md'), 'Current CLAUDE rule.\n')
+        await writeFile(join(runCwd, 'AGENTS.extra.md'), 'Current extra rule.\n')
         sessionPath = await seedVisibleBaseline(join(runCwd, '.sessions'), runCwd, {
           files: [
-            { name: 'CLAUDE.md', content: 'Old CLAUDE rule.' },
+            { name: 'AGENTS.extra.md', content: 'Old extra rule.' },
             { name: 'AGENTS.md', content: 'Old AGENTS rule.' },
           ],
-          instructionFileCandidates: ['CLAUDE.md', 'AGENTS.md'],
+          instructionFileCandidates: ['AGENTS.extra.md', 'AGENTS.md'],
         })
       },
       inspect: async () => {
@@ -241,8 +241,8 @@ describe('agent-instructions resume snapshot', () => {
         expect(baselines).toHaveLength(2)
         const replacement = JSON.stringify(baselines.at(-1)?.data?.content)
         expect(replacement).toContain('replaces all earlier workspace instruction baselines')
-        expect(replacement.indexOf('Instructions from: AGENTS.md'))
-          .toBeLessThan(replacement.indexOf('Instructions from: CLAUDE.md'))
+        expect(replacement).toContain('Instructions from: AGENTS.md')
+        expect(replacement).not.toContain('Instructions from: AGENTS.extra.md')
       },
     })
 

@@ -183,7 +183,7 @@ const SCOPE_SEPARATOR = '\u0000'
  * Each loaded candidate is tracked independently, so the key pairs the logical
  * directory with the exact candidate file name behind a NUL separator that no
  * directory path or file name can contain. Distinct candidates in one directory
- * (`AGENTS.md` vs `CLAUDE.md`, a base file vs its `.local` overlay) therefore
+ * (two base candidates, or a base file vs its `.local` overlay) therefore
  * never collide in the scope-keyed state maps.
  * @param directory - `user-global`, `agents-global`, `.`, or a project-relative directory.
  * @param candidateName - instruction file name within that directory.

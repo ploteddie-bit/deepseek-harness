@@ -23,7 +23,7 @@ import { acceptedDirectCallValue } from './direct-call.ts'
 
 /**
  * Default cap on flat matches retained inline by one `grep` call (the
- * `grepMaxMatches` config), matching Claude Code's default `GrepTool`
+ * `grepMaxMatches` config), matching the reference tool's default
  * `head_limit`.
  */
 export const GREP_MAX_MATCHES = 250

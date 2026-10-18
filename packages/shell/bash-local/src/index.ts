@@ -19,8 +19,8 @@ import { clampTimeout, deadline, MAX_TIMER_DELAY_MS, timeoutOf } from '@deepseek
 
 /**
  * Model-friendly environment overrides: disable colors, pagers, and
- * interactive terminal features that would garble tool output (the same set
- * Codex hardcodes; Claude Code achieves it via TERM=dumb). Bash-tool policy —
+ * interactive terminal features that would garble tool output (a set chosen
+ * for non-interactive tool output). Bash-tool policy —
  * merged first into the spawn's explicit env, so a trusted caller's own entry
  * still wins; the subprocess service applies its credential scrub independently.
  */

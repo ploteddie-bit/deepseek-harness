@@ -31,7 +31,7 @@ import type { ToolExecution } from '@deepseek-ai/dsh-tools'
 
 /**
  * Default cap on the complete raw `rg` stdout the tools will parse (the
- * `rawOutputMaxBytes` config), matching Claude Code's ripgrep raw buffer.
+ * `rawOutputMaxBytes` config), matching the reference tool's ripgrep raw buffer.
  */
 export const RAW_OUTPUT_MAX_BYTES = 20_000_000
 

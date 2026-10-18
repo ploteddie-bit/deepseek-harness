@@ -186,7 +186,7 @@ function executeGoalCommand(ctx: Context, invocation: CommandInvocation): Comman
   }
 }
 
-/** Register the Codex-shaped `/goal` command for every composed command adapter. */
+/** Register the `/goal` command for every composed command adapter. */
 export function apply(ctx: Context): void {
   ctx.commands.register({
     definitionId: CommandDefinitionId('@deepseek-ai/dsh-command-goal'),

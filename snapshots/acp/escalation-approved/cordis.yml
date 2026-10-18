@@ -69,12 +69,6 @@
   config:
     cwd: !!js process.cwd()
 
-- insert:
-    - id: hooks-command
-      name: '@deepseek-ai/dsh-hooks-command'
-      config:
-        configPath: ./hooks.json
-
 - id: session-log-deepseek
   config:
     enabled: false

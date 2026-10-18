@@ -45,7 +45,7 @@ export interface Config {
 
 type ResolvedConfig = Required<Config>
 
-/** A body that still carries the Claude Code-style meta header (meta rides the seam as data here). */
+/** A body that still carries the script-style meta header (meta rides the seam as data here). */
 const META_STATEMENT = /^\s*export\s+const\s+meta\b/
 
 /**

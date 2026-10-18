@@ -504,8 +504,6 @@
     { "path": "./packages/guard/repeat-tool-reminder" },
     { "path": "./packages/extensions/cordis-host-runner" },
     { "path": "./packages/extensions/tool-cordis" },
-    { "path": "./packages/experimental/hook-protocol" },
-    { "path": "./packages/hooks/hooks-command" },
     { "path": "./packages/mcp/mcp-client" },
     { "path": "./packages/mcp/mcp-resources" },
     { "path": "./packages/host/directory-picker" },

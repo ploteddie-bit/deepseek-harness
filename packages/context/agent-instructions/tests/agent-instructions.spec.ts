@@ -398,21 +398,24 @@ describe('workspace context instruction discovery', () => {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(home, 'AGENTS.md'), 'global rules')
       await write(join(root, 'AGENTS.md'), 'root agents')
-      await write(join(root, 'CLAUDE.md'), 'root legacy')
-      await write(join(root, 'packages/CLAUDE.md'), 'package legacy')
+      await write(join(root, 'AGENTS.extra.md'), 'root legacy')
+      await write(join(root, 'packages/AGENTS.extra.md'), 'package legacy')
       await write(join(cwd, 'AGENTS.md'), 'app agents')
 
       pinHarnessHome(home)
-      const files = await discoverBaselineInstructionFiles({ cwd })
+      const files = await discoverBaselineInstructionFiles({
+        cwd,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
 
       expect(files.map(file => file.displayPath)).toEqual([
         '$DSH_HOME/AGENTS.md',
         'AGENTS.md',
-        'CLAUDE.md',
-        join('packages', 'CLAUDE.md'),
+        'AGENTS.extra.md',
+        join('packages', 'AGENTS.extra.md'),
         join('packages', 'app', 'AGENTS.md'),
       ])
-      expect(files.map(file => file.absolutePath)).toContain(join(root, 'CLAUDE.md'))
+      expect(files.map(file => file.absolutePath)).toContain(join(root, 'AGENTS.extra.md'))
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -428,8 +431,8 @@ describe('workspace context instruction discovery', () => {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'root base')
       await write(join(root, 'AGENTS.local.md'), 'root local')
-      await write(join(cwd, 'CLAUDE.md'), 'pkg base')
-      await write(join(cwd, 'CLAUDE.local.md'), 'pkg local')
+      await write(join(cwd, 'AGENTS.md'), 'pkg base')
+      await write(join(cwd, 'AGENTS.local.md'), 'pkg local')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({ cwd })
@@ -437,8 +440,8 @@ describe('workspace context instruction discovery', () => {
       expect(files.map(file => file.displayPath)).toEqual([
         'AGENTS.md',
         'AGENTS.local.md',
-        join('pkg', 'CLAUDE.md'),
-        join('pkg', 'CLAUDE.local.md'),
+        join('pkg', 'AGENTS.md'),
+        join('pkg', 'AGENTS.local.md'),
       ])
     } finally {
       vi.unstubAllEnvs()
@@ -620,12 +623,12 @@ describe('workspace context instruction discovery', () => {
     }
   })
 
-  it('honors configured instruction candidates that exclude CLAUDE.md', async () => {
+  it('honors configured instruction candidates that exclude AGENTS.extra.md', async () => {
     const root = await tempRepo()
     const home = await tempRepo()
     try {
       await mkdir(join(root, '.git'), { recursive: true })
-      await write(join(root, 'CLAUDE.md'), 'legacy only')
+      await write(join(root, 'AGENTS.extra.md'), 'legacy only')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
@@ -647,16 +650,16 @@ describe('workspace context instruction discovery', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'native rule')
-      await write(join(root, 'CLAUDE.local.md'), 'local legacy rule')
-      await write(join(root, 'CLAUDE.md'), 'legacy rule')
+      await write(join(root, 'AGENTS.extra.local.md'), 'local legacy rule')
+      await write(join(root, 'AGENTS.extra.md'), 'legacy rule')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
         cwd: root,
-        instructionFileCandidates: ['CLAUDE.local.md', 'AGENTS.md', 'CLAUDE.md'],
+        instructionFileCandidates: ['AGENTS.extra.local.md', 'AGENTS.md', 'AGENTS.extra.md'],
       })
 
-      expect(files.map(file => file.displayPath)).toEqual(['CLAUDE.local.md', 'AGENTS.md', 'CLAUDE.md'])
+      expect(files.map(file => file.displayPath)).toEqual(['AGENTS.extra.local.md', 'AGENTS.md', 'AGENTS.extra.md'])
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -670,12 +673,12 @@ describe('workspace context instruction discovery', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'native rule')
-      await write(join(root, '.legacy/CLAUDE.md'), 'nested legacy rule')
+      await write(join(root, '.legacy/AGENTS.extra.md'), 'nested legacy rule')
 
       pinHarnessHome(home)
       const files = await discoverBaselineInstructionFiles({
         cwd: root,
-        instructionFileCandidates: ['', '.', '..', '.legacy/CLAUDE.md', 'nested\\CLAUDE.md', 'AGENTS.md'],
+        instructionFileCandidates: ['', '.', '..', '.legacy/AGENTS.extra.md', 'nested\\AGENTS.extra.md', 'AGENTS.md'],
       })
 
       expect(files.map(file => file.displayPath)).toEqual(['AGENTS.md'])
@@ -907,7 +910,7 @@ describe('workspace context rendering', () => {
   it('renders familiar system-reminder instructions without custom workspace tags or state markers', () => {
     const rendered = renderAgentInstructions([
       { absolutePath: '/repo/AGENTS.md', displayPath: 'AGENTS.md', content: 'root rules' },
-      { absolutePath: '/repo/pkg/CLAUDE.md', displayPath: 'pkg/CLAUDE.md', content: 'package rules' },
+      { absolutePath: '/repo/pkg/AGENTS.extra.md', displayPath: 'pkg/AGENTS.extra.md', content: 'package rules' },
     ], { maxBytes: 65536 })
 
     expect(rendered.text).toBe([
@@ -918,7 +921,7 @@ describe('workspace context rendering', () => {
       '',
       'root rules',
       '',
-      'Instructions from: pkg/CLAUDE.md',
+      'Instructions from: pkg/AGENTS.extra.md',
       '',
       'package rules',
       '</system-reminder>',
@@ -1491,10 +1494,13 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'broad instruction '.repeat(100))
-      await write(join(root, 'CLAUDE.md'), 'project instruction')
+      await write(join(root, 'AGENTS.extra.md'), 'project instruction')
       await write(join(root, 'AGENTS.local.md'), 'broad instruction '.repeat(100))
       pinHarnessHome(home)
-      await mountAgentInstructions(ctx, { maxBytes: 700 })
+      await mountAgentInstructions(ctx, {
+        maxBytes: 700,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const original = await stubAgent(root)
       await composeBaselinePrefix(ctx, original)
 
@@ -1502,7 +1508,7 @@ describe('workspace context request injection', () => {
         && event.data.source.kind === 'agent-instructions')
       expect(contexts).toHaveLength(1)
       expect(contexts[0]?.type === 'user/message' ? contexts[0].data.source : undefined).toMatchObject({
-        changes: [{ scope: sk('.', 'CLAUDE.md') }],
+        changes: [{ scope: sk('.', 'AGENTS.extra.md') }],
       })
       await syncAgentInstructions(ctx, original)
       expect(original.inbox.nextStep.filter(message => message.source.kind === 'agent-instructions')).toEqual([])
@@ -1563,7 +1569,7 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'agents rule')
-      await write(join(root, 'CLAUDE.md'), 'legacy rule')
+      await write(join(root, 'AGENTS.extra.md'), 'legacy rule')
       pinHarnessHome(home)
       await mountAgentInstructions(originalCtx, { maxBytes: 65536 })
       const original = await stubAgent(root)
@@ -1572,7 +1578,7 @@ describe('workspace context request injection', () => {
       pinHarnessHome(home)
       await mountAgentInstructions(resumedCtx, {
         maxBytes: 65536,
-        instructionFileCandidates: ['CLAUDE.md', 'AGENTS.md'],
+        instructionFileCandidates: ['AGENTS.extra.md', 'AGENTS.md'],
       })
       const resumed = await stubAgent(root, original.session.snapshotEvents())
       await composeBaselinePrefix(resumedCtx, resumed)
@@ -1584,7 +1590,7 @@ describe('workspace context request injection', () => {
         ? blocksText(replacement.data.content)
         : ''
       expect(replacementText).toContain('replaces all earlier workspace instruction baselines')
-      expect(replacementText.indexOf('Instructions from: CLAUDE.md'))
+      expect(replacementText.indexOf('Instructions from: AGENTS.extra.md'))
         .toBeLessThan(replacementText.indexOf('Instructions from: AGENTS.md'))
       const baselineIdentities = baselines.flatMap(event => event.type === 'user/message'
         && event.data.source.kind === 'agent-instructions'
@@ -1617,7 +1623,7 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'agents rule')
-      await write(join(root, 'CLAUDE.md'), 'legacy rule')
+      await write(join(root, 'AGENTS.extra.md'), 'legacy rule')
       pinHarnessHome(home)
       await mountAgentInstructions(agentsCtx, {
         maxBytes: 65536,
@@ -1629,7 +1635,7 @@ describe('workspace context request injection', () => {
       pinHarnessHome(home)
       await mountAgentInstructions(legacyCtx, {
         maxBytes: 65536,
-        instructionFileCandidates: ['CLAUDE.md'],
+        instructionFileCandidates: ['AGENTS.extra.md'],
       })
       const legacyResume = await stubAgent(root, original.session.snapshotEvents())
       await composeBaselinePrefix(legacyCtx, legacyResume)
@@ -1638,7 +1644,7 @@ describe('workspace context request injection', () => {
         ? legacyBaseline.data.source.changes
         : undefined).toMatchObject([
         { action: 'remove', scope: sk('.', 'AGENTS.md'), path: 'AGENTS.md' },
-        { action: 'set', scope: sk('.', 'CLAUDE.md'), path: 'CLAUDE.md' },
+        { action: 'set', scope: sk('.', 'AGENTS.extra.md'), path: 'AGENTS.extra.md' },
       ])
 
       pinHarnessHome(home)
@@ -1652,7 +1658,7 @@ describe('workspace context request injection', () => {
       expect(restoredBaseline?.type === 'user/message' && restoredBaseline.data.source.kind === 'agent-instructions'
         ? restoredBaseline.data.source.changes
         : undefined).toMatchObject([
-        { action: 'remove', scope: sk('.', 'CLAUDE.md'), path: 'CLAUDE.md' },
+        { action: 'remove', scope: sk('.', 'AGENTS.extra.md'), path: 'AGENTS.extra.md' },
         { action: 'set', scope: sk('.', 'AGENTS.md'), path: 'AGENTS.md' },
       ])
     } finally {
@@ -2907,12 +2913,15 @@ describe('workspace context request injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'AGENTS.md'), 'shared repo rule')
-      await write(join(root, 'CLAUDE.md'), '  shared repo rule\n\n')
+      await write(join(root, 'AGENTS.extra.md'), '  shared repo rule\n\n')
       await write(join(root, 'file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
-      await mountFileToolsAndAgentInstructions(ctx, { maxBytes: 65536 })
+      await mountFileToolsAndAgentInstructions(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await composeBaselinePrefix(ctx, agent)
@@ -2920,7 +2929,7 @@ describe('workspace context request injection', () => {
       const text = derivedText(agent)
       expect(text.match(/shared repo rule/g)).toHaveLength(1)
       expect(text).toContain('Instructions from: AGENTS.md')
-      expect(text).not.toContain('Instructions from: CLAUDE.md')
+      expect(text).not.toContain('Instructions from: AGENTS.extra.md')
       // The kept candidate's original bytes are rendered, not the whitespace-padded duplicate.
       expect(text).not.toContain('  shared repo rule')
     } finally {
@@ -3154,22 +3163,25 @@ describe('workspace context request injection', () => {
     }
   })
 
-  it('loads user-global and CLAUDE fallback content through ctx.fs', async () => {
+  it('loads user-global and AGENTS.extra fallback content through ctx.fs', async () => {
     const root = await tempRepo()
     const home = await tempRepo()
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(home, 'AGENTS.md'), 'node global rule')
-      await write(join(root, 'CLAUDE.md'), 'node legacy rule')
+      await write(join(root, 'AGENTS.extra.md'), 'node legacy rule')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       await ctx.plugin(RecordingFileSystem)
       const fs = ctx.fs as RecordingFileSystem
       fs.entries.set(join(root, '.git'), { type: 'directory' })
       fs.entries.set(join(home, 'AGENTS.md'), { type: 'file', content: 'ctx global rule' })
-      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'ctx legacy rule' })
+      fs.entries.set(join(root, 'AGENTS.extra.md'), { type: 'file', content: 'ctx legacy rule' })
       pinHarnessHome(home)
-      await mountAgentInstructionsPlugin(ctx, { maxBytes: 65536 })
+      await mountAgentInstructionsPlugin(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await composeBaselinePrefix(ctx, agent)
@@ -3273,15 +3285,18 @@ describe('workspace context request injection', () => {
       const fs = ctx.fs as RecordingFileSystem
       fs.entries.set(join(root, '.git'), { type: 'directory' })
       fs.throwOnStat.add(join(root, 'AGENTS.md'))
-      fs.entries.set(join(root, 'CLAUDE.md'), { type: 'file', content: 'legacy sibling rule' })
+      fs.entries.set(join(root, 'AGENTS.extra.md'), { type: 'file', content: 'legacy sibling rule' })
       pinHarnessHome(home)
-      await mountAgentInstructionsPlugin(ctx, { maxBytes: 65536 })
+      await mountAgentInstructionsPlugin(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await composeBaselinePrefix(ctx, agent)
 
       expect(derivedText(agent)).toContain('legacy sibling rule')
-      expect(fs.readTargets).toContain(join(root, 'CLAUDE.md'))
+      expect(fs.readTargets).toContain(join(root, 'AGENTS.extra.md'))
       expect(fs.readTargets).not.toContain(join(root, 'AGENTS.md'))
     } finally {
       vi.unstubAllEnvs()
@@ -3541,7 +3556,7 @@ describe('workspace context request injection', () => {
     const home = await tempRepo()
     try {
       await mkdir(join(root, '.git'), { recursive: true })
-      await write(join(root, 'CLAUDE.md'), 'legacy host sibling rule')
+      await write(join(root, 'AGENTS.extra.md'), 'legacy host sibling rule')
       vi.resetModules()
       vi.doMock('node:fs/promises', async (importOriginal) => {
         const actual = await importOriginal<typeof import('node:fs/promises')>()
@@ -3558,7 +3573,11 @@ describe('workspace context request injection', () => {
       const isolated = await import('@deepseek-ai/dsh-agent-instructions')
 
       pinHarnessHome(home)
-      const rendered = await isolated.loadBaselineInstructions({ cwd: root, maxBytes: 65536 })
+      const rendered = await isolated.loadBaselineInstructions({
+        cwd: root,
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
 
       expect(rendered?.text).toContain('legacy host sibling rule')
     } finally {
@@ -3834,14 +3853,14 @@ describe('dynamic nested workspace context injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'pkg/AGENTS.md'), 'native package rule')
-      await write(join(root, 'pkg/CLAUDE.local.md'), 'local package rule')
+      await write(join(root, 'pkg/AGENTS.extra.local.md'), 'local package rule')
       await write(join(root, 'pkg/deep/file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
       await mountFileToolsAndAgentInstructions(ctx, {
         maxBytes: 65536,
-        instructionFileCandidates: ['CLAUDE.local.md', 'AGENTS.md', 'CLAUDE.md'],
+        instructionFileCandidates: ['AGENTS.extra.local.md', 'AGENTS.md', 'AGENTS.extra.md'],
       })
       const agent = await stubAgent(root)
 
@@ -3854,11 +3873,11 @@ describe('dynamic nested workspace context injection', () => {
       })
 
       const text = blocksText(((await syncedAgentInstructions(ctx, agent))).content)
-      expect(text).toContain(`Additional instructions from: ${join('pkg', 'CLAUDE.local.md')}`)
+      expect(text).toContain(`Additional instructions from: ${join('pkg', 'AGENTS.extra.local.md')}`)
       expect(text).toContain('local package rule')
       expect(text).toContain(`Additional instructions from: ${join('pkg', 'AGENTS.md')}`)
       expect(text).toContain('native package rule')
-      expect(text.indexOf(join('pkg', 'CLAUDE.local.md'))).toBeLessThan(text.indexOf(join('pkg', 'AGENTS.md')))
+      expect(text.indexOf(join('pkg', 'AGENTS.extra.local.md'))).toBeLessThan(text.indexOf(join('pkg', 'AGENTS.md')))
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -4165,12 +4184,15 @@ describe('dynamic nested workspace context injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'pkg/AGENTS.md'), 'native package rule')
-      await write(join(root, 'pkg/CLAUDE.md'), 'sibling package rule')
+      await write(join(root, 'pkg/AGENTS.extra.md'), 'sibling package rule')
       await write(join(root, 'pkg/file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
-      await mountFileToolsAndAgentInstructions(ctx, { maxBytes: 65536 })
+      await mountFileToolsAndAgentInstructions(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await ctx.tools.execute({
@@ -4206,12 +4228,15 @@ describe('dynamic nested workspace context injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'pkg/AGENTS.md'), 'nested rule')
-      await write(join(root, 'pkg/CLAUDE.md'), 'nested rule')
+      await write(join(root, 'pkg/AGENTS.extra.md'), 'nested rule')
       await write(join(root, 'pkg/deep/file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
-      await mountFileToolsAndAgentInstructions(ctx, { maxBytes: 65536 })
+      await mountFileToolsAndAgentInstructions(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await ctx.tools.execute({
@@ -4225,7 +4250,7 @@ describe('dynamic nested workspace context injection', () => {
       const text = blocksText(((await syncedAgentInstructions(ctx, agent))).content)
       expect(text.match(/nested rule/g)).toHaveLength(1)
       expect(text).toContain(`Additional instructions from: ${join('pkg', 'AGENTS.md')}`)
-      expect(text).not.toContain(join('pkg', 'CLAUDE.md'))
+      expect(text).not.toContain(join('pkg', 'AGENTS.extra.md'))
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -4244,7 +4269,7 @@ describe('dynamic nested workspace context injection', () => {
         await ctx.plugin(RecordingFileSystem)
         const fs = ctx.fs as RecordingFileSystem
         fs.entries.set(join(root, '.git'), { type: 'directory' })
-        fs.entries.set(join(root, 'pkg/CLAUDE.md'), { type: 'file', content: 'nested rule' })
+        fs.entries.set(join(root, 'pkg/AGENTS.extra.md'), { type: 'file', content: 'nested rule' })
         fs.throwOnStat.add(join(root, 'pkg/AGENTS.md'))
         const agent = await stubAgent(root)
         const agentsScope = sk('pkg', 'AGENTS.md')
@@ -4266,8 +4291,8 @@ describe('dynamic nested workspace context injection', () => {
         const authorityMessages = authority === 'claimed' ? [authoritative] : []
 
         for (const instructionFileCandidates of [
-          ['AGENTS.md', 'CLAUDE.md'],
-          ['CLAUDE.md', 'AGENTS.md'],
+          ['AGENTS.md', 'AGENTS.extra.md'],
+          ['AGENTS.extra.md', 'AGENTS.md'],
         ]) {
           pinHarnessHome(home)
           const resolved = resolveConfig({
@@ -4444,12 +4469,15 @@ describe('dynamic nested workspace context injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'pkg/AGENTS.md'), 'canonical nested rule')
-      await write(join(root, 'pkg/CLAUDE.md'), 'initial divergent nested rule')
+      await write(join(root, 'pkg/AGENTS.extra.md'), 'initial divergent nested rule')
       await write(join(root, 'pkg/file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
-      await mountFileToolsAndAgentInstructions(ctx, { maxBytes: 65536 })
+      await mountFileToolsAndAgentInstructions(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await ctx.tools.execute({
@@ -4460,7 +4488,7 @@ describe('dynamic nested workspace context injection', () => {
       expect(firstText).toContain('canonical nested rule')
       expect(firstText).toContain('initial divergent nested rule')
       await appendAdditionalContexts(ctx, agent)
-      await write(join(root, 'pkg/CLAUDE.md'), 'canonical nested rule')
+      await write(join(root, 'pkg/AGENTS.extra.md'), 'canonical nested rule')
       await ctx.tools.execute({
         signal: testToolSignal,
         callId: ToolCallId('read-after-dup-convergence'), name: 'read', arguments: { file_path: join('pkg', 'file.txt') }, agent,
@@ -4468,9 +4496,9 @@ describe('dynamic nested workspace context injection', () => {
 
       const convergence = await syncedAgentInstructions(ctx, agent)
       expect(convergence.source).toMatchObject({
-        changes: [{ action: 'remove', scope: sk('pkg', 'CLAUDE.md'), path: join('pkg', 'CLAUDE.md') }],
+        changes: [{ action: 'remove', scope: sk('pkg', 'AGENTS.extra.md'), path: join('pkg', 'AGENTS.extra.md') }],
       })
-      expect(blocksText(convergence.content)).toContain(`Instructions removed: ${join('pkg', 'CLAUDE.md')}`)
+      expect(blocksText(convergence.content)).toContain(`Instructions removed: ${join('pkg', 'AGENTS.extra.md')}`)
     } finally {
       vi.unstubAllEnvs()
       await rm(root, { recursive: true, force: true })
@@ -4484,12 +4512,15 @@ describe('dynamic nested workspace context injection', () => {
     try {
       await mkdir(join(root, '.git'), { recursive: true })
       await write(join(root, 'pkg/AGENTS.md'), 'primary nested rule')
-      await write(join(root, 'pkg/CLAUDE.md'), 'secondary nested rule')
+      await write(join(root, 'pkg/AGENTS.extra.md'), 'secondary nested rule')
       await write(join(root, 'pkg/file.txt'), 'hello')
       const ctx = new Context()
       provideWorkingDirectoryFixture(ctx)
       pinHarnessHome(home)
-      await mountFileToolsAndAgentInstructions(ctx, { maxBytes: 65536 })
+      await mountFileToolsAndAgentInstructions(ctx, {
+        maxBytes: 65536,
+        instructionFileCandidates: ['AGENTS.md', 'AGENTS.extra.md'],
+      })
       const agent = await stubAgent(root)
 
       await ctx.tools.execute({
@@ -4507,11 +4538,11 @@ describe('dynamic nested workspace context injection', () => {
       expect(((await syncedAgentInstructions(ctx, agent))).source).toMatchObject({
         changes: [
           { action: 'replace', scope: sk('pkg', 'AGENTS.md'), path: join('pkg', 'AGENTS.md') },
-          { action: 'remove', scope: sk('pkg', 'CLAUDE.md'), path: join('pkg', 'CLAUDE.md') },
+          { action: 'remove', scope: sk('pkg', 'AGENTS.extra.md'), path: join('pkg', 'AGENTS.extra.md') },
         ],
       })
       const text = blocksText(((await syncedAgentInstructions(ctx, agent))).content)
-      expect(text).toContain(`Instructions removed: ${join('pkg', 'CLAUDE.md')}`)
+      expect(text).toContain(`Instructions removed: ${join('pkg', 'AGENTS.extra.md')}`)
       expect(text).toContain(`Updated instructions from: ${join('pkg', 'AGENTS.md')}`)
     } finally {
       vi.unstubAllEnvs()

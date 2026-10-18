@@ -31,7 +31,7 @@ export interface ExecutionObserver {
 
 /** The `agent()` options the script may pass; everything else rejects loud. */
 const SUPPORTED_AGENT_OPTIONS = new Set(['label', 'phase', 'schema', 'provider', 'model'])
-/** Deferred Claude Code options we name explicitly in the rejection message. */
+/** Deferred script options we name explicitly in the rejection message. */
 const DEFERRED_AGENT_OPTIONS = new Set(['effort', 'isolation', 'agentType'])
 
 /** Flatten a child's final output blocks to text (the non-schema `agent()` result). */
