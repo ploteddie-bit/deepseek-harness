@@ -222,7 +222,7 @@ description: "Chat 过程分组与活动摘要的明细业务规则。"
 | `T1 → steering → T2` | `G[T1] → steering → G[T2]` |
 | `T1(turn=1) → U(no turn) → T2(turn=1)` | `G[T1] → U → G[T2]` |
 | `A1(reply)` | `A1.response`，不产生过程组 |
-| `read → bash → subagent_codex`，中间没有回复或输入 | 同一组；工具类别变化不会拆组。 |
+| `read → bash → subagent_agent_sdk`，中间没有回复或输入 | 同一组；工具类别变化不会拆组。 |
 | `run_code` 内含 `read`、`bash` 子调用 | `run_code` 工具 Node 是一个组成员，其嵌套调用不产生独立根引用。 |
 | 工具收到失败结果 | 更新该成员，不因此拆组；另外产生的 `turn-error` Node 才会截断序列。 |
 
@@ -276,14 +276,14 @@ Subagent 工具遵循普通分组边界，不会仅因委派任务就单独成�
 
 | 情况 | 类别与活动规则 |
 |---|---|
-| `subagent`、`subagent_codex`、`subagent_agent_sdk` 或其他 `subagent_*` 名称 | 每个不同 `callId` 计一次 `subagents`，但先命中更靠前的名称规则时除外；provider 和 model 选择不改变类别。 |
+| `subagent`、`subagent_agent_sdk`、`subagent_agent_sdk` 或其他 `subagent_*` 名称 | 每个不同 `callId` 计一次 `subagents`，但先命中更靠前的名称规则时除外；provider 和 model 选择不改变类别。 |
 | 配置为 `subagent_inspect` 这样的名称 | 归 `search`：`_inspect` 后缀先于 `subagent_` 前缀匹配；同理，`terminal_inspect` 归 `search` 而不是 `commands`。 |
 | 子代理控制工具 `send_message`、`list_agents`、`list_subagent_models`，以及任务控制工具 `job_output`、`job_kill` | 归 `tools`，不归 `subagents`；业务用途不覆盖名称表。 |
 | 委派工具被改为表外名称，例如 `research_agent` | 即使调用相同的 subagent provider，也归 `tools`。 |
 | 后台 subagent 的启动调用已返回工具结果，但子代理仍在运行 | 保留类别次数，但该调用不再参与运行中活动选择；子代理的执行不会维持父组的 subagent 活动状态。 |
 | 工具调用只记录在子 Session 中 | 不纳入父组计数或实时详情；只有实际附在本组成员 `subCalls` 中的调用才递归参与。 |
 
-`run_code` 根调用自身计一次 `code`，已记录的每个 PTC 子调用另按自己的类别计数。不会用叶子调用替代包装调用，也不会把子调用统一归为 `code`。各调用 id 不同时，`run_code → [read, bash, subagent_codex]` 得到 `code=1, read=1, commands=1, subagents=1`，同次数时按此顺序排列。外层 `run_code` 仍在运行时，组的实时类别可以由子调用决定。
+`run_code` 根调用自身计一次 `code`，已记录的每个 PTC 子调用另按自己的类别计数。不会用叶子调用替代包装调用，也不会把子调用统一归为 `code`。各调用 id 不同时，`run_code → [read, bash, subagent_agent_sdk]` 得到 `code=1, read=1, commands=1, subagents=1`，同次数时按此顺序排列。外层 `run_code` 仍在运行时，组的实时类别可以由子调用决定。
 
 精确名称规则也意味着：记录为 `functions.read`、`mcp.read` 或 `Read` 的名称归 `tools`，`browser_inspect` 归 `search`。`terminal_*` 即使只检查或关闭终端，也按命令规则分类，除非先命中 `_inspect` 规则。
 

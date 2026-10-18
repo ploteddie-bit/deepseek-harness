@@ -22,9 +22,6 @@ coverage/
 oxlint-contract-*.ts
 .humanize/
 tmp/
-.claude/commands/
-.claude/launch.json
-.claude/settings.json
 .vscode/
 .DS_Store
 .idea

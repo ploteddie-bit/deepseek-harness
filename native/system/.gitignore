@@ -4,7 +4,6 @@
 packages/*/bin/
 packages/*/lib/
 
-/.claude/
 /.release/
 dist/
 node_modules/

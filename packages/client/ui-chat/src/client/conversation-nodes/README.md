@@ -222,7 +222,7 @@ A reply contains non-blank text, an image, or another visible block; reasoning a
 | `T1 → steering → T2` | `G[T1] → steering → G[T2]` |
 | `T1(turn=1) → U(no turn) → T2(turn=1)` | `G[T1] → U → G[T2]` |
 | `A1(reply)` | `A1.response`, without a process group |
-| `read → bash → subagent_codex` without an intervening reply or input | One group; changing tool category does not split it. |
+| `read → bash → subagent_agent_sdk` without an intervening reply or input | One group; changing tool category does not split it. |
 | `run_code` with nested `read` and `bash` calls | One group member for the `run_code` tool Node; its nested calls do not create separate roots. |
 | A tool receives a failed result | Update that member without splitting its group; a separate `turn-error` Node does split the sequence. |
 
@@ -276,14 +276,14 @@ A subagent tool follows ordinary group boundaries: it does not create a group me
 
 | Case | Category and activity behavior |
 |---|---|
-| `subagent`, `subagent_codex`, `subagent_agent_sdk`, or another `subagent_*` name | Count one `subagents` call per distinct `callId`, unless an earlier name rule matches. Provider and model choices do not change the category. |
+| `subagent`, `subagent_agent_sdk`, `subagent_agent_sdk`, or another `subagent_*` name | Count one `subagents` call per distinct `callId`, unless an earlier name rule matches. Provider and model choices do not change the category. |
 | A configured name such as `subagent_inspect` | Classify as `search`: suffix `_inspect` is checked before prefix `subagent_`. The same precedence makes `terminal_inspect` a `search` call rather than `commands`. |
 | Subagent controls `send_message`, `list_agents`, and `list_subagent_models`; job controls `job_output` and `job_kill` | Classify as `tools`, not `subagents`. Their business purpose does not override the name table. |
 | A delegation tool renamed to a name outside the table, such as `research_agent` | Classify as `tools`, even if it invokes the same subagent provider. |
 | Background subagent startup has returned its tool result, while the child is still running | Keep its category count, but remove that call from running-activity candidates. The child does not keep the parent's group in the subagent activity state. |
 | Tool calls recorded only in a child Session | Do not include them in the parent group's counts or live detail. Only calls actually attached to a member's `subCalls` participate recursively. |
 
-A `run_code` root counts once as `code`; its recorded PTC subcalls each count in their own categories. The wrapper is not replaced by leaf-call counts, and children are not all classified as `code`. With distinct call ids, `run_code → [read, bash, subagent_codex]` produces `code=1, read=1, commands=1, subagents=1`, in that tie order. A subcall can supply the live category while the outer `run_code` remains running.
+A `run_code` root counts once as `code`; its recorded PTC subcalls each count in their own categories. The wrapper is not replaced by leaf-call counts, and children are not all classified as `code`. With distinct call ids, `run_code → [read, bash, subagent_agent_sdk]` produces `code=1, read=1, commands=1, subagents=1`, in that tie order. A subcall can supply the live category while the outer `run_code` remains running.
 
 Exact-name rules also mean that a recorded name such as `functions.read`, `mcp.read`, or `Read` falls into `tools`, while `browser_inspect` falls into `search`. A `terminal_*` name follows the command rule even when its operation only inspects or closes a terminal, unless the earlier `_inspect` rule matches.
 
