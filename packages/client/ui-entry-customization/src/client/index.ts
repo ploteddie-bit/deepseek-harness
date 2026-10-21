@@ -1,6 +1,7 @@
 /** Rows for the More menus of the left sidebar, Conversation View tabs, and right-sidebar guide. */
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-product-analytics/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
 import type {} from '@deepseek-ai/dsh-client-ui-sidebar/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
@@ -29,8 +30,12 @@ export function apply(ctx: Context): void {
   const t = ctx.locale.bind('entryCustomization')
   const injected = (region: EntryRegion): EntryMenuInjected => ({
     region,
-    browsePlugins: () => { ctx.pluginNavigation.openList() },
+    browsePlugins: () => {
+      ctx.get('productAnalytics')?.track('more_menu_item_click', { region, action: 'browse_plugins' })
+      ctx.pluginNavigation.openList()
+    },
     createPlugin: () => {
+      ctx.get('productAnalytics')?.track('more_menu_item_click', { region, action: 'create_plugin' })
       ctx.uiWorkspace.startSession(undefined, {
         agentPreset: 'cordis', prompt: t(`createPrompt.${region}`), whenDraftExists: 'append',
       })
