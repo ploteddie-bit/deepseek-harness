@@ -1,7 +1,7 @@
 {
   "name": "@deepseek-ai/dsh-code-index",
   "description": "Workspace code index: SQLite FTS5 trigram text search plus TypeScript AST symbol extraction, served through ctx.codeIndex and the code_search tool",
-  "version": "0.2.1-rc.2",
+  "version": "0.2.1-rc.3",
   "publishConfig": {
     "access": "public"
   },
